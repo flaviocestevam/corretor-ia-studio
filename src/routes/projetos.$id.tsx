@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { SignedImage } from "@/components/signed-image";
+import { ConfirmButton } from "@/components/confirm-button";
 import {
   Sparkles, Wand2, FileText, Video, Check, Copy, Download, Loader2, Trash2,
   ArrowDown, ArrowUp, Plus, PlayCircle,
@@ -87,15 +88,15 @@ function ProjectDetail() {
     const target = idx + dir;
     if (idx < 0 || target < 0 || target >= arr.length) return;
     const a = arr[idx], b = arr[target];
-    // swap scene_order
-    await supabase.from("scenes").update({ scene_order: -1 }).eq("id", a.id);
-    await supabase.from("scenes").update({ scene_order: a.scene_order }).eq("id", b.id);
-    await supabase.from("scenes").update({ scene_order: b.scene_order }).eq("id", a.id);
+    const [r1, r2] = await Promise.all([
+      supabase.from("scenes").update({ scene_order: b.scene_order }).eq("id", a.id),
+      supabase.from("scenes").update({ scene_order: a.scene_order }).eq("id", b.id),
+    ]);
+    if (r1.error || r2.error) toast.error("Falha ao reordenar — recarregue a página");
     refresh();
   }
 
   async function removeScene(sceneId: string) {
-    if (!confirm("Excluir esta cena?")) return;
     const { error } = await supabase.from("scenes").delete().eq("id", sceneId);
     if (error) toast.error(error.message);
     else { toast.success("Cena excluída"); refresh(); }
@@ -128,22 +129,27 @@ function ProjectDetail() {
     if (!data) return;
     const zip = new JSZip();
     const folder = zip.folder(data.project.name) ?? zip;
-    folder.file("personagem.txt", `${data.character.name}\n\n${data.character.short_bio ?? ""}`);
+    folder.file(
+      "personagem.txt",
+      `${data.character?.name ?? "(personagem removido)"}\n\n${data.character?.short_bio ?? ""}`,
+    );
     const sequence: string[] = [];
 
-    for (const s of data.scenes) {
-      const sub = folder.folder(`cena-${String(s.scene_order).padStart(2, "0")}-${s.room_name}`)!;
-      sequence.push(`Cena ${s.scene_order} — ${s.room_name}\n${s.selected_script ?? "(roteiro não escolhido)"}\n`);
-      if (s.original_room_image) {
-        try { sub.file("original.jpg", await downloadAsBlob(s.original_room_image)); } catch {}
-      }
-      if (s.generated_character_image) {
-        try { sub.file("gerada.png", await downloadAsBlob(s.generated_character_image)); } catch {}
-      }
-      sub.file("roteiro.txt", s.selected_script ?? "");
-      sub.file("prompt-imagem.txt", s.image_prompt ?? "");
-      sub.file("prompt-video.txt", s.video_prompt ?? "");
-    }
+    await Promise.all(
+      data.scenes.map(async (s) => {
+        const sub = folder.folder(`cena-${String(s.scene_order).padStart(2, "0")}-${s.room_name}`)!;
+        sequence.push(`Cena ${s.scene_order} — ${s.room_name}\n${s.selected_script ?? "(roteiro não escolhido)"}\n`);
+        const [orig, gen] = await Promise.all([
+          s.original_room_image ? downloadAsBlob(s.original_room_image).catch(() => null) : null,
+          s.generated_character_image ? downloadAsBlob(s.generated_character_image).catch(() => null) : null,
+        ]);
+        if (orig) sub.file("original.jpg", orig);
+        if (gen) sub.file("gerada.png", gen);
+        sub.file("roteiro.txt", s.selected_script ?? "");
+        sub.file("prompt-imagem.txt", s.image_prompt ?? "");
+        sub.file("prompt-video.txt", s.video_prompt ?? "");
+      }),
+    );
     folder.file("sequencia-final.txt", sequence.join("\n---\n"));
     const blob = await zip.generateAsync({ type: "blob" });
     saveAs(blob, `${data.project.name}.zip`);
@@ -179,15 +185,18 @@ function ProjectDetail() {
           <Button variant="outline" onClick={downloadAll}>
             <Download className="mr-1.5 h-4 w-4" />Baixar pacote
           </Button>
-          <Button
+          <ConfirmButton
             variant="ghost"
             size="icon"
-            onClick={() => {
-              if (confirm("Excluir projeto e todas as cenas?")) deleteProject.mutate();
-            }}
+            destructive
+            title="Excluir projeto?"
+            description="Isso apaga o projeto e todas as cenas. Não dá pra desfazer."
+            confirmLabel="Excluir"
+            onConfirm={() => deleteProject.mutate()}
+            aria-label="Excluir projeto"
           >
             <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
+          </ConfirmButton>
         </div>
       </div>
 
