@@ -35,6 +35,16 @@ function extractJSON(raw: string) {
   return JSON.parse(cleaned.slice(start, end + 1));
 }
 
+function removeIntermediateCta(script: string) {
+  const ctaPattern = /\b(link da bio|bio|comenta\s+info|comente\s+info|manda\s+info|direct|chama|me chama|clica|clique|arrasta|agenda|agendar|visita|quer saber mais|te mando|falo contigo|fala comigo|entra em contato|contato)\b/i;
+  const parts = script
+    .split(/(?<=[.!?])\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const filtered = parts.filter((part) => !ctaPattern.test(part));
+  return (filtered.length ? filtered : parts.slice(0, 1)).join(" ").trim();
+}
+
 // ============ GERAR HOOKS ============
 const GenHooksInput = z.object({
   characterId: z.string().uuid(),
@@ -149,23 +159,38 @@ ${previousScripts.map((p, i) => `Cena ${i + 1} — ${p.room}: "${p.script}"`).jo
 ${existingOptions.map((s, i) => `${i + 1}) "${s}"`).join("\n")}`
       : "";
 
+    const scriptEndingRule = data.isLastScene
+      ? "Esta é a ÚLTIMA cena do projeto: os roteiros DEVEM terminar com CTA forte usando, no máximo, um CTA do personagem."
+      : "Esta NÃO é a última cena do projeto: é PROIBIDO usar CTA. NÃO peça link da bio, direct, comentário, INFO, visita, contato, clique ou mensagem. Termine com observação do ambiente ou gancho natural para a próxima cena.";
+
+    const durationRule = data.isLastScene
+      ? `- Máximo 10s de fala, máximo 25 palavras.
+- Estrutura: abertura curta + 1 frase nomeando algo concreto do "${data.roomName}" + CTA curto.`
+      : `- Máximo 10s de fala, máximo 22 palavras.
+- Estrutura: abertura curta + 1 frase nomeando algo concreto do "${data.roomName}" + fechamento SEM CTA.`;
+
+    const responseRule = data.isLastScene
+      ? `Responda APENAS com JSON array de 3 strings DISTINTAS (cada uma citando um item físico DIFERENTE do "${data.roomName}" e terminando com CTA):`
+      : `Responda APENAS com JSON array de 3 strings DISTINTAS (cada uma citando um item físico DIFERENTE do "${data.roomName}" e SEM CTA):`;
+
     const prompt = `Você é roteirista de Reels imobiliários verticais 9:16.
 Personagem: "${char.name}"
 Personalidade: ${char.personality}
 Jeito de falar: ${char.speaking_style}
 Bordões: ${(char.catchphrases as string[])?.join(" | ")}
-CTAs do personagem: ${ctas}
+${data.isLastScene ? `CTAs do personagem: ${ctas}` : "CTAs do personagem: NÃO USAR NESTA CENA"}
 
 CENA ATUAL: cômodo "${data.roomName}" (cena nº ${currentScene?.scene_order ?? "?"})
 Hook escolhido para ESTA cena: "${data.selectedHook}"
 
 ${historyBlock}${avoidBlock}
 
-${data.isLastScene ? "Esta é a ÚLTIMA cena: termine com CTA FORTE mandando pro link da bio." : "Cena intermediária: termine com CTA curto OU gancho pra próxima."}
+${scriptEndingRule}
 
 REGRAS DE CONTEÚDO (CRÍTICO — descumprir = resposta REJEITADA):
 - Cada roteiro PRECISA mencionar EXPLICITAMENTE pelo menos 1 elemento físico concreto do cômodo "${data.roomName}" (ex: cozinha → bancada de granito/cooktop/armário planejado; sala → sofá/TV/varanda; quarto → cama/closet/cabeceira; banheiro → box/bancada dupla/chuveiro). NÃO vale dizer só "esse espaço", "isso aqui", "que lugar" — TEM que nomear o item.
 - PROIBIDO usar apenas frases genéricas tipo "isso aqui é fino", "que espetáculo", "olha que coisa" sem citar um item real do cômodo.
+- Se esta cena NÃO for a última, CTA é PROIBIDO em todas as 3 opções.
 - NÃO copie estrutura nem comparações das cenas anteriores. Cada cena é um novo momento do tour.
 - As 3 opções devem ser DIFERENTES ENTRE SI: ângulos, elementos citados, emoções e palavras distintas.
 
@@ -174,19 +199,20 @@ REGRAS DE ABERTURA (CRÍTICO):
 - ROTEIRO 2 e ROTEIRO 3 PRECISAM começar com aberturas DIFERENTES (parafrasear o hook, usar outra exclamação curta, ou ir direto pro item do cômodo). PROIBIDO repetir literalmente o hook no 2 e no 3.
 
 REGRAS DE DURAÇÃO (OBRIGATÓRIAS):
-- Máximo 10s de fala, máximo 25 palavras (abertura + comentário + CTA).
-- Estrutura: abertura curta + 1 frase nomeando algo concreto do "${data.roomName}" + CTA curto.
+${durationRule}
 - Sem introduções nem narração extra.
 
 PROIBIDO: "excelente oportunidade", "empreendimento diferenciado", "alto padrão" genérico, "venha conhecer", "imóvel dos sonhos", "localização privilegiada" sem contexto.
 USE: pra, tá, olha isso, isso aqui, calma, vou falar a verdade.
 
-Responda APENAS com JSON array de 3 strings DISTINTAS (cada uma citando um item físico DIFERENTE do "${data.roomName}"):
+${responseRule}
 ["roteiro 1", "roteiro 2", "roteiro 3"]`;
 
 
     const raw = await chat([{ role: "user", content: prompt }]);
-    const scripts = extractJSON(raw);
+    const scripts = (extractJSON(raw) as string[]).map((script) =>
+      data.isLastScene ? script : removeIntermediateCta(script),
+    );
 
     await supabaseAdmin
       .from("scenes")
