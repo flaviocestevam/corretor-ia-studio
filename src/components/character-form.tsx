@@ -198,7 +198,7 @@ export function CharacterForm({ initial, characterId }: Props) {
             <Label className="flex items-center gap-1.5"><UserSquare className="h-3.5 w-3.5" />Corpo inteiro</Label>
             {bodyRef ? (
               <div className="relative group">
-                <SignedImage path={bodyRef} alt="" className="w-full aspect-square rounded-md object-cover" />
+                <SignedImage path={bodyRef} alt="" className="w-full aspect-[9/16] rounded-md object-contain bg-muted" />
                 <button type="button" onClick={() => setBodyRef(null)} className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1">
                   <Trash2 className="h-3 w-3" />
                 </button>
