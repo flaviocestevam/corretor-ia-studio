@@ -58,18 +58,18 @@ function PersonagensList() {
   }
 
   return (
-    <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-6">
-      <div className="flex items-end justify-between gap-2 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Personagens</h1>
-          <p className="text-muted-foreground mt-1">Seus corretores IA prontos para entrar em cena.</p>
+    <div className="px-4 py-6 sm:px-6 md:p-10 max-w-7xl mx-auto space-y-6 w-full overflow-x-hidden">
+      <div className="grid grid-cols-1 gap-4 sm:flex sm:items-end sm:justify-between sm:flex-wrap">
+        <div className="min-w-0">
+          <h1 className="font-bold tracking-tight text-[clamp(1.75rem,4vw,2rem)]">Personagens</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">Seus corretores IA prontos para entrar em cena.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap sm:flex-nowrap">
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline"><Upload className="mr-1.5 h-4 w-4" />Importar JSON</Button>
+              <Button variant="outline" className="flex-1 sm:flex-none min-h-11"><Upload className="mr-1.5 h-4 w-4" />Importar JSON</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl w-[calc(100vw-2rem)] sm:w-full max-h-[90dvh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Importar personagens (JSON)</DialogTitle>
               </DialogHeader>
