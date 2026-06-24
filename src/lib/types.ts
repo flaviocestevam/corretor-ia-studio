@@ -18,6 +18,9 @@ export interface Character {
   catchphrases: string[];
   canonical_prompt: string | null;
   canonical_images: string[];
+  face_reference_image: string | null;
+  body_reference_image: string | null;
+  active_outfit_image: string | null;
   hooks: CharacterHook[];
   ctas: CharacterCTA[];
   created_at: string;

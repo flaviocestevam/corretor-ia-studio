@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2, Save } from "lucide-react";
+import { Plus, Trash2, Save, Check, Shirt, User, UserSquare } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { uploadSceneFile } from "@/lib/storage";
 import { SignedImage } from "@/components/signed-image";
@@ -28,6 +29,9 @@ export function CharacterForm({ initial, characterId }: Props) {
   const [catchphrases, setCatchphrases] = useState<string[]>(initial?.catchphrases ?? [""]);
   const [canonicalPrompt, setCanonicalPrompt] = useState(initial?.canonical_prompt ?? "");
   const [canonicalImages, setCanonicalImages] = useState<string[]>(initial?.canonical_images ?? []);
+  const [faceRef, setFaceRef] = useState<string | null>(initial?.face_reference_image ?? null);
+  const [bodyRef, setBodyRef] = useState<string | null>(initial?.body_reference_image ?? null);
+  const [activeOutfit, setActiveOutfit] = useState<string | null>(initial?.active_outfit_image ?? null);
   const [hooks, setHooks] = useState<CharacterHook[]>(
     initial?.hooks ?? [{ text: "", action: "", duration: 4 }],
   );
@@ -43,6 +47,9 @@ export function CharacterForm({ initial, characterId }: Props) {
         catchphrases: catchphrases.filter((c) => c.trim()) as any,
         canonical_prompt: canonicalPrompt,
         canonical_images: canonicalImages as any,
+        face_reference_image: faceRef,
+        body_reference_image: bodyRef,
+        active_outfit_image: activeOutfit,
         hooks: hooks.filter((h) => h.text.trim()) as any,
         ctas: ctas.filter((c) => c.text.trim()) as any,
       };
@@ -74,8 +81,30 @@ export function CharacterForm({ initial, characterId }: Props) {
         const p = await uploadSceneFile(f, "characters", "original");
         paths.push(p);
       }
-      setCanonicalImages((prev) => [...prev, ...paths]);
-      toast.success(`${paths.length} imagem(ns) adicionada(s)`);
+      setCanonicalImages((prev) => {
+        const next = [...prev, ...paths];
+        // se ainda não tem roupa ativa definida, marca a primeira nova como ativa
+        if (!activeOutfit && paths[0]) setActiveOutfit(paths[0]);
+        return next;
+      });
+      toast.success(`${paths.length} look(s) adicionado(s)`);
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      e.target.value = "";
+    }
+  }
+
+  async function handleSingleUpload(
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: (p: string | null) => void,
+  ) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    try {
+      const p = await uploadSceneFile(f, "characters", "original");
+      setter(p);
+      toast.success("Foto salva");
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
@@ -145,23 +174,83 @@ export function CharacterForm({ initial, characterId }: Props) {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Fotos canônicas</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Fotos de referência fixas</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Sempre enviadas para a IA junto da roupa ativa. Mantêm a identidade do personagem entre cenas.
+          </p>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5"><User className="h-3.5 w-3.5" />Rosto frontal</Label>
+            {faceRef ? (
+              <div className="relative group">
+                <SignedImage path={faceRef} alt="" className="w-full aspect-square rounded-md object-cover" />
+                <button type="button" onClick={() => setFaceRef(null)} className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1">
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
+              <Input type="file" accept="image/*" onChange={(e) => handleSingleUpload(e, setFaceRef)} />
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5"><UserSquare className="h-3.5 w-3.5" />Corpo inteiro</Label>
+            {bodyRef ? (
+              <div className="relative group">
+                <SignedImage path={bodyRef} alt="" className="w-full aspect-square rounded-md object-cover" />
+                <button type="button" onClick={() => setBodyRef(null)} className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1">
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
+              <Input type="file" accept="image/*" onChange={(e) => handleSingleUpload(e, setBodyRef)} />
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Shirt className="h-4 w-4" />Looks / Roupas</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Suba quantas roupas quiser. A marcada como <strong>"Roupa ativa"</strong> é a que aparecerá nas cenas geradas. Troque a qualquer momento.
+          </p>
+        </CardHeader>
         <CardContent className="space-y-3">
           <Input type="file" accept="image/*" multiple onChange={handleImageUpload} />
           {canonicalImages.length > 0 && (
-            <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-              {canonicalImages.map((path) => (
-                <div key={path} className="relative group">
-                  <SignedImage path={path} alt="" className="w-full aspect-square rounded-md" />
-                  <button
-                    type="button"
-                    onClick={() => setCanonicalImages((arr) => arr.filter((p) => p !== path))}
-                    className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {canonicalImages.map((path) => {
+                const isActive = path === activeOutfit;
+                return (
+                  <div key={path} className={`relative group border-2 rounded-lg overflow-hidden ${isActive ? "border-primary" : "border-border"}`}>
+                    <SignedImage path={path} alt="" className="w-full aspect-square object-cover" />
+                    {isActive && (
+                      <Badge className="absolute top-1 left-1 gap-1"><Check className="h-3 w-3" />Roupa ativa</Badge>
+                    )}
+                    <div className="absolute inset-x-0 bottom-0 bg-background/90 backdrop-blur p-2 flex gap-1">
+                      {!isActive && (
+                        <Button type="button" size="sm" variant="secondary" className="flex-1 h-7 text-xs" onClick={() => setActiveOutfit(path)}>
+                          Usar como roupa
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 w-7 p-0"
+                        onClick={() => {
+                          setCanonicalImages((arr) => arr.filter((p) => p !== path));
+                          if (isActive) setActiveOutfit(null);
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </CardContent>
