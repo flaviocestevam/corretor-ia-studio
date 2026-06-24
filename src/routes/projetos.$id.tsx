@@ -178,16 +178,29 @@ function SceneCard({
   }
 
   async function pickHook(h: SceneHookOption) {
-    const { error } = await supabase
-      .from("scenes")
-      .update({ selected_hook: h as any })
-      .eq("id", scene.id);
+    // Para a 1ª cena, o hook JÁ é o roteiro inteiro (≤4s/≤10s, sem texto extra).
+    const updates: Record<string, unknown> = { selected_hook: h as any };
+    if (isFirst) {
+      const ctas = character.ctas ?? [];
+      const cta = ctas[Math.floor(Math.random() * Math.max(ctas.length, 1))]?.text ?? "Clica no link da bio.";
+      updates.selected_script = h.text;
+      updates.cta = cta;
+    }
+    const { error } = await supabase.from("scenes").update(updates).eq("id", scene.id);
     if (error) toast.error(error.message);
     else { toast.success("Hook selecionado"); onChange(); }
   }
 
+  async function clearHook() {
+    const { error } = await supabase
+      .from("scenes")
+      .update({ selected_hook: null, ...(isFirst ? { selected_script: null, cta: null } : {}) })
+      .eq("id", scene.id);
+    if (error) toast.error(error.message);
+    else { toast.success("Seleção limpa"); onChange(); }
+  }
+
   async function pickScript(s: string) {
-    // pegar um CTA aleatório do personagem
     const ctas = character.ctas ?? [];
     const cta = ctas[Math.floor(Math.random() * Math.max(ctas.length, 1))]?.text ?? "Clica no link da bio.";
     const { error } = await supabase
@@ -197,6 +210,16 @@ function SceneCard({
     if (error) toast.error(error.message);
     else { toast.success("Roteiro selecionado"); onChange(); }
   }
+
+  async function clearScript() {
+    const { error } = await supabase
+      .from("scenes")
+      .update({ selected_script: null, cta: null })
+      .eq("id", scene.id);
+    if (error) toast.error(error.message);
+    else { toast.success("Roteiro limpo"); onChange(); }
+  }
+
 
   function copy(text: string, label: string) {
     navigator.clipboard.writeText(text);
