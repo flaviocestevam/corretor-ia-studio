@@ -342,19 +342,30 @@ function SceneCard({
   const [loadingScripts, setLoadingScripts] = useState(false);
   const [loadingImage, setLoadingImage] = useState(false);
   const [loadingVideo, setLoadingVideo] = useState(false);
+  const [lastError, setLastError] = useState<{ label: string; message: string; retry: () => void } | null>(null);
+  const busy = loadingHooks || loadingScripts || loadingImage || loadingVideo;
 
-  async function run<T>(fn: () => Promise<T>, setL: (v: boolean) => void, ok: string) {
+  async function run<T>(
+    fn: () => Promise<T>,
+    setL: (v: boolean) => void,
+    successMsg: string | ((res: T) => string),
+    label = "Ação",
+  ) {
     setL(true);
+    setLastError(null);
     try {
-      await fn();
-      toast.success(ok);
+      const res = await fn();
+      toast.success(typeof successMsg === "function" ? successMsg(res) : successMsg);
       onChange();
     } catch (e) {
-      toast.error((e as Error).message);
+      const message = (e as Error).message ?? "Erro desconhecido";
+      toast.error(`${label}: ${message}`);
+      setLastError({ label, message, retry: () => run(fn, setL, successMsg, label) });
     } finally {
       setL(false);
     }
   }
+
 
   async function pickHook(h: SceneHookOption) {
     // 1ª cena: hook é o roteiro inteiro. CTA fica SÓ na última cena.
@@ -477,6 +488,21 @@ function SceneCard({
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {lastError && (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm flex items-start justify-between gap-3 flex-wrap">
+            <div className="min-w-0">
+              <div className="font-semibold text-destructive">⚠ Falhou: {lastError.label}</div>
+              <div className="text-xs text-destructive/80 mt-0.5 break-words">{lastError.message}</div>
+            </div>
+            <div className="flex gap-1.5">
+              <Button size="sm" variant="outline" onClick={lastError.retry} disabled={busy}>
+                Tentar de novo
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setLastError(null)}>Fechar</Button>
+            </div>
+          </div>
+        )}
+
         <div className="rounded-lg border border-dashed border-border bg-muted/30 p-3 text-xs space-y-1">
           <div className="font-semibold text-foreground">Passo a passo desta cena</div>
           <div>1️⃣ Escolha o enquadramento e clique em <b>Gerar imagem</b>.</div>
@@ -567,8 +593,9 @@ function SceneCard({
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => run(() => genImage({ data: { sceneId: scene.id } }), setLoadingImage, "Imagem gerada")}
-                  disabled={loadingImage || !scene.original_room_image}
+                  onClick={() => run(() => genImage({ data: { sceneId: scene.id } }), setLoadingImage, "Imagem gerada ✨", "Gerar imagem")}
+                  disabled={busy || !scene.original_room_image}
+
                 >
                   {loadingImage ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Wand2 className="mr-1.5 h-3.5 w-3.5" />}
                   {scene.generated_character_image ? "Regerar" : "Gerar imagem"}
@@ -633,10 +660,12 @@ function SceneCard({
                           },
                         }),
                       setLoadingHooks,
-                      "Hooks gerados",
+                      (res: any) => `${Array.isArray(res) ? res.length : 3} hooks gerados — escolha 1 abaixo`,
+                      "Gerar hooks",
                     )
                   }
-                  disabled={loadingHooks}
+                  disabled={busy}
+
                 >
                   {loadingHooks ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
                   {scene.hook_options?.length > 0 ? "Gerar novos" : "Gerar hooks"}
@@ -701,10 +730,12 @@ function SceneCard({
                           },
                         }),
                       setLoadingScripts,
-                      "Roteiros gerados",
+                      (res: any) => `${Array.isArray(res) ? res.length : 3} roteiros gerados — escolha 1 abaixo`,
+                      "Gerar roteiros",
                     )
                   }
-                  disabled={loadingScripts}
+                  disabled={busy}
+
                 >
                   {loadingScripts ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />}
                   {scene.script_options?.length > 0 ? "Gerar novos" : "Gerar roteiros"}
@@ -802,8 +833,9 @@ function SceneCard({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => run(() => genVideoP({ data: { sceneId: scene.id } }), setLoadingVideo, "Prompt gerado")}
-                disabled={loadingVideo || !scene.selected_script}
+                onClick={() => run(() => genVideoP({ data: { sceneId: scene.id } }), setLoadingVideo, "Prompt de vídeo gerado", "Gerar prompt de vídeo")}
+                disabled={busy || !scene.selected_script}
+
               >
                 {loadingVideo ? <Loader2 className="mr-1.5 h-3 w-3 animate-spin" /> : <Video className="mr-1.5 h-3 w-3" />}
                 Gerar

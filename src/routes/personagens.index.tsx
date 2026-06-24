@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Sparkles, Upload } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, Pencil, Sparkles, Upload, Search } from "lucide-react";
+
 import { toast } from "sonner";
 import { importCharacters } from "@/lib/characters.functions";
 import { SignedImage } from "@/components/signed-image";
@@ -29,6 +31,8 @@ function PersonagensList() {
   const [open, setOpen] = useState(false);
   const [json, setJson] = useState("");
   const [loading, setLoading] = useState(false);
+  const [q, setQ] = useState("");
+
 
   const { data: characters, isLoading } = useQuery({
     queryKey: ["characters"],
@@ -97,6 +101,16 @@ function PersonagensList() {
         </div>
       </div>
 
+      <div className="relative max-w-md">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar personagem..."
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          className="pl-8"
+        />
+      </div>
+
       {isLoading ? (
         <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:[grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
           {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -105,7 +119,13 @@ function PersonagensList() {
         </div>
       ) : (
         <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:[grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
-          {characters?.map((c) => (
+          {characters
+            ?.filter((c) => {
+              const n = q.trim().toLowerCase();
+              return !n || c.name?.toLowerCase().includes(n) || c.short_bio?.toLowerCase().includes(n);
+            })
+            .map((c) => (
+
             <Card key={c.id} className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-shadow overflow-hidden">
               <Link to="/personagens/$id" params={{ id: c.id }} className="block group">
                 <SignedImage
