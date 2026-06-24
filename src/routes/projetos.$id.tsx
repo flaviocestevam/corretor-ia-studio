@@ -461,18 +461,56 @@ function SceneCard({
         )}
 
 
-        {scene.cta && (
+        {scene.selected_script && (
           <section>
-            <div className="text-xs font-medium text-muted-foreground mb-1">CTA sugerido</div>
-            <div className="text-sm border border-border rounded-lg p-3 bg-accent/30">{scene.cta}</div>
+            <div className="text-xs font-medium text-muted-foreground mb-1">Roteiro selecionado (editável)</div>
+            <Textarea
+              key={`script-${scene.id}-${scene.updated_at}`}
+              defaultValue={scene.selected_script ?? ""}
+              rows={3}
+              className="text-sm"
+              onBlur={async (e) => {
+                if (e.target.value === (scene.selected_script ?? "")) return;
+                const { error } = await supabase.from("scenes").update({ selected_script: e.target.value }).eq("id", scene.id);
+                if (error) toast.error(error.message); else { toast.success("Roteiro atualizado"); onChange(); }
+              }}
+            />
+          </section>
+        )}
+
+        {isLast && (
+          <section>
+            <div className="text-xs font-medium text-muted-foreground mb-1">CTA (editável)</div>
+            <Textarea
+              key={`cta-${scene.id}-${scene.updated_at}`}
+              defaultValue={scene.cta ?? ""}
+              rows={2}
+              className="text-sm"
+              placeholder="Ex: Clica no link da bio."
+              onBlur={async (e) => {
+                if (e.target.value === (scene.cta ?? "")) return;
+                const { error } = await supabase.from("scenes").update({ cta: e.target.value || null }).eq("id", scene.id);
+                if (error) toast.error(error.message); else { toast.success("CTA atualizado"); onChange(); }
+              }}
+            />
           </section>
         )}
 
         {/* PROMPTS */}
         <div className="grid md:grid-cols-2 gap-3">
           <section>
-            <div className="text-xs font-medium text-muted-foreground mb-1">Prompt de imagem</div>
-            <Textarea value={scene.image_prompt ?? ""} readOnly rows={4} className="text-xs" />
+            <div className="text-xs font-medium text-muted-foreground mb-1">Prompt de imagem (editável)</div>
+            <Textarea
+              key={`imgp-${scene.id}-${scene.updated_at}`}
+              defaultValue={scene.image_prompt ?? ""}
+              rows={4}
+              className="text-xs"
+              onBlur={async (e) => {
+                if (e.target.value === (scene.image_prompt ?? "")) return;
+                const { error } = await supabase.from("scenes").update({ image_prompt: e.target.value || null }).eq("id", scene.id);
+                if (error) toast.error(error.message); else { toast.success("Prompt de imagem atualizado"); onChange(); }
+              }}
+            />
             {scene.image_prompt && (
               <Button size="sm" variant="ghost" className="mt-1" onClick={() => copy(scene.image_prompt!, "Prompt de imagem")}>
                 <Copy className="mr-1.5 h-3 w-3" />Copiar
@@ -481,7 +519,7 @@ function SceneCard({
           </section>
           <section>
             <div className="flex items-center justify-between mb-1">
-              <div className="text-xs font-medium text-muted-foreground">Prompt de vídeo</div>
+              <div className="text-xs font-medium text-muted-foreground">Prompt de vídeo (editável)</div>
               <Button
                 size="sm"
                 variant="outline"
@@ -492,7 +530,17 @@ function SceneCard({
                 Gerar
               </Button>
             </div>
-            <Textarea value={scene.video_prompt ?? ""} readOnly rows={4} className="text-xs" />
+            <Textarea
+              key={`vidp-${scene.id}-${scene.updated_at}`}
+              defaultValue={scene.video_prompt ?? ""}
+              rows={4}
+              className="text-xs"
+              onBlur={async (e) => {
+                if (e.target.value === (scene.video_prompt ?? "")) return;
+                const { error } = await supabase.from("scenes").update({ video_prompt: e.target.value || null }).eq("id", scene.id);
+                if (error) toast.error(error.message); else { toast.success("Prompt de vídeo atualizado"); onChange(); }
+              }}
+            />
             {scene.video_prompt && (
               <Button size="sm" variant="ghost" className="mt-1" onClick={() => copy(scene.video_prompt!, "Prompt de vídeo")}>
                 <Copy className="mr-1.5 h-3 w-3" />Copiar
@@ -500,6 +548,7 @@ function SceneCard({
             )}
           </section>
         </div>
+
       </CardContent>
     </Card>
   );
