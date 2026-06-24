@@ -70,8 +70,8 @@ function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Stat label="Personagens" value={stats?.characters} icon={<Users className="h-4 w-4 text-muted-foreground" />} sub="cadastrados" />
         <Stat label="Projetos em andamento" value={stats?.projectsInProgress} icon={<FolderKanban className="h-4 w-4 text-muted-foreground" />} sub={`${stats?.projects ?? 0} no total`} />
-        <Stat label="Cenas pendentes" value={stats?.scenesPending} icon={<AlertCircle className="h-4 w-4 text-amber-500" />} sub="aguardando você" tone="warn" />
-        <Stat label="Cenas aprovadas" value={stats?.scenesApproved} icon={<CheckCircle2 className="h-4 w-4 text-emerald-500" />} sub={`de ${stats?.scenesTotal ?? 0}`} tone="ok" />
+        <Stat label="Cenas pendentes" value={stats?.scenesPending} icon={<AlertCircle className="h-4 w-4 text-warning" />} sub="aguardando você" tone="warn" />
+        <Stat label="Cenas aprovadas" value={stats?.scenesApproved} icon={<CheckCircle2 className="h-4 w-4 text-success" />} sub={`de ${stats?.scenesTotal ?? 0}`} tone="ok" />
       </div>
 
       {(stats?.scenesGenerated ?? 0) > 0 && (
@@ -124,7 +124,7 @@ function Stat({ label, value, icon, sub, tone }: { label: string; value: number 
         {icon}
       </CardHeader>
       <CardContent>
-        <div className={`text-4xl font-bold ${tone === "warn" && (value ?? 0) > 0 ? "text-amber-500" : tone === "ok" ? "text-emerald-500" : ""}`}>
+        <div className={`text-4xl font-bold ${tone === "warn" && (value ?? 0) > 0 ? "text-warning" : tone === "ok" ? "text-success" : ""}`}>
           {value ?? "—"}
         </div>
         {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
