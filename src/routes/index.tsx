@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, FolderKanban, Plus, Sparkles, Clock } from "lucide-react";
+import { Users, FolderKanban, Plus, Sparkles, Clock, CheckCircle2, AlertCircle, Film } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -19,18 +19,32 @@ function Dashboard() {
   const { data: stats } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
-      const [chars, projs, recent] = await Promise.all([
+      const [chars, projs, scenes, recent] = await Promise.all([
         supabase.from("characters").select("id", { count: "exact", head: true }),
         supabase.from("projects").select("id", { count: "exact", head: true }),
+        supabase.from("scenes").select("id, status, project_id"),
         supabase
           .from("projects")
           .select("id, name, created_at, character_id, characters(name)")
           .order("created_at", { ascending: false })
           .limit(6),
       ]);
+      const allScenes = scenes.data ?? [];
+      const approved = allScenes.filter((s) => s.status === "aprovado").length;
+      const generated = allScenes.filter((s) => s.status === "gerado").length;
+      const pending = allScenes.length - approved - generated;
+      // projetos em andamento = têm pelo menos 1 cena não aprovada
+      const projectsInProgress = new Set(
+        allScenes.filter((s) => s.status !== "aprovado").map((s) => s.project_id),
+      ).size;
       return {
         characters: chars.count ?? 0,
         projects: projs.count ?? 0,
+        scenesTotal: allScenes.length,
+        scenesApproved: approved,
+        scenesGenerated: generated,
+        scenesPending: pending,
+        projectsInProgress,
         recent: recent.data ?? [],
       };
     },
@@ -53,28 +67,23 @@ function Dashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="shadow-[var(--shadow-card)]">
-          <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Personagens</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold">{stats?.characters ?? "—"}</div>
-            <p className="text-xs text-muted-foreground mt-1">cadastrados</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-[var(--shadow-card)]">
-          <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Projetos</CardTitle>
-            <FolderKanban className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold">{stats?.projects ?? "—"}</div>
-            <p className="text-xs text-muted-foreground mt-1">no total</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Stat label="Personagens" value={stats?.characters} icon={<Users className="h-4 w-4 text-muted-foreground" />} sub="cadastrados" />
+        <Stat label="Projetos em andamento" value={stats?.projectsInProgress} icon={<FolderKanban className="h-4 w-4 text-muted-foreground" />} sub={`${stats?.projects ?? 0} no total`} />
+        <Stat label="Cenas pendentes" value={stats?.scenesPending} icon={<AlertCircle className="h-4 w-4 text-amber-500" />} sub="aguardando você" tone="warn" />
+        <Stat label="Cenas aprovadas" value={stats?.scenesApproved} icon={<CheckCircle2 className="h-4 w-4 text-emerald-500" />} sub={`de ${stats?.scenesTotal ?? 0}`} tone="ok" />
       </div>
+
+      {(stats?.scenesGenerated ?? 0) > 0 && (
+        <Card className="border-secondary/40 bg-secondary/5">
+          <CardContent className="p-4 flex items-center gap-3 text-sm">
+            <Film className="h-4 w-4 text-secondary-foreground" />
+            <span>
+              <b>{stats?.scenesGenerated}</b> cena(s) já com imagem gerada, esperando aprovação.
+            </span>
+          </CardContent>
+        </Card>
+      )}
 
       <div>
         <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
@@ -104,5 +113,22 @@ function Dashboard() {
         )}
       </div>
     </div>
+  );
+}
+
+function Stat({ label, value, icon, sub, tone }: { label: string; value: number | undefined; icon: React.ReactNode; sub?: string; tone?: "ok" | "warn" }) {
+  return (
+    <Card className="shadow-[var(--shadow-card)]">
+      <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
+        {icon}
+      </CardHeader>
+      <CardContent>
+        <div className={`text-4xl font-bold ${tone === "warn" && (value ?? 0) > 0 ? "text-amber-500" : tone === "ok" ? "text-emerald-500" : ""}`}>
+          {value ?? "—"}
+        </div>
+        {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
+      </CardContent>
+    </Card>
   );
 }
