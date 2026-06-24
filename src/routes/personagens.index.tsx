@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Sparkles, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { importCharacters } from "@/lib/characters.functions";
+import { SignedImage } from "@/components/signed-image";
 import type { Character } from "@/lib/types";
 
 export const Route = createFileRoute("/personagens/")({
@@ -105,7 +106,13 @@ function PersonagensList() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {characters?.map((c) => (
-            <Card key={c.id} className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-shadow">
+            <Card key={c.id} className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-shadow overflow-hidden">
+              <SignedImage
+                path={c.face_reference_image ?? c.body_reference_image ?? c.active_outfit_image ?? c.canonical_images?.[0] ?? null}
+                alt={c.name}
+                className="w-full h-48 object-cover"
+                fallbackClassName="w-full h-48 rounded-none border-0 border-b"
+              />
               <CardContent className="p-5 space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-semibold text-lg leading-tight">{c.name}</h3>
