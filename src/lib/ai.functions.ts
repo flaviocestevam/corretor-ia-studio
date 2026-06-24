@@ -169,9 +169,13 @@ REGRAS DE CONTEÚDO (CRÍTICO — descumprir = resposta REJEITADA):
 - NÃO copie estrutura nem comparações das cenas anteriores. Cada cena é um novo momento do tour.
 - As 3 opções devem ser DIFERENTES ENTRE SI: ângulos, elementos citados, emoções e palavras distintas.
 
+REGRAS DE ABERTURA (CRÍTICO):
+- Apenas o ROTEIRO 1 começa com o hook escolhido exatamente como está.
+- ROTEIRO 2 e ROTEIRO 3 PRECISAM começar com aberturas DIFERENTES (parafrasear o hook, usar outra exclamação curta, ou ir direto pro item do cômodo). PROIBIDO repetir literalmente o hook no 2 e no 3.
+
 REGRAS DE DURAÇÃO (OBRIGATÓRIAS):
-- Máximo 10s de fala, máximo 25 palavras (hook + comentário + CTA).
-- Comece COM o hook escolhido exatamente como está, depois 1 frase curta nomeando algo concreto do "${data.roomName}", depois CTA curto.
+- Máximo 10s de fala, máximo 25 palavras (abertura + comentário + CTA).
+- Estrutura: abertura curta + 1 frase nomeando algo concreto do "${data.roomName}" + CTA curto.
 - Sem introduções nem narração extra.
 
 PROIBIDO: "excelente oportunidade", "empreendimento diferenciado", "alto padrão" genérico, "venha conhecer", "imóvel dos sonhos", "localização privilegiada" sem contexto.
