@@ -578,8 +578,9 @@ function SceneCard({
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => run(() => genImage({ data: { sceneId: scene.id } }), setLoadingImage, "Imagem gerada")}
-                  disabled={loadingImage || !scene.original_room_image}
+                  onClick={() => run(() => genImage({ data: { sceneId: scene.id } }), setLoadingImage, "Imagem gerada ✨", "Gerar imagem")}
+                  disabled={busy || !scene.original_room_image}
+
                 >
                   {loadingImage ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Wand2 className="mr-1.5 h-3.5 w-3.5" />}
                   {scene.generated_character_image ? "Regerar" : "Gerar imagem"}
