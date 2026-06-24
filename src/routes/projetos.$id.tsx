@@ -715,10 +715,12 @@ function SceneCard({
                           },
                         }),
                       setLoadingScripts,
-                      "Roteiros gerados",
+                      (res: any) => `${Array.isArray(res) ? res.length : 3} roteiros gerados — escolha 1 abaixo`,
+                      "Gerar roteiros",
                     )
                   }
-                  disabled={loadingScripts}
+                  disabled={busy}
+
                 >
                   {loadingScripts ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />}
                   {scene.script_options?.length > 0 ? "Gerar novos" : "Gerar roteiros"}
