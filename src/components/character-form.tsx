@@ -191,7 +191,7 @@ export function CharacterForm({ initial, characterId }: Props) {
                 </button>
               </div>
             ) : (
-              <Input type="file" accept="image/*" onChange={(e) => handleSingleUpload(e, setFaceRef)} />
+              <Input type="file" accept="image/*" onChange={(e) => handleSingleUpload(e, setFaceRef)} className="cursor-pointer border-2 border-dashed border-primary bg-primary/10 hover:bg-primary/20 text-primary file:bg-primary file:text-primary-foreground file:border-0 file:rounded-md file:px-3 file:py-1 file:mr-3 file:font-medium" />
             )}
           </div>
           <div className="space-y-2">
@@ -204,7 +204,7 @@ export function CharacterForm({ initial, characterId }: Props) {
                 </button>
               </div>
             ) : (
-              <Input type="file" accept="image/*" onChange={(e) => handleSingleUpload(e, setBodyRef)} />
+              <Input type="file" accept="image/*" onChange={(e) => handleSingleUpload(e, setBodyRef)} className="cursor-pointer border-2 border-dashed border-primary bg-primary/10 hover:bg-primary/20 text-primary file:bg-primary file:text-primary-foreground file:border-0 file:rounded-md file:px-3 file:py-1 file:mr-3 file:font-medium" />
             )}
           </div>
         </CardContent>
@@ -218,7 +218,7 @@ export function CharacterForm({ initial, characterId }: Props) {
           </p>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Input type="file" accept="image/*" multiple onChange={handleImageUpload} />
+          <Input type="file" accept="image/*" multiple onChange={handleImageUpload} className="cursor-pointer h-12 border-2 border-dashed border-success bg-success/10 hover:bg-success/20 text-success file:bg-success file:text-success-foreground file:border-0 file:rounded-md file:px-3 file:py-1.5 file:mr-3 file:font-medium" />
           {canonicalImages.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {canonicalImages.map((path) => {
