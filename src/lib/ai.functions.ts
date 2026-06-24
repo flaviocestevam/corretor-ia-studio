@@ -196,10 +196,10 @@ export const generateSceneImage = createServerFn({ method: "POST" })
 
     const framingMap: Record<string, string> = {
       auto: `ESCOLHA AUTOMÁTICA: você decide o melhor enquadramento (selfie POV próximo, meio corpo, corpo inteiro ou plano aberto wide) considerando: cômodo "${scene.room_name}", ação do personagem (${action}), e o que dá mais impacto visual num Reel vertical. Varie entre cenas para evitar monotonia.`,
-      selfie: "SELFIE / POV próximo: câmera na altura do rosto, a ~40-60cm do personagem, mostrando cabeça, ombros e parte do peito. O personagem segura o celular (POV de quem grava). Cômodo aparece desfocado ao fundo.",
-      meio_corpo: "MEIO CORPO: câmera a ~1,5m de distância, na altura do peito, enquadrando da cintura para cima. Equilibra personagem e ambiente.",
-      corpo_inteiro: "CORPO INTEIRO: câmera a ~2,5-3m de distância, mostrando o personagem inteiro dentro do cômodo, dos pés à cabeça, com ambiente visível ao redor.",
-      plano_aberto: "PLANO ABERTO / WIDE: câmera a ~4-5m de distância, lente grande angular, personagem ocupa cerca de 1/3 do quadro, cômodo amplamente visível ao redor (estilo tour imobiliário).",
+      selfie: "SELFIE / POV próximo: câmera na altura do rosto, a ~40-60cm do personagem, mostrando cabeça, ombros e parte do peito. O personagem segura o celular (POV de quem grava). Cômodo aparece desfocado ao fundo. Cabeça ocupa ~50-60% da altura do quadro.",
+      meio_corpo: "MEIO CORPO: câmera a ~1,5m de distância, na altura do peito, enquadrando da cintura para cima. Personagem ocupa ~60% da altura do quadro. Equilibra personagem e ambiente.",
+      corpo_inteiro: "CORPO INTEIRO: câmera a ~3m de distância, mostrando o personagem inteiro dentro do cômodo, dos pés à cabeça. Personagem ocupa ~70-80% da ALTURA do quadro (NÃO mais que isso). Sobra espaço acima da cabeça e abaixo dos pés mostrando teto e piso reais do cômodo.",
+      plano_aberto: "PLANO ABERTO / WIDE (tour imobiliário): câmera AFASTADA a ~5-7m do personagem, lente grande angular 24mm, posicionada de um canto do cômodo. O personagem aparece PEQUENO e DISTANTE, ocupando NO MÁXIMO 25-35% da altura do quadro (estilo pessoa fotografada de longe num ambiente grande). NUNCA cole o personagem na câmera. O cômodo inteiro (paredes, teto, móveis) precisa dominar a composição — o personagem é um detalhe humano dentro do espaço, não o protagonista visual.",
     };
     const framingKey = (scene as any).camera_framing ?? "corpo_inteiro";
     const framingInstruction = framingMap[framingKey] ?? framingMap.corpo_inteiro;
@@ -216,7 +216,9 @@ REGRAS OBRIGATÓRIAS:
 6. Pose / ação na cena: ${action}
 7. Expressão coerente com a personalidade: ${char.personality}
 8. ENQUADRAMENTO DE CÂMERA: ${framingInstruction}
-9. Formato vertical 9:16. Sem texto, sem logo, sem marca d'água.`;
+9. PROPORÇÃO HUMANA REALISTA (CRÍTICO): trate o personagem como pessoa real de ~1,70-1,80m de altura. Compare a cabeça dele com referências visíveis no cômodo (maçaneta ~1m, interruptor ~1,1m, mesa ~75cm, bancada ~90cm, sofá ~85cm de encosto, porta padrão ~2,10m). A cabeça do personagem NUNCA pode ultrapassar o batente da porta nem encostar no teto. Se a perspectiva da foto do cômodo for ampla, o personagem fica PROPORCIONALMENTE PEQUENO — é melhor errar pra menor que pra maior. Pés tocando o chão na perspectiva correta, sombra coerente com a iluminação do ambiente.
+10. Formato vertical 9:16. Sem texto, sem logo, sem marca d'água.`;
+
 
     // signed URL for room photo
     const { data: signed, error: urlErr } = await supabaseAdmin.storage
