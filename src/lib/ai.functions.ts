@@ -9,8 +9,11 @@ function key() {
   return k;
 }
 
+type ChatPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
+type ChatMessage = { role: string; content: string | ChatPart[] };
+
 async function chat(
-  messages: Array<{ role: string; content: string }>,
+  messages: ChatMessage[],
   model = "google/gemini-3-flash-preview",
   temperature = 1.1,
 ) {
@@ -25,6 +28,18 @@ async function chat(
   }
   const json = await res.json();
   return json.choices?.[0]?.message?.content as string;
+}
+
+async function fetchRoomImageDataUrl(
+  supabaseAdmin: { storage: { from: (b: string) => { download: (p: string) => Promise<{ data: Blob | null; error: unknown }> } } },
+  path: string | null | undefined,
+): Promise<string | null> {
+  if (!path) return null;
+  const { data: blob, error } = await supabaseAdmin.storage.from("scene-assets").download(path);
+  if (error || !blob) return null;
+  const buf = Buffer.from(await blob.arrayBuffer());
+  const mime = blob.type || "image/jpeg";
+  return `data:${mime};base64,${buf.toString("base64")}`;
 }
 
 function extractJSON(raw: string) {
