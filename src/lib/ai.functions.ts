@@ -81,12 +81,24 @@ export const generateHooks = createServerFn({ method: "POST" })
     if (error || !char) throw new Error("Personagem não encontrado");
 
     const baseHooks = (char.hooks as Array<{ text: string; action: string }>) || [];
+    const { data: sceneRow } = await supabaseAdmin
+      .from("scenes")
+      .select("original_room_image")
+      .eq("id", data.sceneId)
+      .single();
+    const imageDataUrl = await fetchRoomImageDataUrl(supabaseAdmin, sceneRow?.original_room_image);
+
+    const visionRule = imageDataUrl
+      ? `\nVOCÊ ESTÁ VENDO A FOTO REAL DO CÔMODO em anexo. Baseie os hooks SOMENTE no que aparece visivelmente na foto (materiais, móveis, iluminação, vista, acabamentos reais). É PROIBIDO inventar itens que não estão na imagem (ex: cristaleira, lustre, torneira gourmet, mármore, LED, marcenaria ripada) se eles não aparecem. Se a foto for simples, faça hooks simples.`
+      : "";
+
     const prompt = data.isFirstScene
       ? `Você é roteirista de Reels imobiliários. Personagem: "${char.name}".
 Personalidade: ${char.personality}
 Jeito de falar: ${char.speaking_style}
 Bordões: ${(char.catchphrases as string[])?.join(" | ")}
 Hooks de referência do personagem: ${JSON.stringify(baseHooks)}
+${visionRule}
 
 Gere EXATAMENTE 3 opções de hook de ABERTURA (primeira cena) para o cômodo "${data.roomName}".
 Cada hook tem ~4 segundos, deve prender atenção, combinar 100% com a personalidade, ter ação visual clara e NÃO parecer propaganda formal.
@@ -99,6 +111,7 @@ Personalidade: ${char.personality}
 Jeito de falar: ${char.speaking_style}
 Cena anterior terminou com: "${data.previousSceneScript ?? ""}"
 Cômodo atual: "${data.roomName}"
+${visionRule}
 
 Gere 3 hooks curtos (~4s) de CONTINUAÇÃO que conectem com a cena anterior, no estilo:
 "E eu achei que já tinha visto tudo lá fora…" / "Agora piorou. Olha isso." / "Se já tava bom, espera..."
@@ -107,7 +120,9 @@ Respeite o jeito de falar do personagem.
 Responda APENAS com JSON array:
 [{"text":"...","action":"...","duration":4}, ...]`;
 
-    const raw = await chat([{ role: "user", content: prompt }]);
+    const userContent: ChatPart[] = [{ type: "text", text: prompt }];
+    if (imageDataUrl) userContent.push({ type: "image_url", image_url: { url: imageDataUrl } });
+    const raw = await chat([{ role: "user", content: userContent }]);
     const hooks = extractJSON(raw);
 
     await supabaseAdmin
