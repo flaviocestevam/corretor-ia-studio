@@ -256,6 +256,7 @@ function SceneCard({
                 <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Enquadramento</div>
                 <div className="flex flex-wrap gap-1">
                   {([
+                    { v: "auto", l: "✨ IA decide" },
                     { v: "selfie", l: "Selfie" },
                     { v: "meio_corpo", l: "Meio corpo" },
                     { v: "corpo_inteiro", l: "Corpo inteiro" },
