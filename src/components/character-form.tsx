@@ -225,7 +225,7 @@ export function CharacterForm({ initial, characterId }: Props) {
                 const isActive = path === activeOutfit;
                 return (
                   <div key={path} className={`relative group border-2 rounded-lg overflow-hidden ${isActive ? "border-primary" : "border-border"}`}>
-                    <SignedImage path={path} alt="" className="w-full aspect-square object-cover" />
+                    <SignedImage path={path} alt="" className="w-full aspect-[9/16] object-contain bg-muted" />
                     {isActive && (
                       <Badge className="absolute top-1 left-1 gap-1"><Check className="h-3 w-3" />Roupa ativa</Badge>
                     )}
