@@ -474,16 +474,14 @@ function SceneCard({
                       "Roteiros gerados",
                     )
                   }
-                  disabled={loadingScripts || !scene.selected_hook}
+                  disabled={loadingScripts}
                 >
                   {loadingScripts ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />}
                   {scene.script_options?.length > 0 ? "Gerar novos" : "Gerar roteiros"}
                 </Button>
               </div>
             </div>
-            {!scene.selected_hook && scene.hook_options?.length > 0 && (
-              <div className="text-xs text-muted-foreground">Selecione um hook primeiro.</div>
-            )}
+
             {scene.script_options?.length > 0 && (
               <div className="grid gap-2">
                 {scene.script_options.map((s, i) => {
