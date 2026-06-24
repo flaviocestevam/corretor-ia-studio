@@ -158,9 +158,10 @@ export const generateScripts = createServerFn({ method: "POST" })
     // a IA enxergar o histórico inteiro e NÃO repetir falas de outras cenas.
     const { data: currentScene } = await supabaseAdmin
       .from("scenes")
-      .select("project_id, scene_order, script_options")
+      .select("project_id, scene_order, script_options, original_room_image")
       .eq("id", data.sceneId)
       .single();
+    const imageDataUrl = await fetchRoomImageDataUrl(supabaseAdmin, currentScene?.original_room_image);
 
     let previousScripts: Array<{ room: string; script: string }> = [];
     let existingOptions: string[] = [];
