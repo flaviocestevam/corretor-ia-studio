@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Plus, Trash2, Save, Check, Shirt, User, UserSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ import { uploadSceneFile } from "@/lib/storage";
 import { SignedImage } from "@/components/signed-image";
 import type { Character, CharacterHook, CharacterCTA } from "@/lib/types";
 import { useNavigate } from "@tanstack/react-router";
+
 
 interface Props {
   initial?: Partial<Character>;
@@ -121,7 +123,18 @@ export function CharacterForm({ initial, characterId }: Props) {
       }}
       className="space-y-6"
     >
+      <Tabs defaultValue="identidade" className="w-full">
+        <TabsList className="grid grid-cols-5 w-full">
+          <TabsTrigger value="identidade">Identidade</TabsTrigger>
+          <TabsTrigger value="fotos">Fotos</TabsTrigger>
+          <TabsTrigger value="looks">Looks</TabsTrigger>
+          <TabsTrigger value="hooks">Hooks</TabsTrigger>
+          <TabsTrigger value="ctas">CTAs</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="identidade" className="space-y-4 mt-4">
       <Card>
+
         <CardHeader><CardTitle>Identidade</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -172,8 +185,11 @@ export function CharacterForm({ initial, characterId }: Props) {
           </Button>
         </CardContent>
       </Card>
+        </TabsContent>
 
+        <TabsContent value="fotos" className="space-y-4 mt-4">
       <Card>
+
         <CardHeader>
           <CardTitle>Fotos de referência fixas</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">
@@ -209,8 +225,11 @@ export function CharacterForm({ initial, characterId }: Props) {
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
 
+        <TabsContent value="looks" className="space-y-4 mt-4">
       <Card>
+
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><Shirt className="h-4 w-4" />Looks / Roupas</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">
@@ -255,8 +274,11 @@ export function CharacterForm({ initial, characterId }: Props) {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
 
+        <TabsContent value="hooks" className="space-y-4 mt-4">
       <Card>
+
         <CardHeader><CardTitle>Hooks do personagem</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {hooks.map((h, i) => (
@@ -294,8 +316,11 @@ export function CharacterForm({ initial, characterId }: Props) {
           </Button>
         </CardContent>
       </Card>
+        </TabsContent>
 
+        <TabsContent value="ctas" className="space-y-4 mt-4">
       <Card>
+
         <CardHeader><CardTitle>CTAs do personagem</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {ctas.map((c, i) => (
@@ -324,6 +349,10 @@ export function CharacterForm({ initial, characterId }: Props) {
           </Button>
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
+
+
 
       <div className="flex justify-end gap-2 sticky bottom-0 bg-background/80 backdrop-blur py-3 -mx-6 px-6 border-t border-border">
         <Button type="button" variant="ghost" onClick={() => navigate({ to: "/personagens" })}>Cancelar</Button>
