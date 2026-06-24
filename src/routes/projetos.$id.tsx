@@ -284,11 +284,15 @@ function SceneCard({
         <div className="rounded-lg border border-dashed border-border bg-muted/30 p-3 text-xs space-y-1">
           <div className="font-semibold text-foreground">Passo a passo desta cena</div>
           <div>1️⃣ Escolha o enquadramento e clique em <b>Gerar imagem</b>.</div>
-          <div>2️⃣ Clique em <b>Gerar hooks</b> e selecione 1 (cada hook = ~4s).</div>
-          <div>3️⃣ {isFirst ? <>Esta é a 1ª cena: o <b>hook já é o roteiro</b> (≤10s). Pode pular para o passo 4.</> : <>Clique em <b>Gerar roteiros</b> e selecione 1 (≤10s, máx ~25 palavras).</>}</div>
-          <div>4️⃣ Clique em <b>Gerar prompt de vídeo</b> (vídeo de ~10s).</div>
-          <div>5️⃣ Clique em <b>Aprovar</b> quando estiver pronta.</div>
+          {isFirst ? (
+            <div>2️⃣ Clique em <b>Gerar hooks</b> e selecione 1. O hook É o roteiro desta cena (≤10s).</div>
+          ) : (
+            <div>2️⃣ Clique em <b>Gerar roteiros</b> e selecione 1 (≤10s, máx ~25 palavras).{isLast && " Edite o CTA se quiser."}</div>
+          )}
+          <div>3️⃣ Clique em <b>Gerar prompt de vídeo</b> (vídeo de ~10s).</div>
+          <div>4️⃣ Clique em <b>Aprovar</b> quando estiver pronta.</div>
         </div>
+
 
         <div className="grid md:grid-cols-2 gap-3">
           <div>
