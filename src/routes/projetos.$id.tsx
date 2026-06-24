@@ -334,33 +334,41 @@ function SceneCard({
 
         {/* HOOKS */}
         <section>
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium">Hooks ({scene.hook_options?.length ?? 0})</div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() =>
-                run(
-                  () =>
-                    genHooks({
-                      data: {
-                        characterId: character.id,
-                        sceneId: scene.id,
-                        isFirstScene: isFirst,
-                        previousSceneScript: previousScript,
-                        roomName: scene.room_name,
-                      },
-                    }),
-                  setLoadingHooks,
-                  "Hooks gerados",
-                )
-              }
-              disabled={loadingHooks}
-            >
-              {loadingHooks ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
-              Gerar hooks
-            </Button>
+          <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+            <div className="text-sm font-medium">Passo 2 — Hooks ({scene.hook_options?.length ?? 0})</div>
+            <div className="flex gap-1">
+              {scene.selected_hook && (
+                <Button size="sm" variant="ghost" onClick={clearHook}>
+                  Limpar seleção
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  run(
+                    () =>
+                      genHooks({
+                        data: {
+                          characterId: character.id,
+                          sceneId: scene.id,
+                          isFirstScene: isFirst,
+                          previousSceneScript: previousScript,
+                          roomName: scene.room_name,
+                        },
+                      }),
+                    setLoadingHooks,
+                    "Hooks gerados",
+                  )
+                }
+                disabled={loadingHooks}
+              >
+                {loadingHooks ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
+                {scene.hook_options?.length > 0 ? "Gerar novos" : "Gerar hooks"}
+              </Button>
+            </div>
           </div>
+
           {scene.hook_options?.length > 0 && (
             <div className="grid gap-2">
               {scene.hook_options.map((h, i) => {
