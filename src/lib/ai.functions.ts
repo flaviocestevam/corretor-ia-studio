@@ -9,11 +9,15 @@ function key() {
   return k;
 }
 
-async function chat(messages: Array<{ role: string; content: string }>, model = "google/gemini-3-flash-preview") {
+async function chat(
+  messages: Array<{ role: string; content: string }>,
+  model = "google/gemini-3-flash-preview",
+  temperature = 1.1,
+) {
   const res = await fetch(`${GATEWAY}/chat/completions`, {
     method: "POST",
     headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model, messages }),
+    body: JSON.stringify({ model, messages, temperature }),
   });
   if (!res.ok) {
     const text = await res.text();
