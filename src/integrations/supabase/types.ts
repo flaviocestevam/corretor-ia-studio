@@ -16,11 +16,14 @@ export type Database = {
     Tables: {
       characters: {
         Row: {
+          active_outfit_image: string | null
+          body_reference_image: string | null
           canonical_images: Json
           canonical_prompt: string | null
           catchphrases: Json
           created_at: string
           ctas: Json
+          face_reference_image: string | null
           hooks: Json
           id: string
           name: string
@@ -30,11 +33,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          active_outfit_image?: string | null
+          body_reference_image?: string | null
           canonical_images?: Json
           canonical_prompt?: string | null
           catchphrases?: Json
           created_at?: string
           ctas?: Json
+          face_reference_image?: string | null
           hooks?: Json
           id?: string
           name: string
@@ -44,11 +50,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          active_outfit_image?: string | null
+          body_reference_image?: string | null
           canonical_images?: Json
           canonical_prompt?: string | null
           catchphrases?: Json
           created_at?: string
           ctas?: Json
+          face_reference_image?: string | null
           hooks?: Json
           id?: string
           name?: string
