@@ -98,13 +98,13 @@ function PersonagensList() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:[grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i} className="aspect-square animate-pulse" />
           ))}
         </div>
       ) : (
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:[grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
           {characters?.map((c) => (
             <Card key={c.id} className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-shadow overflow-hidden">
               <Link to="/personagens/$id" params={{ id: c.id }} className="block group">
