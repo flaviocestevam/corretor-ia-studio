@@ -102,6 +102,7 @@ export type Database = {
       }
       scenes: {
         Row: {
+          camera_framing: string
           created_at: string
           cta: string | null
           generated_character_image: string | null
@@ -120,6 +121,7 @@ export type Database = {
           video_prompt: string | null
         }
         Insert: {
+          camera_framing?: string
           created_at?: string
           cta?: string | null
           generated_character_image?: string | null
@@ -138,6 +140,7 @@ export type Database = {
           video_prompt?: string | null
         }
         Update: {
+          camera_framing?: string
           created_at?: string
           cta?: string | null
           generated_character_image?: string | null

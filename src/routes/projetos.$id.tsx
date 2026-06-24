@@ -251,21 +251,51 @@ function SceneCard({
           <div>
             <div className="text-xs font-medium text-muted-foreground mb-1.5">Com corretor</div>
             <SignedImage path={scene.generated_character_image} alt="Gerada" className="w-full aspect-video rounded-lg border border-border" />
-            <div className="flex gap-1 mt-1">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => run(() => genImage({ data: { sceneId: scene.id } }), setLoadingImage, "Imagem gerada")}
-                disabled={loadingImage || !scene.original_room_image}
-              >
-                {loadingImage ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Wand2 className="mr-1.5 h-3.5 w-3.5" />}
-                Gerar imagem
-              </Button>
-              {scene.generated_character_image && (
-                <Button variant="ghost" size="sm" onClick={downloadGenerated}>
-                  <Download className="mr-1.5 h-3 w-3" />Baixar
+            <div className="mt-2 space-y-2">
+              <div>
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Enquadramento</div>
+                <div className="flex flex-wrap gap-1">
+                  {([
+                    { v: "selfie", l: "Selfie" },
+                    { v: "meio_corpo", l: "Meio corpo" },
+                    { v: "corpo_inteiro", l: "Corpo inteiro" },
+                    { v: "plano_aberto", l: "Plano aberto" },
+                  ] as const).map((opt) => {
+                    const active = (scene.camera_framing ?? "corpo_inteiro") === opt.v;
+                    return (
+                      <Button
+                        key={opt.v}
+                        type="button"
+                        size="sm"
+                        variant={active ? "default" : "outline"}
+                        className="h-7 text-xs px-2"
+                        onClick={async () => {
+                          await supabase.from("scenes").update({ camera_framing: opt.v }).eq("id", scene.id);
+                          onChange();
+                        }}
+                      >
+                        {opt.l}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => run(() => genImage({ data: { sceneId: scene.id } }), setLoadingImage, "Imagem gerada")}
+                  disabled={loadingImage || !scene.original_room_image}
+                >
+                  {loadingImage ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Wand2 className="mr-1.5 h-3.5 w-3.5" />}
+                  Gerar imagem
                 </Button>
-              )}
+                {scene.generated_character_image && (
+                  <Button variant="ghost" size="sm" onClick={downloadGenerated}>
+                    <Download className="mr-1.5 h-3 w-3" />Baixar
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>

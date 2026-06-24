@@ -188,6 +188,15 @@ export const generateSceneImage = createServerFn({ method: "POST" })
       .map((r, i) => `IMAGEM ${i + 2} = ${r.label}`)
       .join("\n");
 
+    const framingMap: Record<string, string> = {
+      selfie: "SELFIE / POV próximo: câmera na altura do rosto, a ~40-60cm do personagem, mostrando cabeça, ombros e parte do peito. O personagem segura o celular (POV de quem grava). Cômodo aparece desfocado ao fundo.",
+      meio_corpo: "MEIO CORPO: câmera a ~1,5m de distância, na altura do peito, enquadrando da cintura para cima. Equilibra personagem e ambiente.",
+      corpo_inteiro: "CORPO INTEIRO: câmera a ~2,5-3m de distância, mostrando o personagem inteiro dentro do cômodo, dos pés à cabeça, com ambiente visível ao redor.",
+      plano_aberto: "PLANO ABERTO / WIDE: câmera a ~4-5m de distância, lente grande angular, personagem ocupa cerca de 1/3 do quadro, cômodo amplamente visível ao redor (estilo tour imobiliário).",
+    };
+    const framingKey = (scene as any).camera_framing ?? "corpo_inteiro";
+    const framingInstruction = framingMap[framingKey] ?? framingMap.corpo_inteiro;
+
     const imagePrompt = `IMAGEM 1 = foto real do cômodo (cenário fixo).
 ${refsDescription}
 
@@ -199,7 +208,8 @@ REGRAS OBRIGATÓRIAS:
 5. Descrição visual canônica adicional: ${char.canonical_prompt ?? char.personality}
 6. Pose / ação na cena: ${action}
 7. Expressão coerente com a personalidade: ${char.personality}
-8. Enquadramento vertical 9:16, corpo inteiro ou meio corpo conforme o cômodo permitir. Sem texto, sem logo, sem marca d'água.`;
+8. ENQUADRAMENTO DE CÂMERA: ${framingInstruction}
+9. Formato vertical 9:16. Sem texto, sem logo, sem marca d'água.`;
 
     // signed URL for room photo
     const { data: signed, error: urlErr } = await supabaseAdmin.storage
