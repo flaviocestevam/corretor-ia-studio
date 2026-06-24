@@ -1,10 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Sparkles } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, Pencil, Sparkles, Upload } from "lucide-react";
+import { toast } from "sonner";
+import { importCharacters } from "@/lib/characters.functions";
 import type { Character } from "@/lib/types";
 
 export const Route = createFileRoute("/personagens/")({
@@ -19,6 +24,11 @@ export const Route = createFileRoute("/personagens/")({
 
 function PersonagensList() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [json, setJson] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const { data: characters, isLoading } = useQuery({
     queryKey: ["characters"],
     queryFn: async () => {
@@ -31,16 +41,59 @@ function PersonagensList() {
     },
   });
 
+  async function handleImport() {
+    setLoading(true);
+    try {
+      const res = await importCharacters({ data: { json } });
+      toast.success(`${res.count} personagem(s) importado(s)`);
+      setOpen(false);
+      setJson("");
+      qc.invalidateQueries({ queryKey: ["characters"] });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-6">
-      <div className="flex items-end justify-between">
+      <div className="flex items-end justify-between gap-2 flex-wrap">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Personagens</h1>
           <p className="text-muted-foreground mt-1">Seus corretores IA prontos para entrar em cena.</p>
         </div>
-        <Button asChild>
-          <Link to="/personagens/novo"><Plus className="mr-1.5 h-4 w-4" />Novo Personagem</Link>
-        </Button>
+        <div className="flex gap-2">
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline"><Upload className="mr-1.5 h-4 w-4" />Importar JSON</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Importar personagens (JSON)</DialogTitle>
+              </DialogHeader>
+              <p className="text-sm text-muted-foreground">
+                Cole um array JSON com os campos: name, short_bio, personality, speaking_style,
+                canonical_prompt, catchphrases, hooks, ctas. Pode colar com ou sem ```json.
+              </p>
+              <Textarea
+                value={json}
+                onChange={(e) => setJson(e.target.value)}
+                placeholder='[{"name":"...","hooks":[...], ...}]'
+                className="min-h-[280px] font-mono text-xs"
+              />
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setOpen(false)} disabled={loading}>Cancelar</Button>
+                <Button onClick={handleImport} disabled={loading || json.trim().length < 2}>
+                  {loading ? "Importando..." : "Importar"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Button asChild>
+            <Link to="/personagens/novo"><Plus className="mr-1.5 h-4 w-4" />Novo Personagem</Link>
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
