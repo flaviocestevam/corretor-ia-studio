@@ -282,7 +282,7 @@ function SceneCard({
           </div>
           <div>
             <div className="text-xs font-medium text-muted-foreground mb-1.5">Com corretor</div>
-            <SignedImage path={scene.generated_character_image} alt="Gerada" className="w-full aspect-video rounded-lg border border-border" />
+            <SignedImage path={scene.generated_character_image} alt="Gerada" className="w-full aspect-[9/16] max-h-[480px] object-contain bg-muted rounded-lg border border-border" />
             <div className="mt-2 space-y-2">
               <div>
                 <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Enquadramento</div>
