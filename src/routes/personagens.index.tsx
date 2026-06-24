@@ -58,18 +58,18 @@ function PersonagensList() {
   }
 
   return (
-    <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-6">
-      <div className="flex items-end justify-between gap-2 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Personagens</h1>
-          <p className="text-muted-foreground mt-1">Seus corretores IA prontos para entrar em cena.</p>
+    <div className="px-4 py-6 sm:px-6 md:p-10 max-w-7xl mx-auto space-y-6 w-full overflow-x-hidden">
+      <div className="grid grid-cols-1 gap-4 sm:flex sm:items-end sm:justify-between sm:flex-wrap">
+        <div className="min-w-0">
+          <h1 className="font-bold tracking-tight text-[clamp(1.75rem,4vw,2rem)]">Personagens</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">Seus corretores IA prontos para entrar em cena.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap sm:flex-nowrap">
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline"><Upload className="mr-1.5 h-4 w-4" />Importar JSON</Button>
+              <Button variant="outline" className="flex-1 sm:flex-none min-h-11"><Upload className="mr-1.5 h-4 w-4" />Importar JSON</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl w-[calc(100vw-2rem)] sm:w-full max-h-[90dvh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Importar personagens (JSON)</DialogTitle>
               </DialogHeader>
@@ -83,28 +83,28 @@ function PersonagensList() {
                 placeholder='[{"name":"...","hooks":[...], ...}]'
                 className="min-h-[280px] font-mono text-xs"
               />
-              <DialogFooter>
-                <Button variant="ghost" onClick={() => setOpen(false)} disabled={loading}>Cancelar</Button>
-                <Button onClick={handleImport} disabled={loading || json.trim().length < 2}>
+              <DialogFooter className="flex-col-reverse gap-2 sm:flex-row">
+                <Button variant="ghost" onClick={() => setOpen(false)} disabled={loading} className="min-h-11">Cancelar</Button>
+                <Button onClick={handleImport} disabled={loading || json.trim().length < 2} className="min-h-11">
                   {loading ? "Importando..." : "Importar"}
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          <Button asChild>
+          <Button asChild className="flex-1 sm:flex-none min-h-11">
             <Link to="/personagens/novo"><Plus className="mr-1.5 h-4 w-4" />Novo Personagem</Link>
           </Button>
         </div>
       </div>
 
       {isLoading ? (
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:[grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i} className="aspect-square animate-pulse" />
           ))}
         </div>
       ) : (
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:[grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
           {characters?.map((c) => (
             <Card key={c.id} className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-shadow overflow-hidden">
               <Link to="/personagens/$id" params={{ id: c.id }} className="block group">
@@ -118,10 +118,10 @@ function PersonagensList() {
 
 
 
-              <CardContent className="p-5 space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-lg leading-tight">{c.name}</h3>
-                  <Badge variant="secondary" className="shrink-0">{c.hooks?.length ?? 0} hooks</Badge>
+              <CardContent className="p-4 sm:p-5 space-y-3">
+                <div className="flex items-start justify-between gap-2 min-w-0">
+                  <h3 className="font-semibold text-base sm:text-lg leading-tight truncate min-w-0">{c.name}</h3>
+                  <Badge variant="secondary" className="shrink-0 text-xs">{c.hooks?.length ?? 0} hooks</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-3 min-h-[3.75rem]">
                   {c.short_bio}
@@ -132,14 +132,14 @@ function PersonagensList() {
                   </p>
                 )}
                 <div className="flex gap-2 pt-2">
-                  <Button asChild variant="outline" size="sm" className="flex-1">
+                  <Button asChild variant="outline" size="sm" className="flex-1 min-h-11">
                     <Link to="/personagens/$id" params={{ id: c.id }}>
                       <Pencil className="mr-1.5 h-3.5 w-3.5" />Editar
                     </Link>
                   </Button>
                   <Button
                     size="sm"
-                    className="flex-1"
+                    className="flex-1 min-h-11"
                     onClick={() => navigate({ to: "/projetos/novo", search: { characterId: c.id } as any })}
                   >
                     <Sparkles className="mr-1.5 h-3.5 w-3.5" />Usar
