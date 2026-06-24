@@ -10,33 +10,115 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProjetosIndexRouteImport } from './routes/projetos.index'
+import { Route as PersonagensIndexRouteImport } from './routes/personagens.index'
+import { Route as ProjetosNovoRouteImport } from './routes/projetos.novo'
+import { Route as ProjetosIdRouteImport } from './routes/projetos.$id'
+import { Route as PersonagensNovoRouteImport } from './routes/personagens.novo'
+import { Route as PersonagensIdRouteImport } from './routes/personagens.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjetosIndexRoute = ProjetosIndexRouteImport.update({
+  id: '/projetos/',
+  path: '/projetos/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PersonagensIndexRoute = PersonagensIndexRouteImport.update({
+  id: '/personagens/',
+  path: '/personagens/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjetosNovoRoute = ProjetosNovoRouteImport.update({
+  id: '/projetos/novo',
+  path: '/projetos/novo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjetosIdRoute = ProjetosIdRouteImport.update({
+  id: '/projetos/$id',
+  path: '/projetos/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PersonagensNovoRoute = PersonagensNovoRouteImport.update({
+  id: '/personagens/novo',
+  path: '/personagens/novo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PersonagensIdRoute = PersonagensIdRouteImport.update({
+  id: '/personagens/$id',
+  path: '/personagens/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/personagens/$id': typeof PersonagensIdRoute
+  '/personagens/novo': typeof PersonagensNovoRoute
+  '/projetos/$id': typeof ProjetosIdRoute
+  '/projetos/novo': typeof ProjetosNovoRoute
+  '/personagens/': typeof PersonagensIndexRoute
+  '/projetos/': typeof ProjetosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/personagens/$id': typeof PersonagensIdRoute
+  '/personagens/novo': typeof PersonagensNovoRoute
+  '/projetos/$id': typeof ProjetosIdRoute
+  '/projetos/novo': typeof ProjetosNovoRoute
+  '/personagens': typeof PersonagensIndexRoute
+  '/projetos': typeof ProjetosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/personagens/$id': typeof PersonagensIdRoute
+  '/personagens/novo': typeof PersonagensNovoRoute
+  '/projetos/$id': typeof ProjetosIdRoute
+  '/projetos/novo': typeof ProjetosNovoRoute
+  '/personagens/': typeof PersonagensIndexRoute
+  '/projetos/': typeof ProjetosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/personagens/$id'
+    | '/personagens/novo'
+    | '/projetos/$id'
+    | '/projetos/novo'
+    | '/personagens/'
+    | '/projetos/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/personagens/$id'
+    | '/personagens/novo'
+    | '/projetos/$id'
+    | '/projetos/novo'
+    | '/personagens'
+    | '/projetos'
+  id:
+    | '__root__'
+    | '/'
+    | '/personagens/$id'
+    | '/personagens/novo'
+    | '/projetos/$id'
+    | '/projetos/novo'
+    | '/personagens/'
+    | '/projetos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PersonagensIdRoute: typeof PersonagensIdRoute
+  PersonagensNovoRoute: typeof PersonagensNovoRoute
+  ProjetosIdRoute: typeof ProjetosIdRoute
+  ProjetosNovoRoute: typeof ProjetosNovoRoute
+  PersonagensIndexRoute: typeof PersonagensIndexRoute
+  ProjetosIndexRoute: typeof ProjetosIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +130,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projetos/': {
+      id: '/projetos/'
+      path: '/projetos'
+      fullPath: '/projetos/'
+      preLoaderRoute: typeof ProjetosIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/personagens/': {
+      id: '/personagens/'
+      path: '/personagens'
+      fullPath: '/personagens/'
+      preLoaderRoute: typeof PersonagensIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projetos/novo': {
+      id: '/projetos/novo'
+      path: '/projetos/novo'
+      fullPath: '/projetos/novo'
+      preLoaderRoute: typeof ProjetosNovoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projetos/$id': {
+      id: '/projetos/$id'
+      path: '/projetos/$id'
+      fullPath: '/projetos/$id'
+      preLoaderRoute: typeof ProjetosIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/personagens/novo': {
+      id: '/personagens/novo'
+      path: '/personagens/novo'
+      fullPath: '/personagens/novo'
+      preLoaderRoute: typeof PersonagensNovoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/personagens/$id': {
+      id: '/personagens/$id'
+      path: '/personagens/$id'
+      fullPath: '/personagens/$id'
+      preLoaderRoute: typeof PersonagensIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PersonagensIdRoute: PersonagensIdRoute,
+  PersonagensNovoRoute: PersonagensNovoRoute,
+  ProjetosIdRoute: ProjetosIdRoute,
+  ProjetosNovoRoute: ProjetosNovoRoute,
+  PersonagensIndexRoute: PersonagensIndexRoute,
+  ProjetosIndexRoute: ProjetosIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
