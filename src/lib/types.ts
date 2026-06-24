@@ -37,6 +37,8 @@ export interface Project {
 
 export type SceneStatus = "pendente" | "gerado" | "aprovado";
 
+export type CameraFraming = "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto";
+
 export interface SceneHookOption {
   text: string;
   action: string;
@@ -58,6 +60,7 @@ export interface Scene {
   image_prompt: string | null;
   video_prompt: string | null;
   status: SceneStatus;
+  camera_framing: CameraFraming;
   created_at: string;
   updated_at: string;
 }
