@@ -178,30 +178,30 @@ function SceneCard({
   }
 
   async function pickHook(h: SceneHookOption) {
-    const ctas = character.ctas ?? [];
-    const cta = ctas[Math.floor(Math.random() * Math.max(ctas.length, 1))]?.text ?? "Clica no link da bio.";
+    // 1ª cena: hook é o roteiro inteiro. CTA fica SÓ na última cena.
     const updates = isFirst
-      ? { selected_hook: h as any, selected_script: h.text, cta }
+      ? { selected_hook: h as any, selected_script: h.text }
       : { selected_hook: h as any };
     const { error } = await supabase.from("scenes").update(updates).eq("id", scene.id);
-
     if (error) toast.error(error.message);
     else { toast.success("Hook selecionado"); onChange(); }
   }
 
   async function clearHook() {
     const updates = isFirst
-      ? { selected_hook: null, selected_script: null, cta: null }
+      ? { selected_hook: null, selected_script: null }
       : { selected_hook: null };
     const { error } = await supabase.from("scenes").update(updates).eq("id", scene.id);
     if (error) toast.error(error.message);
     else { toast.success("Seleção limpa"); onChange(); }
   }
 
-
   async function pickScript(s: string) {
+    // CTA só na última cena
     const ctas = character.ctas ?? [];
-    const cta = ctas[Math.floor(Math.random() * Math.max(ctas.length, 1))]?.text ?? "Clica no link da bio.";
+    const cta = isLast
+      ? ctas[Math.floor(Math.random() * Math.max(ctas.length, 1))]?.text ?? "Clica no link da bio."
+      : null;
     const { error } = await supabase
       .from("scenes")
       .update({ selected_script: s, cta })
@@ -209,6 +209,7 @@ function SceneCard({
     if (error) toast.error(error.message);
     else { toast.success("Roteiro selecionado"); onChange(); }
   }
+
 
   async function clearScript() {
     const { error } = await supabase
