@@ -47,6 +47,9 @@ export function CharacterForm({ initial, characterId }: Props) {
         catchphrases: catchphrases.filter((c) => c.trim()) as any,
         canonical_prompt: canonicalPrompt,
         canonical_images: canonicalImages as any,
+        face_reference_image: faceRef,
+        body_reference_image: bodyRef,
+        active_outfit_image: activeOutfit,
         hooks: hooks.filter((h) => h.text.trim()) as any,
         ctas: ctas.filter((c) => c.text.trim()) as any,
       };
