@@ -107,12 +107,15 @@ function PersonagensList() {
         <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
           {characters?.map((c) => (
             <Card key={c.id} className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-shadow overflow-hidden">
-              <SignedImage
-                path={c.face_reference_image ?? null}
-                alt={c.name}
-                className="w-full aspect-square object-cover object-top bg-muted"
-                fallbackClassName="w-full aspect-square rounded-none border-0 border-b"
-              />
+              <Link to="/personagens/$id" params={{ id: c.id }} className="block group">
+                <SignedImage
+                  path={c.face_reference_image ?? null}
+                  alt={c.name}
+                  className="w-full aspect-square object-cover object-top bg-muted transition-transform group-hover:scale-[1.02]"
+                  fallbackClassName="w-full aspect-square rounded-none border-0 border-b"
+                />
+              </Link>
+
 
 
               <CardContent className="p-5 space-y-3">
