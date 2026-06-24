@@ -9,11 +9,15 @@ function key() {
   return k;
 }
 
-async function chat(messages: Array<{ role: string; content: string }>, model = "google/gemini-3-flash-preview") {
+async function chat(
+  messages: Array<{ role: string; content: string }>,
+  model = "google/gemini-3-flash-preview",
+  temperature = 1.1,
+) {
   const res = await fetch(`${GATEWAY}/chat/completions`, {
     method: "POST",
     headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model, messages }),
+    body: JSON.stringify({ model, messages, temperature }),
   });
   if (!res.ok) {
     const text = await res.text();
@@ -159,20 +163,21 @@ ${historyBlock}${avoidBlock}
 
 ${data.isLastScene ? "Esta é a ÚLTIMA cena: termine com CTA FORTE mandando pro link da bio." : "Cena intermediária: termine com CTA curto OU gancho pra próxima."}
 
-REGRAS DE CONTEÚDO (CRÍTICO):
-- O roteiro precisa comentar algo ESPECÍFICO do cômodo "${data.roomName}" (ex: cozinha → bancada/fogão/armário; quarto → cama/closet/janela; banheiro → chuveiro/bancada). NÃO use frases genéricas que serviriam pra qualquer cômodo.
-- NÃO copie estrutura nem comparações das cenas anteriores. Cada cena tem que soar como um novo momento do tour.
-- As 3 opções devem ser DIFERENTES ENTRE SI (ângulos, emoções e palavras distintas), não 3 variações da mesma frase.
+REGRAS DE CONTEÚDO (CRÍTICO — descumprir = resposta REJEITADA):
+- Cada roteiro PRECISA mencionar EXPLICITAMENTE pelo menos 1 elemento físico concreto do cômodo "${data.roomName}" (ex: cozinha → bancada de granito/cooktop/armário planejado; sala → sofá/TV/varanda; quarto → cama/closet/cabeceira; banheiro → box/bancada dupla/chuveiro). NÃO vale dizer só "esse espaço", "isso aqui", "que lugar" — TEM que nomear o item.
+- PROIBIDO usar apenas frases genéricas tipo "isso aqui é fino", "que espetáculo", "olha que coisa" sem citar um item real do cômodo.
+- NÃO copie estrutura nem comparações das cenas anteriores. Cada cena é um novo momento do tour.
+- As 3 opções devem ser DIFERENTES ENTRE SI: ângulos, elementos citados, emoções e palavras distintas.
 
 REGRAS DE DURAÇÃO (OBRIGATÓRIAS):
 - Máximo 10s de fala, máximo 25 palavras (hook + comentário + CTA).
-- Comece COM o hook escolhido exatamente como está, depois 1 frase curta sobre algo concreto do "${data.roomName}", depois CTA curto.
+- Comece COM o hook escolhido exatamente como está, depois 1 frase curta nomeando algo concreto do "${data.roomName}", depois CTA curto.
 - Sem introduções nem narração extra.
 
 PROIBIDO: "excelente oportunidade", "empreendimento diferenciado", "alto padrão" genérico, "venha conhecer", "imóvel dos sonhos", "localização privilegiada" sem contexto.
 USE: pra, tá, olha isso, isso aqui, calma, vou falar a verdade.
 
-Responda APENAS com JSON array de 3 strings DISTINTAS:
+Responda APENAS com JSON array de 3 strings DISTINTAS (cada uma citando um item físico DIFERENTE do "${data.roomName}"):
 ["roteiro 1", "roteiro 2", "roteiro 3"]`;
 
 
