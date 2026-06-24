@@ -81,8 +81,30 @@ export function CharacterForm({ initial, characterId }: Props) {
         const p = await uploadSceneFile(f, "characters", "original");
         paths.push(p);
       }
-      setCanonicalImages((prev) => [...prev, ...paths]);
-      toast.success(`${paths.length} imagem(ns) adicionada(s)`);
+      setCanonicalImages((prev) => {
+        const next = [...prev, ...paths];
+        // se ainda não tem roupa ativa definida, marca a primeira nova como ativa
+        if (!activeOutfit && paths[0]) setActiveOutfit(paths[0]);
+        return next;
+      });
+      toast.success(`${paths.length} look(s) adicionado(s)`);
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      e.target.value = "";
+    }
+  }
+
+  async function handleSingleUpload(
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: (p: string | null) => void,
+  ) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    try {
+      const p = await uploadSceneFile(f, "characters", "original");
+      setter(p);
+      toast.success("Foto salva");
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
