@@ -225,8 +225,11 @@ export function CharacterForm({ initial, characterId }: Props) {
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
 
+        <TabsContent value="looks" className="space-y-4 mt-4">
       <Card>
+
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><Shirt className="h-4 w-4" />Looks / Roupas</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">
