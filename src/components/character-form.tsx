@@ -316,8 +316,11 @@ export function CharacterForm({ initial, characterId }: Props) {
           </Button>
         </CardContent>
       </Card>
+        </TabsContent>
 
+        <TabsContent value="ctas" className="space-y-4 mt-4">
       <Card>
+
         <CardHeader><CardTitle>CTAs do personagem</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {ctas.map((c, i) => (
