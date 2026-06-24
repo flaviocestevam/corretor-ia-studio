@@ -185,7 +185,7 @@ export function CharacterForm({ initial, characterId }: Props) {
             <Label className="flex items-center gap-1.5"><User className="h-3.5 w-3.5" />Rosto frontal</Label>
             {faceRef ? (
               <div className="relative group">
-                <SignedImage path={faceRef} alt="" className="w-full aspect-square rounded-md object-cover" />
+                <SignedImage path={faceRef} alt="" className="w-full aspect-[9/16] rounded-md object-contain bg-muted" />
                 <button type="button" onClick={() => setFaceRef(null)} className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1">
                   <Trash2 className="h-3 w-3" />
                 </button>
@@ -198,7 +198,7 @@ export function CharacterForm({ initial, characterId }: Props) {
             <Label className="flex items-center gap-1.5"><UserSquare className="h-3.5 w-3.5" />Corpo inteiro</Label>
             {bodyRef ? (
               <div className="relative group">
-                <SignedImage path={bodyRef} alt="" className="w-full aspect-square rounded-md object-cover" />
+                <SignedImage path={bodyRef} alt="" className="w-full aspect-[9/16] rounded-md object-contain bg-muted" />
                 <button type="button" onClick={() => setBodyRef(null)} className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1">
                   <Trash2 className="h-3 w-3" />
                 </button>
@@ -225,7 +225,7 @@ export function CharacterForm({ initial, characterId }: Props) {
                 const isActive = path === activeOutfit;
                 return (
                   <div key={path} className={`relative group border-2 rounded-lg overflow-hidden ${isActive ? "border-primary" : "border-border"}`}>
-                    <SignedImage path={path} alt="" className="w-full aspect-square object-cover" />
+                    <SignedImage path={path} alt="" className="w-full aspect-[9/16] object-contain bg-muted" />
                     {isActive && (
                       <Badge className="absolute top-1 left-1 gap-1"><Check className="h-3 w-3" />Roupa ativa</Badge>
                     )}
