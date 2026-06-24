@@ -542,23 +542,28 @@ function SceneCard({
         {/* PROMPTS */}
         <div className="grid md:grid-cols-2 gap-3">
           <section>
-            <div className="text-xs font-medium text-muted-foreground mb-1">Prompt de imagem (editável)</div>
-            <Textarea
-              key={`imgp-${scene.id}-${scene.updated_at}`}
-              defaultValue={scene.image_prompt ?? ""}
-              rows={4}
-              className="text-xs"
-              onBlur={async (e) => {
-                if (e.target.value === (scene.image_prompt ?? "")) return;
-                const { error } = await supabase.from("scenes").update({ image_prompt: e.target.value || null }).eq("id", scene.id);
-                if (error) toast.error(error.message); else { toast.success("Prompt de imagem atualizado"); onChange(); }
-              }}
-            />
-            {scene.image_prompt && (
-              <Button size="sm" variant="ghost" className="mt-1" onClick={() => copy(scene.image_prompt!, "Prompt de imagem")}>
-                <Copy className="mr-1.5 h-3 w-3" />Copiar
-              </Button>
-            )}
+            <details open={!scene.generated_character_image}>
+              <summary className="text-xs font-medium text-muted-foreground mb-1 cursor-pointer select-none">
+                Prompt de imagem {scene.generated_character_image ? "(usado — clique para ver/editar e regerar)" : "(editável)"}
+              </summary>
+              <Textarea
+                key={`imgp-${scene.id}-${scene.updated_at}`}
+                defaultValue={scene.image_prompt ?? ""}
+                rows={4}
+                className="text-xs mt-1"
+                onBlur={async (e) => {
+                  if (e.target.value === (scene.image_prompt ?? "")) return;
+                  const { error } = await supabase.from("scenes").update({ image_prompt: e.target.value || null }).eq("id", scene.id);
+                  if (error) toast.error(error.message); else { toast.success("Prompt de imagem atualizado"); onChange(); }
+                }}
+              />
+              {scene.image_prompt && (
+                <Button size="sm" variant="ghost" className="mt-1" onClick={() => copy(scene.image_prompt!, "Prompt de imagem")}>
+                  <Copy className="mr-1.5 h-3 w-3" />Copiar
+                </Button>
+              )}
+            </details>
+
           </section>
           <section>
             <div className="flex items-center justify-between mb-1">
