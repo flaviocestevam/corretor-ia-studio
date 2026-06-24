@@ -31,6 +31,8 @@ function PersonagensList() {
   const [open, setOpen] = useState(false);
   const [json, setJson] = useState("");
   const [loading, setLoading] = useState(false);
+  const [q, setQ] = useState("");
+
 
   const { data: characters, isLoading } = useQuery({
     queryKey: ["characters"],
