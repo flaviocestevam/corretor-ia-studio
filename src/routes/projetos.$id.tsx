@@ -271,7 +271,7 @@ function SceneCard({
                         className="h-7 text-xs px-2"
                         onClick={async () => {
                           await supabase.from("scenes").update({ camera_framing: opt.v }).eq("id", scene.id);
-                          qc.invalidateQueries({ queryKey: ["project", scene.project_id] });
+                          onChange();
                         }}
                       >
                         {opt.l}
