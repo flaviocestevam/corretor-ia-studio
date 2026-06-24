@@ -502,17 +502,36 @@ function SceneCard({
           </div>
           <div>
             <div className="text-xs font-medium text-muted-foreground mb-1.5">Com corretor</div>
-            <SignedImage path={scene.generated_character_image} alt="Gerada" className="w-full aspect-[9/16] max-h-[480px] object-contain bg-muted rounded-lg border border-border" />
+            <div className="relative w-full aspect-[9/16] max-h-[480px] bg-muted rounded-lg border border-border overflow-hidden">
+              <SignedImage path={scene.generated_character_image} alt="Gerada" className="absolute inset-0 w-full h-full object-contain" />
+              {/* Preview Reels: roteiro + CTA sobrepostos */}
+              {(scene.selected_script || scene.cta) && (
+                <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent text-white pointer-events-none">
+                  {scene.selected_script && (
+                    <div className="text-sm font-semibold leading-tight drop-shadow line-clamp-3">
+                      {scene.selected_script}
+                    </div>
+                  )}
+                  {scene.cta && (
+                    <div className="text-xs mt-1.5 bg-primary/90 inline-block px-2 py-0.5 rounded font-medium">
+                      {scene.cta}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             <div className="mt-2 space-y-2">
               <div>
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Enquadramento</div>
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">
+                  Enquadramento — como o corretor aparece dentro do cômodo
+                </div>
                 <div className="flex flex-wrap gap-1">
                   {([
-                    { v: "auto", l: "✨ IA decide" },
-                    { v: "selfie", l: "Selfie" },
-                    { v: "meio_corpo", l: "Meio corpo" },
-                    { v: "corpo_inteiro", l: "Corpo inteiro" },
-                    { v: "plano_aberto", l: "Plano aberto" },
+                    { v: "auto", l: "✨ IA decide", d: "Deixa a IA escolher" },
+                    { v: "selfie", l: "Selfie", d: "POV próximo, rosto e ombros" },
+                    { v: "meio_corpo", l: "Meio corpo", d: "Da cintura pra cima" },
+                    { v: "corpo_inteiro", l: "Corpo inteiro", d: "Pessoa inteira no cômodo" },
+                    { v: "plano_aberto", l: "Plano aberto", d: "Wide, pessoa pequena no ambiente" },
                   ] as const).map((opt) => {
                     const active = (scene.camera_framing ?? "corpo_inteiro") === opt.v;
                     return (
@@ -522,6 +541,7 @@ function SceneCard({
                         size="sm"
                         variant={active ? "default" : "outline"}
                         className="h-7 text-xs px-2"
+                        title={opt.d}
                         onClick={async () => {
                           await supabase.from("scenes").update({ camera_framing: opt.v }).eq("id", scene.id);
                           onChange();
@@ -532,7 +552,17 @@ function SceneCard({
                     );
                   })}
                 </div>
+                <div className="text-[10px] text-muted-foreground mt-1">
+                  {{
+                    auto: "✨ A IA escolhe o melhor enquadramento pra esta cena.",
+                    selfie: "📱 POV de quem grava: rosto, ombros, fundo desfocado.",
+                    meio_corpo: "🎯 Da cintura pra cima — equilibra pessoa e ambiente.",
+                    corpo_inteiro: "🧍 Pessoa inteira, dos pés à cabeça.",
+                    plano_aberto: "🏠 Tour imobiliário: cômodo domina, pessoa pequena ao fundo.",
+                  }[(scene.camera_framing ?? "corpo_inteiro") as "auto" | "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto"]}
+                </div>
               </div>
+
               <div className="flex gap-1 flex-wrap items-center">
                 <Button
                   size="sm"
