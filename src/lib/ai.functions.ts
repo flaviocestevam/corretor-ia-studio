@@ -241,7 +241,9 @@ ${responseRule}
 ["roteiro 1", "roteiro 2", "roteiro 3"]`;
 
 
-    const raw = await chat([{ role: "user", content: prompt }]);
+    const userContent: ChatPart[] = [{ type: "text", text: prompt }];
+    if (imageDataUrl) userContent.push({ type: "image_url", image_url: { url: imageDataUrl } });
+    const raw = await chat([{ role: "user", content: userContent }]);
     const scripts = (extractJSON(raw) as string[]).map((script) =>
       data.isLastScene ? script : removeIntermediateCta(script),
     );
