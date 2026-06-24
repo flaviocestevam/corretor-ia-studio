@@ -645,10 +645,12 @@ function SceneCard({
                           },
                         }),
                       setLoadingHooks,
-                      "Hooks gerados",
+                      (res: any) => `${Array.isArray(res) ? res.length : 3} hooks gerados — escolha 1 abaixo`,
+                      "Gerar hooks",
                     )
                   }
-                  disabled={loadingHooks}
+                  disabled={busy}
+
                 >
                   {loadingHooks ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
                   {scene.hook_options?.length > 0 ? "Gerar novos" : "Gerar hooks"}
