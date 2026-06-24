@@ -185,8 +185,11 @@ export function CharacterForm({ initial, characterId }: Props) {
           </Button>
         </CardContent>
       </Card>
+        </TabsContent>
 
+        <TabsContent value="fotos" className="space-y-4 mt-4">
       <Card>
+
         <CardHeader>
           <CardTitle>Fotos de referência fixas</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">
