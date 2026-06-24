@@ -83,15 +83,15 @@ function PersonagensList() {
                 placeholder='[{"name":"...","hooks":[...], ...}]'
                 className="min-h-[280px] font-mono text-xs"
               />
-              <DialogFooter>
-                <Button variant="ghost" onClick={() => setOpen(false)} disabled={loading}>Cancelar</Button>
-                <Button onClick={handleImport} disabled={loading || json.trim().length < 2}>
+              <DialogFooter className="flex-col-reverse gap-2 sm:flex-row">
+                <Button variant="ghost" onClick={() => setOpen(false)} disabled={loading} className="min-h-11">Cancelar</Button>
+                <Button onClick={handleImport} disabled={loading || json.trim().length < 2} className="min-h-11">
                   {loading ? "Importando..." : "Importar"}
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          <Button asChild>
+          <Button asChild className="flex-1 sm:flex-none min-h-11">
             <Link to="/personagens/novo"><Plus className="mr-1.5 h-4 w-4" />Novo Personagem</Link>
           </Button>
         </div>
