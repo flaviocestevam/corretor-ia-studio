@@ -110,8 +110,8 @@ function PersonagensList() {
               <SignedImage
                 path={c.face_reference_image ?? c.body_reference_image ?? c.active_outfit_image ?? c.canonical_images?.[0] ?? null}
                 alt={c.name}
-                className="w-full h-48 object-cover"
-                fallbackClassName="w-full h-48 rounded-none border-0 border-b"
+                className="w-full aspect-[9/16] object-contain bg-muted"
+                fallbackClassName="w-full aspect-[9/16] rounded-none border-0 border-b"
               />
               <CardContent className="p-5 space-y-3">
                 <div className="flex items-start justify-between gap-2">
