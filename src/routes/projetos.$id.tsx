@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -7,14 +7,18 @@ import { downloadAsBlob, getSignedUrl, uploadSceneFile } from "@/lib/storage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { SignedImage } from "@/components/signed-image";
 import {
   Sparkles, Wand2, FileText, Video, Check, Copy, Download, Loader2, Trash2,
+  ArrowDown, ArrowUp, Plus, PlayCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+
 import {
   generateHooks,
   generateScripts,
