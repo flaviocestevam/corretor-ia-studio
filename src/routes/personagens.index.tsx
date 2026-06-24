@@ -118,10 +118,10 @@ function PersonagensList() {
 
 
 
-              <CardContent className="p-5 space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-lg leading-tight">{c.name}</h3>
-                  <Badge variant="secondary" className="shrink-0">{c.hooks?.length ?? 0} hooks</Badge>
+              <CardContent className="p-4 sm:p-5 space-y-3">
+                <div className="flex items-start justify-between gap-2 min-w-0">
+                  <h3 className="font-semibold text-base sm:text-lg leading-tight truncate min-w-0">{c.name}</h3>
+                  <Badge variant="secondary" className="shrink-0 text-xs">{c.hooks?.length ?? 0} hooks</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-3 min-h-[3.75rem]">
                   {c.short_bio}
@@ -132,14 +132,14 @@ function PersonagensList() {
                   </p>
                 )}
                 <div className="flex gap-2 pt-2">
-                  <Button asChild variant="outline" size="sm" className="flex-1">
+                  <Button asChild variant="outline" size="sm" className="flex-1 min-h-11">
                     <Link to="/personagens/$id" params={{ id: c.id }}>
                       <Pencil className="mr-1.5 h-3.5 w-3.5" />Editar
                     </Link>
                   </Button>
                   <Button
                     size="sm"
-                    className="flex-1"
+                    className="flex-1 min-h-11"
                     onClick={() => navigate({ to: "/projetos/novo", search: { characterId: c.id } as any })}
                   >
                     <Sparkles className="mr-1.5 h-3.5 w-3.5" />Usar
