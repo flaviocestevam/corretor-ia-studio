@@ -171,16 +171,31 @@ export const generateSceneImage = createServerFn({ method: "POST" })
     const selectedHook = scene.selected_hook as { action?: string } | null;
     const action = selectedHook?.action ?? "postura natural compatível com a personalidade do personagem";
 
-    const canonicalImgs = (char.canonical_images as string[]) || [];
-    const totalRefs = canonicalImgs.length;
+    const outfitImg = (char as any).active_outfit_image as string | null;
+    const faceImg = (char as any).face_reference_image as string | null;
+    const bodyImg = (char as any).body_reference_image as string | null;
 
-    const imagePrompt = `IMAGEM 1 = foto real do cômodo (cenário fixo). IMAGENS 2${totalRefs > 1 ? `..${1 + totalRefs}` : ""} = fotos de referência do personagem "${char.name}".
+    const refs: Array<{ label: string; path: string }> = [];
+    if (outfitImg) refs.push({ label: "ROUPA ATIVA (roupa que deve aparecer na cena)", path: outfitImg });
+    if (faceImg) refs.push({ label: "ROSTO FRONTAL (referência de identidade facial)", path: faceImg });
+    if (bodyImg) refs.push({ label: "CORPO INTEIRO (referência de proporções)", path: bodyImg });
+
+    if (refs.length === 0) {
+      throw new Error("Personagem sem fotos de referência. Defina ao menos a foto de rosto, corpo ou roupa ativa.");
+    }
+
+    const refsDescription = refs
+      .map((r, i) => `IMAGEM ${i + 2} = ${r.label}`)
+      .join("\n");
+
+    const imagePrompt = `IMAGEM 1 = foto real do cômodo (cenário fixo).
+${refsDescription}
 
 REGRAS OBRIGATÓRIAS:
 1. Use a IMAGEM 1 como cenário. NÃO altere móveis, paredes, piso, janelas, iluminação ou decoração do cômodo.
-2. Insira o personagem dentro desse cômodo de forma fotorrealista, com iluminação coerente com o ambiente.
-3. Identidade facial: combine TODAS as fotos de referência do personagem (rosto, traços, cabelo, idade aparente, tipo físico) — mantenha 100% a mesma pessoa em qualquer cena.
-4. Roupa: use a roupa da PRIMEIRA foto de referência do personagem (IMAGEM 2) como roupa canônica desta produção. Ignore variações de roupa nas outras fotos — elas servem apenas como ângulos adicionais do rosto e corpo. Se a primeira foto não mostrar a roupa inteira, complete de forma coerente com o estilo do personagem.
+2. Insira o personagem "${char.name}" dentro do cômodo de forma fotorrealista, com iluminação coerente com o ambiente.
+3. Roupa: copie EXATAMENTE a roupa da imagem marcada como "ROUPA ATIVA" (cor, corte, acessórios). Ignore roupas das outras imagens de referência.
+4. Rosto e proporções: combine as imagens marcadas como "ROSTO FRONTAL" e "CORPO INTEIRO" para manter a mesma identidade física (rosto, traços, cabelo, altura, tipo físico) em todas as cenas.
 5. Descrição visual canônica adicional: ${char.canonical_prompt ?? char.personality}
 6. Pose / ação na cena: ${action}
 7. Expressão coerente com a personalidade: ${char.personality}
@@ -197,10 +212,10 @@ REGRAS OBRIGATÓRIAS:
       { type: "image_url", image_url: { url: signed.signedUrl } },
     ];
 
-    for (const ci of canonicalImgs) {
+    for (const r of refs) {
       const { data: sci } = await supabaseAdmin.storage
         .from("scene-assets")
-        .createSignedUrl(ci, 600);
+        .createSignedUrl(r.path, 600);
       if (sci?.signedUrl) contentBlocks.push({ type: "image_url", image_url: { url: sci.signedUrl } });
     }
 
