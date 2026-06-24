@@ -284,11 +284,15 @@ function SceneCard({
         <div className="rounded-lg border border-dashed border-border bg-muted/30 p-3 text-xs space-y-1">
           <div className="font-semibold text-foreground">Passo a passo desta cena</div>
           <div>1️⃣ Escolha o enquadramento e clique em <b>Gerar imagem</b>.</div>
-          <div>2️⃣ Clique em <b>Gerar hooks</b> e selecione 1 (cada hook = ~4s).</div>
-          <div>3️⃣ {isFirst ? <>Esta é a 1ª cena: o <b>hook já é o roteiro</b> (≤10s). Pode pular para o passo 4.</> : <>Clique em <b>Gerar roteiros</b> e selecione 1 (≤10s, máx ~25 palavras).</>}</div>
-          <div>4️⃣ Clique em <b>Gerar prompt de vídeo</b> (vídeo de ~10s).</div>
-          <div>5️⃣ Clique em <b>Aprovar</b> quando estiver pronta.</div>
+          {isFirst ? (
+            <div>2️⃣ Clique em <b>Gerar hooks</b> e selecione 1. O hook É o roteiro desta cena (≤10s).</div>
+          ) : (
+            <div>2️⃣ Clique em <b>Gerar roteiros</b> e selecione 1 (≤10s, máx ~25 palavras).{isLast && " Edite o CTA se quiser."}</div>
+          )}
+          <div>3️⃣ Clique em <b>Gerar prompt de vídeo</b> (vídeo de ~10s).</div>
+          <div>4️⃣ Clique em <b>Aprovar</b> quando estiver pronta.</div>
         </div>
+
 
         <div className="grid md:grid-cols-2 gap-3">
           <div>
@@ -376,65 +380,68 @@ function SceneCard({
           </div>
         </div>
 
-        {/* HOOKS */}
-        <section>
-          <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-            <div className="text-sm font-medium">Passo 2 — Hooks ({scene.hook_options?.length ?? 0})</div>
-            <div className="flex gap-1">
-              {scene.selected_hook && (
-                <Button size="sm" variant="ghost" onClick={clearHook}>
-                  Limpar seleção
+        {/* HOOKS — só na 1ª cena (hook = abertura do vídeo) */}
+        {isFirst && (
+          <section>
+            <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+              <div className="text-sm font-medium">Passo 2 — Hooks ({scene.hook_options?.length ?? 0})</div>
+              <div className="flex gap-1">
+                {scene.selected_hook && (
+                  <Button size="sm" variant="ghost" onClick={clearHook}>
+                    Limpar seleção
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    run(
+                      () =>
+                        genHooks({
+                          data: {
+                            characterId: character.id,
+                            sceneId: scene.id,
+                            isFirstScene: isFirst,
+                            previousSceneScript: previousScript,
+                            roomName: scene.room_name,
+                          },
+                        }),
+                      setLoadingHooks,
+                      "Hooks gerados",
+                    )
+                  }
+                  disabled={loadingHooks}
+                >
+                  {loadingHooks ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
+                  {scene.hook_options?.length > 0 ? "Gerar novos" : "Gerar hooks"}
                 </Button>
-              )}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() =>
-                  run(
-                    () =>
-                      genHooks({
-                        data: {
-                          characterId: character.id,
-                          sceneId: scene.id,
-                          isFirstScene: isFirst,
-                          previousSceneScript: previousScript,
-                          roomName: scene.room_name,
-                        },
-                      }),
-                    setLoadingHooks,
-                    "Hooks gerados",
-                  )
-                }
-                disabled={loadingHooks}
-              >
-                {loadingHooks ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
-                {scene.hook_options?.length > 0 ? "Gerar novos" : "Gerar hooks"}
-              </Button>
+              </div>
             </div>
-          </div>
 
-          {scene.hook_options?.length > 0 && (
-            <div className="grid gap-2">
-              {scene.hook_options.map((h, i) => {
-                const isSelected = scene.selected_hook?.text === h.text;
-                return (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => pickHook(h)}
-                    className={`text-left border rounded-lg p-3 transition ${
-                      isSelected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
-                    }`}
-                  >
-                    <div className="font-medium text-sm">"{h.text}"</div>
-                    <div className="text-xs text-muted-foreground mt-1">🎬 {h.action}</div>
-                    <div className="text-xs text-muted-foreground">⏱ {h.duration}s</div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </section>
+            {scene.hook_options?.length > 0 && (
+              <div className="grid gap-2">
+                {scene.hook_options.map((h, i) => {
+                  const isSelected = scene.selected_hook?.text === h.text;
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => pickHook(h)}
+                      className={`text-left border rounded-lg p-3 transition ${
+                        isSelected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
+                      }`}
+                    >
+                      <div className="font-medium text-sm">"{h.text}"</div>
+                      <div className="text-xs text-muted-foreground mt-1">🎬 {h.action}</div>
+                      <div className="text-xs text-muted-foreground">⏱ {h.duration}s</div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
+
 
         {/* ROTEIROS — só aparecem da 2ª cena em diante; na 1ª, o hook É o roteiro */}
         {isFirst ? (
@@ -471,16 +478,14 @@ function SceneCard({
                       "Roteiros gerados",
                     )
                   }
-                  disabled={loadingScripts || !scene.selected_hook}
+                  disabled={loadingScripts}
                 >
                   {loadingScripts ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />}
                   {scene.script_options?.length > 0 ? "Gerar novos" : "Gerar roteiros"}
                 </Button>
               </div>
             </div>
-            {!scene.selected_hook && scene.hook_options?.length > 0 && (
-              <div className="text-xs text-muted-foreground">Selecione um hook primeiro.</div>
-            )}
+
             {scene.script_options?.length > 0 && (
               <div className="grid gap-2">
                 {scene.script_options.map((s, i) => {
