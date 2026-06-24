@@ -171,7 +171,20 @@ export const generateSceneImage = createServerFn({ method: "POST" })
     const selectedHook = scene.selected_hook as { action?: string } | null;
     const action = selectedHook?.action ?? "postura natural compatível com a personalidade do personagem";
 
-    const imagePrompt = `Usando a foto real do cômodo enviada como base, insira o personagem "${char.name}" dentro do ambiente, mantendo a estrutura original do imóvel sem alterar móveis, paredes, piso, janelas, iluminação ou decoração. Mantenha 100% a identidade visual do personagem com base na descrição canônica: ${char.canonical_prompt ?? char.personality}. O personagem deve estar em uma pose compatível com a cena: ${action}. Expressão facial e corporal coerente com a personalidade: ${char.personality}. Estilo fotorrealista, iluminação natural integrada ao ambiente, corpo inteiro ou meio corpo conforme o enquadramento permitir, composição vertical 9:16 para Reels/TikTok/Stories, sem texto, sem logo, sem marca d'água.`;
+    const canonicalImgs = (char.canonical_images as string[]) || [];
+    const totalRefs = canonicalImgs.length;
+
+    const imagePrompt = `IMAGEM 1 = foto real do cômodo (cenário fixo). IMAGENS 2${totalRefs > 1 ? `..${1 + totalRefs}` : ""} = fotos de referência do personagem "${char.name}".
+
+REGRAS OBRIGATÓRIAS:
+1. Use a IMAGEM 1 como cenário. NÃO altere móveis, paredes, piso, janelas, iluminação ou decoração do cômodo.
+2. Insira o personagem dentro desse cômodo de forma fotorrealista, com iluminação coerente com o ambiente.
+3. Identidade facial: combine TODAS as fotos de referência do personagem (rosto, traços, cabelo, idade aparente, tipo físico) — mantenha 100% a mesma pessoa em qualquer cena.
+4. Roupa: use a roupa da PRIMEIRA foto de referência do personagem (IMAGEM 2) como roupa canônica desta produção. Ignore variações de roupa nas outras fotos — elas servem apenas como ângulos adicionais do rosto e corpo. Se a primeira foto não mostrar a roupa inteira, complete de forma coerente com o estilo do personagem.
+5. Descrição visual canônica adicional: ${char.canonical_prompt ?? char.personality}
+6. Pose / ação na cena: ${action}
+7. Expressão coerente com a personalidade: ${char.personality}
+8. Enquadramento vertical 9:16, corpo inteiro ou meio corpo conforme o cômodo permitir. Sem texto, sem logo, sem marca d'água.`;
 
     // signed URL for room photo
     const { data: signed, error: urlErr } = await supabaseAdmin.storage
@@ -184,8 +197,7 @@ export const generateSceneImage = createServerFn({ method: "POST" })
       { type: "image_url", image_url: { url: signed.signedUrl } },
     ];
 
-    const canonicalImgs = (char.canonical_images as string[]) || [];
-    for (const ci of canonicalImgs.slice(0, 3)) {
+    for (const ci of canonicalImgs) {
       const { data: sci } = await supabaseAdmin.storage
         .from("scene-assets")
         .createSignedUrl(ci, 600);
