@@ -124,14 +124,20 @@ Hook escolhido para esta cena: "${data.selectedHook}"
 ${data.previousSceneScript ? `Cena anterior: "${data.previousSceneScript}"` : ""}
 ${data.isLastScene ? "Esta é a ÚLTIMA cena: termine com CTA FORTE mandando pro link da bio." : "Cena intermediária: termine com CTA curto OU gancho pra próxima."}
 
-Gere 3 opções de roteiro completo para esta cena (8 a 12 segundos cada), conectados como sequência.
-Formato de cada roteiro: começa com o hook (ou frase de conexão), comentário principal sobre o cômodo, CTA curto no estilo do personagem.
+REGRAS DE DURAÇÃO (OBRIGATÓRIAS):
+- Cada roteiro deve durar NO MÁXIMO 10 segundos de fala (incluindo o hook).
+- MÁXIMO 25 palavras no total (hook + comentário + CTA).
+- Comece COM o hook escolhido exatamente como está, depois 1 frase curta de comentário do cômodo, depois CTA bem curto.
+- NÃO adicione introduções, narração extra ou frases de transição além disso.
+
+Gere 3 opções de roteiro curto (≤10s, ≤25 palavras cada).
 
 PROIBIDO usar: "excelente oportunidade", "empreendimento diferenciado", "alto padrão" genérico, "venha conhecer", "imóvel dos sonhos", "localização privilegiada" sem contexto.
 USE: pra, tá, olha isso, isso aqui, calma, vou falar a verdade.
 
 Responda APENAS com JSON array de strings:
-["roteiro 1 completo", "roteiro 2 completo", "roteiro 3 completo"]`;
+["roteiro 1 curto", "roteiro 2 curto", "roteiro 3 curto"]`;
+
 
     const raw = await chat([{ role: "user", content: prompt }]);
     const scripts = extractJSON(raw);

@@ -178,16 +178,28 @@ function SceneCard({
   }
 
   async function pickHook(h: SceneHookOption) {
-    const { error } = await supabase
-      .from("scenes")
-      .update({ selected_hook: h as any })
-      .eq("id", scene.id);
+    const ctas = character.ctas ?? [];
+    const cta = ctas[Math.floor(Math.random() * Math.max(ctas.length, 1))]?.text ?? "Clica no link da bio.";
+    const updates = isFirst
+      ? { selected_hook: h as any, selected_script: h.text, cta }
+      : { selected_hook: h as any };
+    const { error } = await supabase.from("scenes").update(updates).eq("id", scene.id);
+
     if (error) toast.error(error.message);
     else { toast.success("Hook selecionado"); onChange(); }
   }
 
+  async function clearHook() {
+    const updates = isFirst
+      ? { selected_hook: null, selected_script: null, cta: null }
+      : { selected_hook: null };
+    const { error } = await supabase.from("scenes").update(updates).eq("id", scene.id);
+    if (error) toast.error(error.message);
+    else { toast.success("Seleção limpa"); onChange(); }
+  }
+
+
   async function pickScript(s: string) {
-    // pegar um CTA aleatório do personagem
     const ctas = character.ctas ?? [];
     const cta = ctas[Math.floor(Math.random() * Math.max(ctas.length, 1))]?.text ?? "Clica no link da bio.";
     const { error } = await supabase
@@ -197,6 +209,16 @@ function SceneCard({
     if (error) toast.error(error.message);
     else { toast.success("Roteiro selecionado"); onChange(); }
   }
+
+  async function clearScript() {
+    const { error } = await supabase
+      .from("scenes")
+      .update({ selected_script: null, cta: null })
+      .eq("id", scene.id);
+    if (error) toast.error(error.message);
+    else { toast.success("Roteiro limpo"); onChange(); }
+  }
+
 
   function copy(text: string, label: string) {
     navigator.clipboard.writeText(text);
@@ -238,6 +260,15 @@ function SceneCard({
         )}
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="rounded-lg border border-dashed border-border bg-muted/30 p-3 text-xs space-y-1">
+          <div className="font-semibold text-foreground">Passo a passo desta cena</div>
+          <div>1️⃣ Escolha o enquadramento e clique em <b>Gerar imagem</b>.</div>
+          <div>2️⃣ Clique em <b>Gerar hooks</b> e selecione 1 (cada hook = ~4s).</div>
+          <div>3️⃣ {isFirst ? <>Esta é a 1ª cena: o <b>hook já é o roteiro</b> (≤10s). Pode pular para o passo 4.</> : <>Clique em <b>Gerar roteiros</b> e selecione 1 (≤10s, máx ~25 palavras).</>}</div>
+          <div>4️⃣ Clique em <b>Gerar prompt de vídeo</b> (vídeo de ~10s).</div>
+          <div>5️⃣ Clique em <b>Aprovar</b> quando estiver pronta.</div>
+        </div>
+
         <div className="grid md:grid-cols-2 gap-3">
           <div>
             <div className="text-xs font-medium text-muted-foreground mb-1.5">Foto original</div>
@@ -303,33 +334,41 @@ function SceneCard({
 
         {/* HOOKS */}
         <section>
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium">Hooks ({scene.hook_options?.length ?? 0})</div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() =>
-                run(
-                  () =>
-                    genHooks({
-                      data: {
-                        characterId: character.id,
-                        sceneId: scene.id,
-                        isFirstScene: isFirst,
-                        previousSceneScript: previousScript,
-                        roomName: scene.room_name,
-                      },
-                    }),
-                  setLoadingHooks,
-                  "Hooks gerados",
-                )
-              }
-              disabled={loadingHooks}
-            >
-              {loadingHooks ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
-              Gerar hooks
-            </Button>
+          <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+            <div className="text-sm font-medium">Passo 2 — Hooks ({scene.hook_options?.length ?? 0})</div>
+            <div className="flex gap-1">
+              {scene.selected_hook && (
+                <Button size="sm" variant="ghost" onClick={clearHook}>
+                  Limpar seleção
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  run(
+                    () =>
+                      genHooks({
+                        data: {
+                          characterId: character.id,
+                          sceneId: scene.id,
+                          isFirstScene: isFirst,
+                          previousSceneScript: previousScript,
+                          roomName: scene.room_name,
+                        },
+                      }),
+                    setLoadingHooks,
+                    "Hooks gerados",
+                  )
+                }
+                disabled={loadingHooks}
+              >
+                {loadingHooks ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
+                {scene.hook_options?.length > 0 ? "Gerar novos" : "Gerar hooks"}
+              </Button>
+            </div>
           </div>
+
           {scene.hook_options?.length > 0 && (
             <div className="grid gap-2">
               {scene.hook_options.map((h, i) => {
@@ -353,59 +392,73 @@ function SceneCard({
           )}
         </section>
 
-        {/* ROTEIROS */}
-        <section>
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium">Roteiros ({scene.script_options?.length ?? 0})</div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() =>
-                run(
-                  () =>
-                    genScripts({
-                      data: {
-                        characterId: character.id,
-                        sceneId: scene.id,
-                        roomName: scene.room_name,
-                        selectedHook: scene.selected_hook?.text ?? "",
-                        isLastScene: isLast,
-                        previousSceneScript: previousScript,
-                      },
-                    }),
-                  setLoadingScripts,
-                  "Roteiros gerados",
-                )
-              }
-              disabled={loadingScripts || !scene.selected_hook}
-            >
-              {loadingScripts ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />}
-              Gerar roteiros
-            </Button>
+        {/* ROTEIROS — só aparecem da 2ª cena em diante; na 1ª, o hook É o roteiro */}
+        {isFirst ? (
+          <div className="text-xs text-muted-foreground border border-dashed border-border rounded-lg p-3">
+            ✨ Cena de abertura: o <b>hook selecionado já é o roteiro completo</b> (máx 10s). Não precisa gerar roteiro extra.
           </div>
-          {!scene.selected_hook && scene.hook_options?.length > 0 && (
-            <div className="text-xs text-muted-foreground">Selecione um hook primeiro.</div>
-          )}
-          {scene.script_options?.length > 0 && (
-            <div className="grid gap-2">
-              {scene.script_options.map((s, i) => {
-                const isSelected = scene.selected_script === s;
-                return (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => pickScript(s)}
-                    className={`text-left border rounded-lg p-3 transition whitespace-pre-wrap text-sm ${
-                      isSelected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
-                    }`}
-                  >
-                    {s}
-                  </button>
-                );
-              })}
+        ) : (
+          <section>
+            <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+              <div className="text-sm font-medium">Passo 3 — Roteiros ({scene.script_options?.length ?? 0})</div>
+              <div className="flex gap-1">
+                {scene.selected_script && (
+                  <Button size="sm" variant="ghost" onClick={clearScript}>
+                    Limpar seleção
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    run(
+                      () =>
+                        genScripts({
+                          data: {
+                            characterId: character.id,
+                            sceneId: scene.id,
+                            roomName: scene.room_name,
+                            selectedHook: scene.selected_hook?.text ?? "",
+                            isLastScene: isLast,
+                            previousSceneScript: previousScript,
+                          },
+                        }),
+                      setLoadingScripts,
+                      "Roteiros gerados",
+                    )
+                  }
+                  disabled={loadingScripts || !scene.selected_hook}
+                >
+                  {loadingScripts ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />}
+                  {scene.script_options?.length > 0 ? "Gerar novos" : "Gerar roteiros"}
+                </Button>
+              </div>
             </div>
-          )}
-        </section>
+            {!scene.selected_hook && scene.hook_options?.length > 0 && (
+              <div className="text-xs text-muted-foreground">Selecione um hook primeiro.</div>
+            )}
+            {scene.script_options?.length > 0 && (
+              <div className="grid gap-2">
+                {scene.script_options.map((s, i) => {
+                  const isSelected = scene.selected_script === s;
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => pickScript(s)}
+                      className={`text-left border rounded-lg p-3 transition whitespace-pre-wrap text-sm ${
+                        isSelected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
+
 
         {scene.cta && (
           <section>
