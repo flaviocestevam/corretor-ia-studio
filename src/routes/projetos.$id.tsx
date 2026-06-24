@@ -312,6 +312,11 @@ function SceneCard({
   previousScript,
   isFirst,
   isLast,
+  canMoveUp,
+  canMoveDown,
+  onMoveUp,
+  onMoveDown,
+  onRemove,
   onChange,
 }: {
   scene: Scene;
@@ -319,8 +324,14 @@ function SceneCard({
   previousScript: string | null;
   isFirst: boolean;
   isLast: boolean;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onRemove: () => void;
   onChange: () => void;
 }) {
+
   const genHooks = useServerFn(generateHooks);
   const genScripts = useServerFn(generateScripts);
   const genImage = useServerFn(generateSceneImage);
