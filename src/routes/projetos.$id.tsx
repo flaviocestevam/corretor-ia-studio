@@ -33,10 +33,23 @@ export const Route = createFileRoute("/projetos/$id")({
   component: ProjectDetail,
 });
 
+type NextStep = { label: string; tone: "todo" | "done" } | null;
+
+function nextStep(scene: Scene, isFirst: boolean): NextStep {
+  if (scene.status === "aprovado") return { label: "✅ Aprovada", tone: "done" };
+  if (!scene.generated_character_image) return { label: "Falta: gerar imagem", tone: "todo" };
+  if (isFirst && !scene.selected_hook) return { label: "Falta: escolher hook", tone: "todo" };
+  if (!isFirst && !scene.selected_script) return { label: "Falta: escolher roteiro", tone: "todo" };
+  if (!scene.video_prompt) return { label: "Falta: prompt de vídeo", tone: "todo" };
+  return { label: "Pronta — falta aprovar", tone: "todo" };
+}
+
 function ProjectDetail() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [showOnlyPending, setShowOnlyPending] = useState(false);
+  const [addingScene, setAddingScene] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["project", id],
@@ -65,6 +78,52 @@ function ProjectDetail() {
     },
   });
 
+  const refresh = () => qc.invalidateQueries({ queryKey: ["project", id] });
+
+  async function moveScene(sceneId: string, dir: -1 | 1) {
+    if (!data) return;
+    const arr = [...data.scenes];
+    const idx = arr.findIndex((x) => x.id === sceneId);
+    const target = idx + dir;
+    if (idx < 0 || target < 0 || target >= arr.length) return;
+    const a = arr[idx], b = arr[target];
+    // swap scene_order
+    await supabase.from("scenes").update({ scene_order: -1 }).eq("id", a.id);
+    await supabase.from("scenes").update({ scene_order: a.scene_order }).eq("id", b.id);
+    await supabase.from("scenes").update({ scene_order: b.scene_order }).eq("id", a.id);
+    refresh();
+  }
+
+  async function removeScene(sceneId: string) {
+    if (!confirm("Excluir esta cena?")) return;
+    const { error } = await supabase.from("scenes").delete().eq("id", sceneId);
+    if (error) toast.error(error.message);
+    else { toast.success("Cena excluída"); refresh(); }
+  }
+
+  async function addSceneFromFile(file: File, name: string) {
+    if (!data) return;
+    setAddingScene(true);
+    try {
+      const path = await uploadSceneFile(file, id, "original");
+      const nextOrder = (data.scenes.at(-1)?.scene_order ?? 0) + 1;
+      const { error } = await supabase.from("scenes").insert({
+        project_id: id,
+        scene_order: nextOrder,
+        room_name: name.trim() || `Cena ${nextOrder}`,
+        original_room_image: path,
+        status: "pendente",
+      });
+      if (error) throw error;
+      toast.success("Cena adicionada");
+      refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setAddingScene(false);
+    }
+  }
+
   async function downloadAll() {
     if (!data) return;
     const zip = new JSZip();
@@ -91,8 +150,21 @@ function ProjectDetail() {
     toast.success("Pacote baixado");
   }
 
+  const stats = useMemo(() => {
+    const scenes = data?.scenes ?? [];
+    const approved = scenes.filter((s) => s.status === "aprovado").length;
+    const generated = scenes.filter((s) => s.status === "gerado").length;
+    const pending = scenes.length - approved - generated;
+    const firstPending = scenes.find((s, i) => nextStep(s, i === 0)?.tone === "todo");
+    return { total: scenes.length, approved, generated, pending, firstPending };
+  }, [data?.scenes]);
+
   if (isLoading) return <div className="p-10 text-muted-foreground">Carregando...</div>;
   if (!data) return <div className="p-10">Não encontrado</div>;
+
+  const visibleScenes = showOnlyPending
+    ? data.scenes.filter((s, i) => nextStep(s, i === 0)?.tone === "todo")
+    : data.scenes;
 
   return (
     <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-6">
@@ -119,22 +191,114 @@ function ProjectDetail() {
         </div>
       </div>
 
+      {/* Progresso global */}
+      <Card>
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="text-sm font-medium">
+              Progresso: <span className="text-primary">{stats.approved}</span> / {stats.total} cenas aprovadas
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {stats.firstPending && (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const el = document.getElementById(`scene-${stats.firstPending!.id}`);
+                    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                >
+                  <PlayCircle className="mr-1.5 h-4 w-4" />Continuar de onde parou
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant={showOnlyPending ? "default" : "outline"}
+                onClick={() => setShowOnlyPending((v) => !v)}
+              >
+                {showOnlyPending ? "Mostrar todas" : "Só pendentes"}
+              </Button>
+            </div>
+          </div>
+          <Progress value={stats.total ? (stats.approved / stats.total) * 100 : 0} />
+          <div className="flex gap-4 text-xs text-muted-foreground">
+            <span>⏳ Pendentes: {stats.pending}</span>
+            <span>🎨 Geradas: {stats.generated}</span>
+            <span>✅ Aprovadas: {stats.approved}</span>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="space-y-4">
-        {data.scenes.map((s, idx) => (
-          <SceneCard
-            key={s.id}
-            scene={s}
-            character={data.character}
-            previousScript={idx > 0 ? data.scenes[idx - 1].selected_script : null}
-            isFirst={idx === 0}
-            isLast={idx === data.scenes.length - 1}
-            onChange={() => qc.invalidateQueries({ queryKey: ["project", id] })}
-          />
-        ))}
+        {visibleScenes.map((s) => {
+          const realIdx = data.scenes.findIndex((x) => x.id === s.id);
+          return (
+            <SceneCard
+              key={s.id}
+              scene={s}
+              character={data.character}
+              previousScript={realIdx > 0 ? data.scenes[realIdx - 1].selected_script : null}
+              isFirst={realIdx === 0}
+              isLast={realIdx === data.scenes.length - 1}
+              canMoveUp={realIdx > 0}
+              canMoveDown={realIdx < data.scenes.length - 1}
+              onMoveUp={() => moveScene(s.id, -1)}
+              onMoveDown={() => moveScene(s.id, 1)}
+              onRemove={() => removeScene(s.id)}
+              onChange={refresh}
+            />
+          );
+        })}
+        {visibleScenes.length === 0 && (
+          <div className="text-sm text-muted-foreground text-center py-8 border border-dashed rounded-lg">
+            Nenhuma cena pendente 🎉
+          </div>
+        )}
       </div>
+
+      {/* Adicionar cena */}
+      <AddSceneCard onAdd={addSceneFromFile} disabled={addingScene} />
     </div>
   );
 }
+
+function AddSceneCard({ onAdd, disabled }: { onAdd: (file: File, name: string) => void; disabled: boolean }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [name, setName] = useState("");
+  return (
+    <Card className="border-dashed">
+      <CardContent className="p-4 flex flex-col md:flex-row gap-3 md:items-end">
+        <div className="flex-1">
+          <div className="text-sm font-medium mb-1">Adicionar cena</div>
+          <div className="flex gap-2 flex-col sm:flex-row">
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              className="text-xs"
+            />
+            <Input
+              placeholder="Nome do cômodo (Ex: Suíte)"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+        </div>
+        <Button
+          disabled={!file || disabled}
+          onClick={() => {
+            if (!file) return;
+            onAdd(file, name);
+            setFile(null);
+            setName("");
+          }}
+        >
+          <Plus className="mr-1.5 h-4 w-4" />Adicionar
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 
 function statusVariant(status: string): "secondary" | "default" | "outline" {
   if (status === "aprovado") return "default";
