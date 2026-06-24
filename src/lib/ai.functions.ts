@@ -110,7 +110,40 @@ export const generateScripts = createServerFn({ method: "POST" })
       .single();
     if (error || !char) throw new Error("Personagem não encontrado");
 
+    // Buscar a cena atual + TODAS as cenas anteriores do mesmo projeto, pra
+    // a IA enxergar o histórico inteiro e NÃO repetir falas de outras cenas.
+    const { data: currentScene } = await supabaseAdmin
+      .from("scenes")
+      .select("project_id, scene_order, script_options")
+      .eq("id", data.sceneId)
+      .single();
+
+    let previousScripts: Array<{ room: string; script: string }> = [];
+    let existingOptions: string[] = [];
+    if (currentScene) {
+      existingOptions = (currentScene.script_options as string[] | null) ?? [];
+      const { data: prev } = await supabaseAdmin
+        .from("scenes")
+        .select("room_name, selected_script, scene_order")
+        .eq("project_id", currentScene.project_id)
+        .lt("scene_order", currentScene.scene_order)
+        .order("scene_order", { ascending: true });
+      previousScripts = (prev ?? [])
+        .filter((p) => p.selected_script)
+        .map((p) => ({ room: p.room_name, script: p.selected_script as string }));
+    }
+
     const ctas = (char.ctas as Array<{ text: string }>)?.map((c) => c.text).join(" | ") ?? "";
+
+    const historyBlock = previousScripts.length
+      ? `HISTÓRICO DAS CENAS ANTERIORES JÁ GRAVADAS (NÃO REPITA estas falas, estruturas, comparações ou comentários — esta cena precisa ser NOVA e falar especificamente de "${data.roomName}"):
+${previousScripts.map((p, i) => `Cena ${i + 1} — ${p.room}: "${p.script}"`).join("\n")}`
+      : "Esta é a primeira cena com roteiro do projeto.";
+
+    const avoidBlock = existingOptions.length
+      ? `\nVOCÊ JÁ TINHA GERADO estas opções para esta MESMA cena e o usuário pediu novas. NÃO repita nenhuma delas, traga ângulos diferentes:
+${existingOptions.map((s, i) => `${i + 1}) "${s}"`).join("\n")}`
+      : "";
 
     const prompt = `Você é roteirista de Reels imobiliários verticais 9:16.
 Personagem: "${char.name}"
@@ -119,24 +152,28 @@ Jeito de falar: ${char.speaking_style}
 Bordões: ${(char.catchphrases as string[])?.join(" | ")}
 CTAs do personagem: ${ctas}
 
-Cena: cômodo "${data.roomName}"
-Hook escolhido para esta cena: "${data.selectedHook}"
-${data.previousSceneScript ? `Cena anterior: "${data.previousSceneScript}"` : ""}
+CENA ATUAL: cômodo "${data.roomName}" (cena nº ${currentScene?.scene_order ?? "?"})
+Hook escolhido para ESTA cena: "${data.selectedHook}"
+
+${historyBlock}${avoidBlock}
+
 ${data.isLastScene ? "Esta é a ÚLTIMA cena: termine com CTA FORTE mandando pro link da bio." : "Cena intermediária: termine com CTA curto OU gancho pra próxima."}
 
+REGRAS DE CONTEÚDO (CRÍTICO):
+- O roteiro precisa comentar algo ESPECÍFICO do cômodo "${data.roomName}" (ex: cozinha → bancada/fogão/armário; quarto → cama/closet/janela; banheiro → chuveiro/bancada). NÃO use frases genéricas que serviriam pra qualquer cômodo.
+- NÃO copie estrutura nem comparações das cenas anteriores. Cada cena tem que soar como um novo momento do tour.
+- As 3 opções devem ser DIFERENTES ENTRE SI (ângulos, emoções e palavras distintas), não 3 variações da mesma frase.
+
 REGRAS DE DURAÇÃO (OBRIGATÓRIAS):
-- Cada roteiro deve durar NO MÁXIMO 10 segundos de fala (incluindo o hook).
-- MÁXIMO 25 palavras no total (hook + comentário + CTA).
-- Comece COM o hook escolhido exatamente como está, depois 1 frase curta de comentário do cômodo, depois CTA bem curto.
-- NÃO adicione introduções, narração extra ou frases de transição além disso.
+- Máximo 10s de fala, máximo 25 palavras (hook + comentário + CTA).
+- Comece COM o hook escolhido exatamente como está, depois 1 frase curta sobre algo concreto do "${data.roomName}", depois CTA curto.
+- Sem introduções nem narração extra.
 
-Gere 3 opções de roteiro curto (≤10s, ≤25 palavras cada).
-
-PROIBIDO usar: "excelente oportunidade", "empreendimento diferenciado", "alto padrão" genérico, "venha conhecer", "imóvel dos sonhos", "localização privilegiada" sem contexto.
+PROIBIDO: "excelente oportunidade", "empreendimento diferenciado", "alto padrão" genérico, "venha conhecer", "imóvel dos sonhos", "localização privilegiada" sem contexto.
 USE: pra, tá, olha isso, isso aqui, calma, vou falar a verdade.
 
-Responda APENAS com JSON array de strings:
-["roteiro 1 curto", "roteiro 2 curto", "roteiro 3 curto"]`;
+Responda APENAS com JSON array de 3 strings DISTINTAS:
+["roteiro 1", "roteiro 2", "roteiro 3"]`;
 
 
     const raw = await chat([{ role: "user", content: prompt }]);
