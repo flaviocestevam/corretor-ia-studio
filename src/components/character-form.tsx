@@ -29,6 +29,9 @@ export function CharacterForm({ initial, characterId }: Props) {
   const [catchphrases, setCatchphrases] = useState<string[]>(initial?.catchphrases ?? [""]);
   const [canonicalPrompt, setCanonicalPrompt] = useState(initial?.canonical_prompt ?? "");
   const [canonicalImages, setCanonicalImages] = useState<string[]>(initial?.canonical_images ?? []);
+  const [faceRef, setFaceRef] = useState<string | null>(initial?.face_reference_image ?? null);
+  const [bodyRef, setBodyRef] = useState<string | null>(initial?.body_reference_image ?? null);
+  const [activeOutfit, setActiveOutfit] = useState<string | null>(initial?.active_outfit_image ?? null);
   const [hooks, setHooks] = useState<CharacterHook[]>(
     initial?.hooks ?? [{ text: "", action: "", duration: 4 }],
   );
