@@ -123,7 +123,18 @@ export function CharacterForm({ initial, characterId }: Props) {
       }}
       className="space-y-6"
     >
+      <Tabs defaultValue="identidade" className="w-full">
+        <TabsList className="grid grid-cols-5 w-full">
+          <TabsTrigger value="identidade">Identidade</TabsTrigger>
+          <TabsTrigger value="fotos">Fotos</TabsTrigger>
+          <TabsTrigger value="looks">Looks</TabsTrigger>
+          <TabsTrigger value="hooks">Hooks</TabsTrigger>
+          <TabsTrigger value="ctas">CTAs</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="identidade" className="space-y-4 mt-4">
       <Card>
+
         <CardHeader><CardTitle>Identidade</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div>
