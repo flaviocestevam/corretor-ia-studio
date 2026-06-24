@@ -488,6 +488,21 @@ function SceneCard({
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {lastError && (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm flex items-start justify-between gap-3 flex-wrap">
+            <div className="min-w-0">
+              <div className="font-semibold text-destructive">⚠ Falhou: {lastError.label}</div>
+              <div className="text-xs text-destructive/80 mt-0.5 break-words">{lastError.message}</div>
+            </div>
+            <div className="flex gap-1.5">
+              <Button size="sm" variant="outline" onClick={lastError.retry} disabled={busy}>
+                Tentar de novo
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setLastError(null)}>Fechar</Button>
+            </div>
+          </div>
+        )}
+
         <div className="rounded-lg border border-dashed border-border bg-muted/30 p-3 text-xs space-y-1">
           <div className="font-semibold text-foreground">Passo a passo desta cena</div>
           <div>1️⃣ Escolha o enquadramento e clique em <b>Gerar imagem</b>.</div>
