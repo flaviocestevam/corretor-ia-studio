@@ -467,9 +467,18 @@ function SceneCard({
           <Button size="icon" variant="ghost" disabled={!canMoveDown} onClick={onMoveDown} title="Mover pra baixo">
             <ArrowDown className="h-4 w-4" />
           </Button>
-          <Button size="icon" variant="ghost" onClick={onRemove} title="Excluir cena">
+          <ConfirmButton
+            size="icon"
+            variant="ghost"
+            title="Excluir esta cena?"
+            description="A imagem original e os prompts gerados serão removidos."
+            confirmLabel="Excluir"
+            destructive
+            onConfirm={onRemove}
+            aria-label="Excluir cena"
+          >
             <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
+          </ConfirmButton>
           {(scene.image_prompt || scene.video_prompt) && (
             <Button
               size="sm"
