@@ -189,6 +189,7 @@ export const generateSceneImage = createServerFn({ method: "POST" })
       .join("\n");
 
     const framingMap: Record<string, string> = {
+      auto: `ESCOLHA AUTOMÁTICA: você decide o melhor enquadramento (selfie POV próximo, meio corpo, corpo inteiro ou plano aberto wide) considerando: cômodo "${scene.room_name}", ação do personagem (${action}), e o que dá mais impacto visual num Reel vertical. Varie entre cenas para evitar monotonia.`,
       selfie: "SELFIE / POV próximo: câmera na altura do rosto, a ~40-60cm do personagem, mostrando cabeça, ombros e parte do peito. O personagem segura o celular (POV de quem grava). Cômodo aparece desfocado ao fundo.",
       meio_corpo: "MEIO CORPO: câmera a ~1,5m de distância, na altura do peito, enquadrando da cintura para cima. Equilibra personagem e ambiente.",
       corpo_inteiro: "CORPO INTEIRO: câmera a ~2,5-3m de distância, mostrando o personagem inteiro dentro do cômodo, dos pés à cabeça, com ambiente visível ao redor.",
