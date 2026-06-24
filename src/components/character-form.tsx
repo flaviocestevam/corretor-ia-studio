@@ -274,8 +274,11 @@ export function CharacterForm({ initial, characterId }: Props) {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
 
+        <TabsContent value="hooks" className="space-y-4 mt-4">
       <Card>
+
         <CardHeader><CardTitle>Hooks do personagem</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {hooks.map((h, i) => (
