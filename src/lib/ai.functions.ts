@@ -219,7 +219,8 @@ ${historyBlock}${avoidBlock}
 ${scriptEndingRule}
 
 REGRAS DE CONTEÚDO (CRÍTICO — descumprir = resposta REJEITADA):
-- Cada roteiro PRECISA mencionar EXPLICITAMENTE pelo menos 1 elemento físico concreto do cômodo "${data.roomName}" (ex: cozinha → bancada de granito/cooktop/armário planejado; sala → sofá/TV/varanda; quarto → cama/closet/cabeceira; banheiro → box/bancada dupla/chuveiro). NÃO vale dizer só "esse espaço", "isso aqui", "que lugar" — TEM que nomear o item.
+${imageDataUrl ? `- VOCÊ ESTÁ VENDO A FOTO REAL DO CÔMODO em anexo. Cada roteiro PRECISA citar um item físico que aparece DE VERDADE na foto (móvel, material, acabamento, vista, iluminação realmente visíveis).
+- É TERMINANTEMENTE PROIBIDO inventar itens que NÃO estão na foto. Não fale de cristaleira, lustre de cristal, torneira gourmet, mármore, LED, marcenaria ripada, pé-direito duplo, ilha, closet, varanda gourmet etc. se isso não aparece na imagem. Se for um cômodo simples, descreva o que existe ali com elegância — sem luxo fabricado.` : `- Cada roteiro PRECISA mencionar EXPLICITAMENTE pelo menos 1 elemento físico concreto do cômodo "${data.roomName}".`}
 - PROIBIDO usar apenas frases genéricas tipo "isso aqui é fino", "que espetáculo", "olha que coisa" sem citar um item real do cômodo.
 - Se esta cena NÃO for a última, CTA é PROIBIDO em todas as 3 opções.
 - NÃO copie estrutura nem comparações das cenas anteriores. Cada cena é um novo momento do tour.
