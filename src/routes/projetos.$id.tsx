@@ -342,19 +342,30 @@ function SceneCard({
   const [loadingScripts, setLoadingScripts] = useState(false);
   const [loadingImage, setLoadingImage] = useState(false);
   const [loadingVideo, setLoadingVideo] = useState(false);
+  const [lastError, setLastError] = useState<{ label: string; message: string; retry: () => void } | null>(null);
+  const busy = loadingHooks || loadingScripts || loadingImage || loadingVideo;
 
-  async function run<T>(fn: () => Promise<T>, setL: (v: boolean) => void, ok: string) {
+  async function run<T>(
+    fn: () => Promise<T>,
+    setL: (v: boolean) => void,
+    successMsg: string | ((res: T) => string),
+    label = "Ação",
+  ) {
     setL(true);
+    setLastError(null);
     try {
-      await fn();
-      toast.success(ok);
+      const res = await fn();
+      toast.success(typeof successMsg === "function" ? successMsg(res) : successMsg);
       onChange();
     } catch (e) {
-      toast.error((e as Error).message);
+      const message = (e as Error).message ?? "Erro desconhecido";
+      toast.error(`${label}: ${message}`);
+      setLastError({ label, message, retry: () => run(fn, setL, successMsg, label) });
     } finally {
       setL(false);
     }
   }
+
 
   async function pickHook(h: SceneHookOption) {
     // 1ª cena: hook é o roteiro inteiro. CTA fica SÓ na última cena.
