@@ -9,8 +9,11 @@ function key() {
   return k;
 }
 
+type ChatPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
+type ChatMessage = { role: string; content: string | ChatPart[] };
+
 async function chat(
-  messages: Array<{ role: string; content: string }>,
+  messages: ChatMessage[],
   model = "google/gemini-3-flash-preview",
   temperature = 1.1,
 ) {
@@ -25,6 +28,18 @@ async function chat(
   }
   const json = await res.json();
   return json.choices?.[0]?.message?.content as string;
+}
+
+async function fetchRoomImageDataUrl(
+  supabaseAdmin: { storage: { from: (b: string) => { download: (p: string) => Promise<{ data: Blob | null; error: unknown }> } } },
+  path: string | null | undefined,
+): Promise<string | null> {
+  if (!path) return null;
+  const { data: blob, error } = await supabaseAdmin.storage.from("scene-assets").download(path);
+  if (error || !blob) return null;
+  const buf = Buffer.from(await blob.arrayBuffer());
+  const mime = blob.type || "image/jpeg";
+  return `data:${mime};base64,${buf.toString("base64")}`;
 }
 
 function extractJSON(raw: string) {
@@ -66,12 +81,24 @@ export const generateHooks = createServerFn({ method: "POST" })
     if (error || !char) throw new Error("Personagem não encontrado");
 
     const baseHooks = (char.hooks as Array<{ text: string; action: string }>) || [];
+    const { data: sceneRow } = await supabaseAdmin
+      .from("scenes")
+      .select("original_room_image")
+      .eq("id", data.sceneId)
+      .single();
+    const imageDataUrl = await fetchRoomImageDataUrl(supabaseAdmin, sceneRow?.original_room_image);
+
+    const visionRule = imageDataUrl
+      ? `\nVOCÊ ESTÁ VENDO A FOTO REAL DO CÔMODO em anexo. Baseie os hooks SOMENTE no que aparece visivelmente na foto (materiais, móveis, iluminação, vista, acabamentos reais). É PROIBIDO inventar itens que não estão na imagem (ex: cristaleira, lustre, torneira gourmet, mármore, LED, marcenaria ripada) se eles não aparecem. Se a foto for simples, faça hooks simples.`
+      : "";
+
     const prompt = data.isFirstScene
       ? `Você é roteirista de Reels imobiliários. Personagem: "${char.name}".
 Personalidade: ${char.personality}
 Jeito de falar: ${char.speaking_style}
 Bordões: ${(char.catchphrases as string[])?.join(" | ")}
 Hooks de referência do personagem: ${JSON.stringify(baseHooks)}
+${visionRule}
 
 Gere EXATAMENTE 3 opções de hook de ABERTURA (primeira cena) para o cômodo "${data.roomName}".
 Cada hook tem ~4 segundos, deve prender atenção, combinar 100% com a personalidade, ter ação visual clara e NÃO parecer propaganda formal.
@@ -84,6 +111,7 @@ Personalidade: ${char.personality}
 Jeito de falar: ${char.speaking_style}
 Cena anterior terminou com: "${data.previousSceneScript ?? ""}"
 Cômodo atual: "${data.roomName}"
+${visionRule}
 
 Gere 3 hooks curtos (~4s) de CONTINUAÇÃO que conectem com a cena anterior, no estilo:
 "E eu achei que já tinha visto tudo lá fora…" / "Agora piorou. Olha isso." / "Se já tava bom, espera..."
@@ -92,7 +120,9 @@ Respeite o jeito de falar do personagem.
 Responda APENAS com JSON array:
 [{"text":"...","action":"...","duration":4}, ...]`;
 
-    const raw = await chat([{ role: "user", content: prompt }]);
+    const userContent: ChatPart[] = [{ type: "text", text: prompt }];
+    if (imageDataUrl) userContent.push({ type: "image_url", image_url: { url: imageDataUrl } });
+    const raw = await chat([{ role: "user", content: userContent }]);
     const hooks = extractJSON(raw);
 
     await supabaseAdmin
@@ -128,9 +158,10 @@ export const generateScripts = createServerFn({ method: "POST" })
     // a IA enxergar o histórico inteiro e NÃO repetir falas de outras cenas.
     const { data: currentScene } = await supabaseAdmin
       .from("scenes")
-      .select("project_id, scene_order, script_options")
+      .select("project_id, scene_order, script_options, original_room_image")
       .eq("id", data.sceneId)
       .single();
+    const imageDataUrl = await fetchRoomImageDataUrl(supabaseAdmin, currentScene?.original_room_image);
 
     let previousScripts: Array<{ room: string; script: string }> = [];
     let existingOptions: string[] = [];
@@ -188,7 +219,8 @@ ${historyBlock}${avoidBlock}
 ${scriptEndingRule}
 
 REGRAS DE CONTEÚDO (CRÍTICO — descumprir = resposta REJEITADA):
-- Cada roteiro PRECISA mencionar EXPLICITAMENTE pelo menos 1 elemento físico concreto do cômodo "${data.roomName}" (ex: cozinha → bancada de granito/cooktop/armário planejado; sala → sofá/TV/varanda; quarto → cama/closet/cabeceira; banheiro → box/bancada dupla/chuveiro). NÃO vale dizer só "esse espaço", "isso aqui", "que lugar" — TEM que nomear o item.
+${imageDataUrl ? `- VOCÊ ESTÁ VENDO A FOTO REAL DO CÔMODO em anexo. Cada roteiro PRECISA citar um item físico que aparece DE VERDADE na foto (móvel, material, acabamento, vista, iluminação realmente visíveis).
+- É TERMINANTEMENTE PROIBIDO inventar itens que NÃO estão na foto. Não fale de cristaleira, lustre de cristal, torneira gourmet, mármore, LED, marcenaria ripada, pé-direito duplo, ilha, closet, varanda gourmet etc. se isso não aparece na imagem. Se for um cômodo simples, descreva o que existe ali com elegância — sem luxo fabricado.` : `- Cada roteiro PRECISA mencionar EXPLICITAMENTE pelo menos 1 elemento físico concreto do cômodo "${data.roomName}".`}
 - PROIBIDO usar apenas frases genéricas tipo "isso aqui é fino", "que espetáculo", "olha que coisa" sem citar um item real do cômodo.
 - Se esta cena NÃO for a última, CTA é PROIBIDO em todas as 3 opções.
 - NÃO copie estrutura nem comparações das cenas anteriores. Cada cena é um novo momento do tour.
@@ -209,7 +241,9 @@ ${responseRule}
 ["roteiro 1", "roteiro 2", "roteiro 3"]`;
 
 
-    const raw = await chat([{ role: "user", content: prompt }]);
+    const userContent: ChatPart[] = [{ type: "text", text: prompt }];
+    if (imageDataUrl) userContent.push({ type: "image_url", image_url: { url: imageDataUrl } });
+    const raw = await chat([{ role: "user", content: userContent }]);
     const scripts = (extractJSON(raw) as string[]).map((script) =>
       data.isLastScene ? script : removeIntermediateCta(script),
     );
