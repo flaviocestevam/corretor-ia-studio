@@ -190,13 +190,14 @@ function SceneCard({
   }
 
   async function clearHook() {
-    const { error } = await supabase
-      .from("scenes")
-      .update({ selected_hook: null, ...(isFirst ? { selected_script: null, cta: null } : {}) })
-      .eq("id", scene.id);
+    const updates = isFirst
+      ? { selected_hook: null, selected_script: null, cta: null }
+      : { selected_hook: null };
+    const { error } = await supabase.from("scenes").update(updates).eq("id", scene.id);
     if (error) toast.error(error.message);
     else { toast.success("Seleção limpa"); onChange(); }
   }
+
 
   async function pickScript(s: string) {
     const ctas = character.ctas ?? [];
