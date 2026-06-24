@@ -349,6 +349,10 @@ export function CharacterForm({ initial, characterId }: Props) {
           </Button>
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
+
+
 
       <div className="flex justify-end gap-2 sticky bottom-0 bg-background/80 backdrop-blur py-3 -mx-6 px-6 border-t border-border">
         <Button type="button" variant="ghost" onClick={() => navigate({ to: "/personagens" })}>Cancelar</Button>
