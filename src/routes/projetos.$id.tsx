@@ -392,59 +392,73 @@ function SceneCard({
           )}
         </section>
 
-        {/* ROTEIROS */}
-        <section>
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium">Roteiros ({scene.script_options?.length ?? 0})</div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() =>
-                run(
-                  () =>
-                    genScripts({
-                      data: {
-                        characterId: character.id,
-                        sceneId: scene.id,
-                        roomName: scene.room_name,
-                        selectedHook: scene.selected_hook?.text ?? "",
-                        isLastScene: isLast,
-                        previousSceneScript: previousScript,
-                      },
-                    }),
-                  setLoadingScripts,
-                  "Roteiros gerados",
-                )
-              }
-              disabled={loadingScripts || !scene.selected_hook}
-            >
-              {loadingScripts ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />}
-              Gerar roteiros
-            </Button>
+        {/* ROTEIROS — só aparecem da 2ª cena em diante; na 1ª, o hook É o roteiro */}
+        {isFirst ? (
+          <div className="text-xs text-muted-foreground border border-dashed border-border rounded-lg p-3">
+            ✨ Cena de abertura: o <b>hook selecionado já é o roteiro completo</b> (máx 10s). Não precisa gerar roteiro extra.
           </div>
-          {!scene.selected_hook && scene.hook_options?.length > 0 && (
-            <div className="text-xs text-muted-foreground">Selecione um hook primeiro.</div>
-          )}
-          {scene.script_options?.length > 0 && (
-            <div className="grid gap-2">
-              {scene.script_options.map((s, i) => {
-                const isSelected = scene.selected_script === s;
-                return (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => pickScript(s)}
-                    className={`text-left border rounded-lg p-3 transition whitespace-pre-wrap text-sm ${
-                      isSelected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
-                    }`}
-                  >
-                    {s}
-                  </button>
-                );
-              })}
+        ) : (
+          <section>
+            <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+              <div className="text-sm font-medium">Passo 3 — Roteiros ({scene.script_options?.length ?? 0})</div>
+              <div className="flex gap-1">
+                {scene.selected_script && (
+                  <Button size="sm" variant="ghost" onClick={clearScript}>
+                    Limpar seleção
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    run(
+                      () =>
+                        genScripts({
+                          data: {
+                            characterId: character.id,
+                            sceneId: scene.id,
+                            roomName: scene.room_name,
+                            selectedHook: scene.selected_hook?.text ?? "",
+                            isLastScene: isLast,
+                            previousSceneScript: previousScript,
+                          },
+                        }),
+                      setLoadingScripts,
+                      "Roteiros gerados",
+                    )
+                  }
+                  disabled={loadingScripts || !scene.selected_hook}
+                >
+                  {loadingScripts ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />}
+                  {scene.script_options?.length > 0 ? "Gerar novos" : "Gerar roteiros"}
+                </Button>
+              </div>
             </div>
-          )}
-        </section>
+            {!scene.selected_hook && scene.hook_options?.length > 0 && (
+              <div className="text-xs text-muted-foreground">Selecione um hook primeiro.</div>
+            )}
+            {scene.script_options?.length > 0 && (
+              <div className="grid gap-2">
+                {scene.script_options.map((s, i) => {
+                  const isSelected = scene.selected_script === s;
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => pickScript(s)}
+                      className={`text-left border rounded-lg p-3 transition whitespace-pre-wrap text-sm ${
+                        isSelected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
+
 
         {scene.cta && (
           <section>
