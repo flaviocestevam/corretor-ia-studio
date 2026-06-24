@@ -254,11 +254,31 @@ function SceneCard({
             </div>
           </div>
         </div>
-        {scene.status !== "aprovado" && (
-          <Button size="sm" variant="outline" onClick={() => run(() => approve({ data: { sceneId: scene.id } }), () => {}, "Cena aprovada")}>
-            <Check className="mr-1.5 h-3.5 w-3.5" />Aprovar
-          </Button>
-        )}
+        <div className="flex gap-1.5">
+          {(scene.image_prompt || scene.video_prompt) && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                const txt = [
+                  scene.selected_script ? `🎬 ROTEIRO:\n${scene.selected_script}` : "",
+                  scene.cta ? `📣 CTA:\n${scene.cta}` : "",
+                  scene.image_prompt ? `🖼️ PROMPT DE IMAGEM:\n${scene.image_prompt}` : "",
+                  scene.video_prompt ? `🎥 PROMPT DE VÍDEO:\n${scene.video_prompt}` : "",
+                ].filter(Boolean).join("\n\n");
+                copy(txt, "Tudo da cena");
+              }}
+            >
+              <Copy className="mr-1.5 h-3.5 w-3.5" />Copiar tudo
+            </Button>
+          )}
+          {scene.status !== "aprovado" && (
+            <Button size="sm" variant="outline" onClick={() => run(() => approve({ data: { sceneId: scene.id } }), () => {}, "Cena aprovada")}>
+              <Check className="mr-1.5 h-3.5 w-3.5" />Aprovar
+            </Button>
+          )}
+        </div>
+
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="rounded-lg border border-dashed border-border bg-muted/30 p-3 text-xs space-y-1">
