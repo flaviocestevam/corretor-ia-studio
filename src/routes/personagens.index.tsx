@@ -98,21 +98,22 @@ function PersonagensList() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="h-48 animate-pulse" />
+            <Card key={i} className="aspect-[9/16] animate-pulse" />
           ))}
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]">
           {characters?.map((c) => (
             <Card key={c.id} className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-shadow overflow-hidden">
               <SignedImage
                 path={c.face_reference_image ?? c.body_reference_image ?? c.active_outfit_image ?? c.canonical_images?.[0] ?? null}
                 alt={c.name}
-                className="w-full aspect-[9/16] object-contain bg-muted"
+                className="w-full aspect-[9/16] object-cover bg-muted"
                 fallbackClassName="w-full aspect-[9/16] rounded-none border-0 border-b"
               />
+
               <CardContent className="p-5 space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-semibold text-lg leading-tight">{c.name}</h3>
