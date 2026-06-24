@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Sparkles, Upload } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, Pencil, Sparkles, Upload, Search } from "lucide-react";
+
 import { toast } from "sonner";
 import { importCharacters } from "@/lib/characters.functions";
 import { SignedImage } from "@/components/signed-image";
