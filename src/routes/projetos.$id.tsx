@@ -313,7 +313,7 @@ function SceneCard({
                   })}
                 </div>
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1 flex-wrap items-center">
                 <Button
                   size="sm"
                   variant="outline"
@@ -321,14 +321,37 @@ function SceneCard({
                   disabled={loadingImage || !scene.original_room_image}
                 >
                   {loadingImage ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Wand2 className="mr-1.5 h-3.5 w-3.5" />}
-                  Gerar imagem
+                  {scene.generated_character_image ? "Regerar" : "Gerar imagem"}
                 </Button>
+                <label className="inline-flex items-center text-xs cursor-pointer border border-input rounded-md px-2 h-8 hover:bg-muted">
+                  Substituir
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const f = e.target.files?.[0];
+                      e.target.value = "";
+                      if (!f) return;
+                      try {
+                        const path = await uploadSceneFile(f, scene.project_id, "generated");
+                        const { error } = await supabase.from("scenes").update({ generated_character_image: path }).eq("id", scene.id);
+                        if (error) throw error;
+                        toast.success("Imagem substituída");
+                        onChange();
+                      } catch (err) {
+                        toast.error((err as Error).message);
+                      }
+                    }}
+                  />
+                </label>
                 {scene.generated_character_image && (
                   <Button variant="ghost" size="sm" onClick={downloadGenerated}>
                     <Download className="mr-1.5 h-3 w-3" />Baixar
                   </Button>
                 )}
               </div>
+
             </div>
           </div>
         </div>
