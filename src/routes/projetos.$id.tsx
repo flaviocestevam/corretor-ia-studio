@@ -818,8 +818,9 @@ function SceneCard({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => run(() => genVideoP({ data: { sceneId: scene.id } }), setLoadingVideo, "Prompt gerado")}
-                disabled={loadingVideo || !scene.selected_script}
+                onClick={() => run(() => genVideoP({ data: { sceneId: scene.id } }), setLoadingVideo, "Prompt de vídeo gerado", "Gerar prompt de vídeo")}
+                disabled={busy || !scene.selected_script}
+
               >
                 {loadingVideo ? <Loader2 className="mr-1.5 h-3 w-3 animate-spin" /> : <Video className="mr-1.5 h-3 w-3" />}
                 Gerar
