@@ -178,15 +178,13 @@ function SceneCard({
   }
 
   async function pickHook(h: SceneHookOption) {
-    // Para a 1ª cena, o hook JÁ é o roteiro inteiro (≤4s/≤10s, sem texto extra).
-    const updates: Record<string, unknown> = { selected_hook: h as any };
-    if (isFirst) {
-      const ctas = character.ctas ?? [];
-      const cta = ctas[Math.floor(Math.random() * Math.max(ctas.length, 1))]?.text ?? "Clica no link da bio.";
-      updates.selected_script = h.text;
-      updates.cta = cta;
-    }
+    const ctas = character.ctas ?? [];
+    const cta = ctas[Math.floor(Math.random() * Math.max(ctas.length, 1))]?.text ?? "Clica no link da bio.";
+    const updates = isFirst
+      ? { selected_hook: h as any, selected_script: h.text, cta }
+      : { selected_hook: h as any };
     const { error } = await supabase.from("scenes").update(updates).eq("id", scene.id);
+
     if (error) toast.error(error.message);
     else { toast.success("Hook selecionado"); onChange(); }
   }
