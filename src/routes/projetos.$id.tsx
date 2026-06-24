@@ -417,23 +417,39 @@ function SceneCard({
     window.open(url, "_blank");
   }
 
+  const next = nextStep(scene, isFirst);
+
   return (
-    <Card className="shadow-[var(--shadow-card)]">
-      <CardHeader className="flex-row items-center justify-between space-y-0">
+    <Card id={`scene-${scene.id}`} className={`shadow-[var(--shadow-card)] scroll-mt-24 ${scene.status === "aprovado" ? "border-primary/40 bg-primary/[0.02]" : ""}`}>
+      <CardHeader className="flex-row items-center justify-between space-y-0 gap-2 flex-wrap">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary font-semibold">
             {scene.scene_order}
           </div>
           <div>
             <CardTitle className="text-base">{scene.room_name}</CardTitle>
-            <div className="flex gap-1.5 mt-1">
+            <div className="flex gap-1.5 mt-1 flex-wrap">
               <Badge variant={statusVariant(scene.status)}>{scene.status}</Badge>
               {isFirst && <Badge variant="outline">Abertura</Badge>}
               {isLast && <Badge variant="outline">CTA final</Badge>}
+              {next && (
+                <Badge variant={next.tone === "done" ? "default" : "secondary"} className="text-[10px]">
+                  {next.label}
+                </Badge>
+              )}
             </div>
           </div>
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5 flex-wrap">
+          <Button size="icon" variant="ghost" disabled={!canMoveUp} onClick={onMoveUp} title="Mover pra cima">
+            <ArrowUp className="h-4 w-4" />
+          </Button>
+          <Button size="icon" variant="ghost" disabled={!canMoveDown} onClick={onMoveDown} title="Mover pra baixo">
+            <ArrowDown className="h-4 w-4" />
+          </Button>
+          <Button size="icon" variant="ghost" onClick={onRemove} title="Excluir cena">
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
           {(scene.image_prompt || scene.video_prompt) && (
             <Button
               size="sm"
@@ -459,6 +475,7 @@ function SceneCard({
         </div>
 
       </CardHeader>
+
       <CardContent className="space-y-4">
         <div className="rounded-lg border border-dashed border-border bg-muted/30 p-3 text-xs space-y-1">
           <div className="font-semibold text-foreground">Passo a passo desta cena</div>
