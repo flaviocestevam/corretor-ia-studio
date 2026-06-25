@@ -33,17 +33,18 @@ GATILHOS MENTAIS PRIORITÁRIOS (usar em TODOS os hooks/roteiros):
 - Prova Social ("quem entende de imóvel não pisca duas vezes")`;
 
 export const VIRAL_HOOK_EXAMPLES = `
-EXEMPLOS DE HOOKS VIRAIS PARA IMÓVEIS DE LUXO (use o NÍVEL, não copie literal):
+EXEMPLOS DE HOOKS VIRAIS FORTES (use o NÍVEL, não copie literal):
 - "Enquanto a maioria sonha com isso... você já pode viver."
-- "Você disse que não precisava de tanto luxo... mas olha isso aqui."
-- "Esse não é um imóvel. É uma declaração."
-- "Só quem realmente entende de vida mora em lugares assim."
+- "Você disse que não precisava de tanto luxo? Mentiu."
+- "Esse não é um imóvel. É o próximo capítulo da sua vida."
+- "Só quem realmente chegou onde queria mora em lugares assim."
+- "Imagina acordar todos os dias sabendo que isso aqui é seu?"
 - "Tem gente que mora. E tem gente que VIVE — sente a diferença."
 - "Esse aqui não tá no mercado por acaso. Tá esperando a pessoa certa."
 
-EXEMPLOS DE HOOKS POR ESTILO DE CORRETOR (ADAPTE ao personagem atual):
+EXEMPLOS DE HOOKS POR PERSONALIDADE (ADAPTE ao personagem atual):
 - Fashionista: "Styling de vida não se discute. Se apresenta."
-- Irônica: "Dinheiro não compra felicidade? Conta outra."
+- Irônica: "Dinheiro não compra felicidade? Conta outra pra quem mora aqui."
 - Refinada: "Alguns lugares simplesmente elevam quem vive neles."
 - Popular/acessível: "Bora ver de pertinho o que esse aqui te oferece — e por que vale cada centavo."
 - Jovem/energética: "Para tudo. Esse aqui mudou meu dia — e pode mudar o seu."
