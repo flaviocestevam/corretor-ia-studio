@@ -10,7 +10,7 @@ import { SignedImage } from "@/components/signed-image";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Corretor IA Studio" },
+      { title: "Studio de Produção — Corretor IA Studio" },
       { name: "description", content: "Visão geral dos seus personagens e projetos." },
     ],
   }),
@@ -56,7 +56,7 @@ function Dashboard() {
     <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Studio de Produção</h1>
           <p className="text-muted-foreground mt-1">Produção de cenas imobiliárias com corretores IA.</p>
         </div>
         <div className="flex gap-2">

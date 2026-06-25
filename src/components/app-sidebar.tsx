@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Studio de Produção", url: "/", icon: LayoutDashboard },
   { title: "Personagens", url: "/personagens", icon: Users },
   { title: "Projetos", url: "/projetos", icon: FolderKanban },
 ];
