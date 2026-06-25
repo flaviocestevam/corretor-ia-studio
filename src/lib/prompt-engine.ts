@@ -195,7 +195,7 @@ PERSONAGEM:
 6. Carisma comercial coerente com a personalidade: ${opts.character.personality}.
 
 PROMPT BASE OBRIGATÓRIO (síntese final que o modelo deve executar):
-"Preservar 100% fiel a IMAGEM 1: layout, móveis, iluminação, arquitetura. NÃO alterar nada no ambiente. Enquadramento OBRIGATÓRIO: ${framingLabel}. ${opts.character.name}, com personalidade ${opts.character.personality}, executa: ${opts.hookAction}, vestindo EXATAMENTE a roupa da imagem ROUPA ATIVA, posicionado no ambiente conforme exige o enquadramento ${framingLabel}. Estilo: fotorrealista, cinematográfico, viral, 8k, detalhes ricos, iluminação dramática coerente com a luz original da IMAGEM 1."
+"Preservar 100% fiel a IMAGEM 1: layout, móveis, iluminação, arquitetura. NÃO alterar nada no ambiente. Enquadramento OBRIGATÓRIO: ${framingLabel}. ${opts.character.name}${heightM ? ` com altura exata de ${heightM}m, pés firmes no piso, sombra natural, proporção correta com os móveis e teto,` : ""} com personalidade ${opts.character.personality}, executa: ${opts.hookAction}, vestindo EXATAMENTE a roupa da imagem ROUPA ATIVA, posicionado no ambiente conforme exige o enquadramento ${framingLabel}. Estilo: fotorrealista, cinematográfico, viral, 8k, detalhes ricos, iluminação dramática coerente com a luz original da IMAGEM 1."
 
 ${FRAMING_BALANCE_RULE}
 
