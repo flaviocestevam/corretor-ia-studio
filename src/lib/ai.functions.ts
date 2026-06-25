@@ -328,23 +328,33 @@ export const generateSceneImage = createServerFn({ method: "POST" })
     const framingInstruction = framingMap[framingKey] ?? framingMap.corpo_inteiro;
 
     const hookPool = [
-      `${char.name}, com elegância magnética e sorriso confiante, apresenta o imóvel dos sonhos como se cada detalhe fosse exclusivo para quem assiste.`,
-      `Com carisma irresistível e postura de alto padrão, ${char.name} guia o olhar do espectador por um ambiente que respira sofisticação e desejo.`,
-      `${char.name} surge no ambiente como a anfitriã perfeita de um lifestyle premium — luxo discreto, charme cinematográfico e energia de venda irresistível.`,
-      `Olhar marcante, presença de capa de revista: ${char.name} transforma a visita em uma experiência sedutora, cinematográfica e aspiracional.`,
+      `${char.name} entra em cena com presença magnética, confiança e carisma comercial, conduzindo o olhar para o imóvel sem tocar nem transformar o ambiente real.`,
+      `Com postura segura e expressão envolvente, ${char.name} apresenta o espaço como uma oportunidade desejável, mantendo cada detalhe original do cômodo intacto.`,
+      `${char.name} surge no ambiente com naturalidade de visita imobiliária real, gesto sutil e olhar confiante, criando desejo pela propriedade sem alterar o cenário.`,
+      `Olhar marcante e movimento elegante: ${char.name} transforma a visita em uma cena comercial forte, usando apenas sua presença — nunca mudanças no cômodo.`,
     ];
     const hook = hookPool[Math.floor(Math.random() * hookPool.length)];
 
-    const imagePrompt = `⚠️ REGRA #0 — PRESERVAÇÃO ABSOLUTA DA IMAGEM 1 (lei suprema, antes de qualquer outra instrução):
-Preservar 100% fiel a IMAGEM 1: layout exato, móveis, paredes, piso, iluminação, arquitetura, janelas, decoração, perspectiva e ângulo de câmera. NÃO alterar NADA no ambiente original. A única coisa que você pode adicionar é o personagem dentro desse cômodo.
+    const absoluteRoomPreservationRule = `IMAGEM 1 é a referência ABSOLUTA e IMUTÁVEL do cômodo. Copie fielmente TODOS os detalhes: layout exato, posição de todos os móveis, cores das paredes, piso, teto, iluminação, janelas, cortinas, decoração e vista. NÃO INVENTE NADA. NÃO MUDE NADA no ambiente. Apenas coloque o corretor dentro desse espaço exato.`;
+
+    const imagePrompt = `🚨🚨🚨 PRIORIDADE MÁXIMA / PESO MÁXIMO / REGRA INQUEBRÁVEL #0 — PRESERVAÇÃO ABSOLUTA DA IMAGEM 1 🚨🚨🚨
+${absoluteRoomPreservationRule}
+
+TAREFA CORRETA: edição fotográfica/inserção de pessoa sobre a IMAGEM 1. NÃO é criação livre de cenário. Use a IMAGEM 1 como CANVAS BASE. Preserve todos os pixels, formas, objetos, linhas, cores, luz, sombras, textura, profundidade, perspectiva e vista do cômodo, exceto a pequena área fisicamente ocupada pelo corpo do corretor e sua sombra realista.
+
+SE HOUVER CONFLITO ENTRE qualquer instrução estética, cinematográfica, comercial, enquadramento, pose ou personagem E a preservação da IMAGEM 1, a preservação da IMAGEM 1 SEMPRE vence. É melhor gerar uma imagem menos cinematográfica do que alterar um único detalhe do cômodo.
+
+NEGATIVO ABSOLUTO: não redesenhar o cômodo, não reinterpretar decoração, não trocar móveis, não reorganizar objetos, não corrigir arquitetura, não ampliar janela, não mudar vista, não adicionar luxo, não remover simplicidade, não mudar lente/perspectiva do ambiente, não mudar iluminação, não trocar materiais, não limpar, não preencher espaços vazios, não completar objetos, não inventar nada.
 
 🎬 HOOK COMERCIAL (tom cinematográfico da cena — NÃO modifica o cômodo, só guia a presença do personagem):
-${hook} Estética de anúncio imobiliário de altíssimo padrão, iluminação cinematográfica natural já existente na IMAGEM 1, atmosfera aspiracional, comercial premium estilo Netflix/Architectural Digest — porém SEM modificar absolutamente nada do ambiente real.
+${hook} O acabamento comercial deve vir APENAS da presença, pose, expressão e integração realista do personagem. A iluminação usada no personagem deve se adaptar à luz já existente na IMAGEM 1. NÃO crie nova iluminação no cômodo.
 
 IMAGEM 1 = FOTO ORIGINAL E IMUTÁVEL DO CÔMODO (cenário fixo, intocável, sagrado).
 ${refsDescription}
 
 ⚠️ REGRA SUPREMA — PRESERVAÇÃO TOTAL DO CÔMODO (descumprir = imagem REJEITADA):
+${absoluteRoomPreservationRule}
+
 A IMAGEM 1 é a foto ORIGINAL do imóvel real que está sendo vendido. Você DEVE manter 100% EXATO o mesmo ambiente, pixel a pixel no que diz respeito ao espaço:
 - Layout idêntico (mesma planta, mesma perspectiva, mesmo ângulo da câmera original).
 - Móveis idênticos (mesmos sofás, camas, mesas, cadeiras, armários, eletrodomésticos, louças, espelhos, quadros, tapetes, cortinas, vasos, objetos de decoração — nas MESMAS posições).
@@ -355,7 +365,7 @@ A IMAGEM 1 é a foto ORIGINAL do imóvel real que está sendo vendido. Você DEV
 - Iluminação idêntica (mesma temperatura de cor, mesmas sombras, mesma direção da luz natural e artificial).
 - Cores e decoração idênticas.
 
-É TERMINANTEMENTE PROIBIDO: adicionar móveis, remover móveis, mover móveis, trocar acabamentos, mudar a cor das paredes, mudar o piso, mudar a iluminação, mudar a vista da janela, redecorar, "melhorar", "valorizar", "luxuosizar" ou "estilizar" o ambiente. NÃO invente cristaleira, lustre, plantas, quadros, tapetes, mármore, marcenaria, LED ou qualquer item que NÃO esteja visível na IMAGEM 1. Se o cômodo for simples ou vazio, mantenha simples ou vazio. O CLIMA cinematográfico vem da PRESENÇA do personagem e do enquadramento, NUNCA da modificação do cenário. Isto vale para QUALQUER tipo de cômodo: sala, cozinha, quarto, banheiro, lavabo, varanda, área de serviço, escritório, closet, garagem, hall, área externa.
+É TERMINANTEMENTE PROIBIDO: adicionar móveis, remover móveis, mover móveis, trocar acabamentos, mudar a cor das paredes, mudar o piso, mudar a iluminação, mudar a vista da janela, redecorar, "melhorar", "valorizar", "luxuosizar" ou "estilizar" o ambiente. NÃO invente cristaleira, lustre, plantas, quadros, tapetes, mármore, marcenaria, LED ou qualquer item que NÃO esteja visível na IMAGEM 1. Se o cômodo for simples ou vazio, mantenha simples ou vazio. Se houver bagunça, objeto simples, parede vazia, piso comum, cortina simples ou vista comum, mantenha exatamente assim. O CLIMA cinematográfico vem da PRESENÇA do personagem e do enquadramento, NUNCA da modificação do cenário. Isto vale para QUALQUER tipo de cômodo: sala, cozinha, quarto, banheiro, lavabo, varanda, área de serviço, escritório, closet, garagem, hall, área externa.
 
 Sua ÚNICA modificação permitida é INSERIR o personagem dentro desse cômodo original, como se ele tivesse entrado ali no momento da foto.
 
@@ -370,8 +380,17 @@ REGRAS DO PERSONAGEM (descrição consistente e canônica em TODAS as cenas):
    REGRA UNIVERSAL DE ENQUADRAMENTO E EQUILÍBRIO (vale para QUALQUER plano acima): a pessoa deve estar BEM ENQUADRADA, com PROPORÇÃO CORRETA em relação ao ambiente, SEM CORTAR partes do corpo desnecessariamente (nunca cortar cabeça, rosto, mãos ou pés a menos que o tipo de plano exija explicitamente — selfie pode mostrar só rosto/ombros; meio corpo NUNCA corta cabeça nem mãos; corpo inteiro e plano aberto NUNCA cortam cabeça nem pés), e EQUILIBRADA visualmente dentro do cômodo (centralizada ou em terço, com respiro ao redor, sem encostar nas bordas do quadro, sem ficar espremida em um canto, sem sobrepor móvel). O enquadramento descreve a DISTÂNCIA do personagem, MAS a perspectiva, ângulo e composição do CÔMODO devem permanecer iguais aos da IMAGEM 1 — não refaça a foto do ambiente por outro ângulo, apenas posicione o personagem dentro do ambiente original respeitando o plano escolhido.
 8. POSICIONAMENTO REALISTA: escolha um ponto do chão que exista de verdade na IMAGEM 1 (não em cima de móvel, não atravessando parede, não flutuando). Os pés precisam tocar o chão na perspectiva correta, com sombra projetada coerente com a direção da luz da foto original. O personagem ocupa o espaço NEGATIVO do cômodo (corredor, espaço livre entre móveis, em frente a um móvel), nunca substitui um móvel.
 9. PROPORÇÃO HUMANA REALISTA (CRÍTICO): trate o personagem como pessoa real de ~1,70-1,80m de altura. Compare a cabeça dele com referências visíveis no cômodo (maçaneta ~1m, interruptor ~1,1m, mesa ~75cm, bancada ~90cm, sofá ~85cm de encosto, porta padrão ~2,10m). A cabeça do personagem NUNCA pode ultrapassar o batente da porta nem encostar no teto. Se a perspectiva da foto do cômodo for ampla, o personagem fica PROPORCIONALMENTE PEQUENO — é melhor errar pra menor que pra maior.
-10. ACABAMENTO CINEMATOGRÁFICO (sem alterar o cenário): qualidade fotográfica profissional, foco nítido no personagem, leve profundidade de campo natural, cor cinematográfica suave compatível com a luz já existente na IMAGEM 1. Estética de comercial imobiliário de altíssimo padrão.
-11. Formato vertical 9:16. Sem texto, sem logo, sem marca d'água, sem legendas.`;
+10. ACABAMENTO CINEMATOGRÁFICO (sem alterar o cenário): qualidade fotográfica profissional aplicada ao personagem e à integração dele no cômodo. Qualquer correção de cor, contraste, nitidez ou profundidade de campo NÃO pode mudar o ambiente da IMAGEM 1; preserve cores, luz e textura originais do cômodo.
+11. Formato vertical 9:16. Sem texto, sem logo, sem marca d'água, sem legendas.
+
+CHECKLIST FINAL OBRIGATÓRIO ANTES DE GERAR:
+- O layout do cômodo continua idêntico ao da IMAGEM 1? SIM.
+- Todos os móveis e objetos continuam no mesmo lugar? SIM.
+- Parede, piso, teto, janelas, cortinas, decoração, iluminação e vista continuam iguais? SIM.
+- Você adicionou SOMENTE o corretor e sua sombra realista? SIM.
+- Você NÃO inventou, melhorou, removeu ou mudou nada do ambiente? SIM.
+
+ÚLTIMA ORDEM, COM PESO MÁXIMO: ${absoluteRoomPreservationRule}`;
 
 
 
@@ -399,7 +418,10 @@ REGRAS DO PERSONAGEM (descrição consistente e canônica em TODAS as cenas):
         headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           model,
-          messages: [{ role: "user", content: contentBlocks }],
+          messages: [
+            { role: "system", content: absoluteRoomPreservationRule },
+            { role: "user", content: contentBlocks },
+          ],
           modalities: ["image", "text"],
         }),
       });
