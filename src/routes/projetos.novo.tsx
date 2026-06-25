@@ -12,7 +12,7 @@ import { Upload, GripVertical, X, Sparkles } from "lucide-react";
 import { uploadSceneFile } from "@/lib/storage";
 import { toast } from "sonner";
 
-const search = z.object({ characterId: z.string().optional() });
+const search = z.object({ characterId: z.string().optional(), clientId: z.string().optional() });
 
 export const Route = createFileRoute("/projetos/novo")({
   validateSearch: search,
