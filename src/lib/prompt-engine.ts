@@ -58,11 +58,13 @@ REGRAS OBRIGATÓRIAS DOS HOOKS (abertura forte para parar o scroll):
 - Use SEMPRE pelo menos 1 gatilho mental (Exclusividade, Status, Aspiração, FOMO, Curiosidade, Prova Social).
 - Adapte o tom à personalidade do personagem: fashionista (styling), irônica (provoca), refinada (eleva), popular (acessível), jovem (energia), técnica (oportunidade emocionada).
 - PROIBIDO descrever tecnicamente o ambiente (móveis, acabamentos, medidas, materiais, layout, bancada, piso, armários, janela, decoração, vista).
-- PROIBIDO começar com: "Olha esse cômodo", "Essa sala", "Aqui temos", "Repare nesse", "Esse ambiente", "Vem conhecer", "Bem-vindo", "Olha que lindo".
-- PERMITIDO: "um lugar assim", "aqui", "esse padrão", "essa sensação", "essa vida", "esse endereço", "esse cenário".
-- Cada hook DEVE vir com AÇÃO FÍSICA SUTIL + EXPRESSÃO no campo "action" (ex: "olhar firme pra câmera com leve sorriso de canto enquanto encosta a mão no batente da porta"). Essa ação será reutilizada na imagem e no vídeo.
+- PROIBIDO começar com fórmulas batidas: "Olha esse cômodo", "Essa sala", "Aqui temos", "Repare nesse", "Esse ambiente", "Vem conhecer", "Bem-vindo", "Olha que lindo", "Enquanto a maioria", "Você disse que", "Esse não é um", "Só quem", "Imagina acordar", "Tem gente que", "Esse aqui não".
+- PROIBIDO reaproveitar literalmente os hooks de referência do personagem ou exemplos deste prompt — use-os APENAS como NÍVEL de inspiração. Reescreva do zero.
+- VARIAÇÃO OBRIGATÓRIA entre as 3 opções: cada hook precisa usar uma ESTRUTURA SINTÁTICA diferente. Escolha 3 estruturas distintas entre: pergunta retórica curta · afirmação provocadora · frase em 2 tempos com pausa (".../...") · comparação ("isso aqui é tipo...") · convite direto em 2ª pessoa · declaração em 1ª pessoa · número/dado curto ("3 segundos e você entende") · paradoxo ("luxo discreto grita mais").
+- VARIAÇÃO de PRIMEIRA PALAVRA: as 3 opções DEVEM começar com palavras totalmente diferentes umas das outras (e diferentes das proibidas acima).
 - "text": até 18 palavras, falado em PT-BR natural, funcional como os PRIMEIROS 3-5 SEGUNDOS do vídeo.
-- Respeite personalidade, jeito de falar e bordões — sem sacrificar a força emocional.
+- Cada hook DEVE vir com AÇÃO FÍSICA SUTIL + EXPRESSÃO diferente no campo "action" (gesto, olhar, passo, pausa). Essa ação será reutilizada na imagem e no vídeo.
+- Respeite personalidade, jeito de falar e bordões — sem sacrificar a força emocional nem cair em repetição.
 ${VIRAL_HOOK_EXAMPLES}`;
 
 export type Framing = "auto" | "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto";
@@ -103,29 +105,38 @@ export function buildHookPrompt(opts: {
   isFirstScene: boolean;
   previousSceneScript?: string | null;
   hasRoomImage: boolean;
+  forbiddenOpenings?: string[];
+  seed?: string;
 }): { system: string; user: string } {
   const { character: c, roomName, isFirstScene, previousSceneScript, hasRoomImage } = opts;
   const baseHooks = c.hooks ?? [];
   const visionRule = hasRoomImage
     ? `\nVocê está vendo a foto real do cômodo. Use APENAS como pano de fundo emocional. É proibido descrever tecnicamente ou inventar itens.`
     : "";
+  const seed = opts.seed ?? `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const forbidden = (opts.forbiddenOpenings ?? []).filter(Boolean).slice(0, 40);
+  const forbiddenBlock = forbidden.length
+    ? `\n🚫 HOOKS JÁ USADOS PARA ESTE PERSONAGEM OU OUTROS — É PROIBIDO repetir, parafrasear ou começar de forma parecida com qualquer um destes (varie estrutura, primeira palavra, ritmo e gatilho):
+${forbidden.map((h, i) => `${i + 1}) "${h}"`).join("\n")}\n`
+    : "";
+  const freshnessBlock = `\n🎲 SEED DE VARIAÇÃO: ${seed} — use como semente criativa. As 3 opções DEVEM ser inéditas, com primeira palavra, estrutura sintática e gatilho mental diferentes entre si. Nada de fórmulas reutilizadas.`;
 
   const user = isFirstScene
     ? `Personagem: "${c.name}"
 Personalidade: ${c.personality}
 Jeito de falar: ${c.speaking_style}
 Bordões: ${(c.catchphrases ?? []).join(" | ")}
-Hooks de referência do personagem: ${JSON.stringify(baseHooks)}
-${visionRule}
+Hooks de referência (APENAS inspiração de NÍVEL — não copiar, não parafrasear): ${JSON.stringify(baseHooks)}
+${visionRule}${forbiddenBlock}${freshnessBlock}
 ${STORYTELLING_FRAMEWORK}
 ${HOOK_CRAFT_RULES}
 
-Gere EXATAMENTE 3 HOOKS DE ABERTURA VIRAIS para o cômodo "${roomName}", cada um usando um GATILHO MENTAL DIFERENTE:
+Gere EXATAMENTE 3 HOOKS DE ABERTURA VIRAIS INÉDITOS para o cômodo "${roomName}", cada um usando um GATILHO MENTAL DIFERENTE e uma ESTRUTURA SINTÁTICA DIFERENTE:
 1) Exclusividade OU Status (poucos têm acesso / muda como te enxergam)
 2) Aspiração OU FOMO (a vida que desbloqueia / vai sumir antes de aparecer)
 3) Curiosidade OU Prova Social (provoca clique / quem entende reconhece)
 
-Cada hook deve ter ação física + expressão facial DIFERENTES. Tom adaptado à personalidade do personagem.
+Cada hook deve ter ação física + expressão facial DIFERENTES. Tom adaptado à personalidade do personagem. PROIBIDO repetir primeira palavra ou estrutura entre as 3 opções.
 
 Responda APENAS com JSON array:
 [{"text":"...","action":"ação física + expressão facial sutil do corretor durante a fala","duration":4}, ...]`
@@ -134,11 +145,11 @@ Personalidade: ${c.personality}
 Jeito de falar: ${c.speaking_style}
 Cena anterior terminou com: "${previousSceneScript ?? ""}"
 Cômodo atual: "${roomName}"
-${visionRule}
+${visionRule}${forbiddenBlock}${freshnessBlock}
 ${STORYTELLING_FRAMEWORK}
 ${HOOK_CRAFT_RULES}
 
-Gere 3 HOOKS DE CONTINUAÇÃO VIRAIS (~5s) que conectem com a cena anterior, cada um com um GATILHO MENTAL DIFERENTE (Exclusividade, Status, Aspiração, FOMO, Curiosidade, Prova Social). Não descreva tecnicamente o cômodo. Cada um com ação física + expressão facial DIFERENTES.
+Gere 3 HOOKS DE CONTINUAÇÃO VIRAIS INÉDITOS (~5s) que conectem com a cena anterior, cada um com um GATILHO MENTAL DIFERENTE (Exclusividade, Status, Aspiração, FOMO, Curiosidade, Prova Social) e ESTRUTURA SINTÁTICA DIFERENTE. Não descreva tecnicamente o cômodo. Cada um com ação física + expressão facial DIFERENTES. PROIBIDO repetir primeira palavra ou estrutura entre as 3 opções, e PROIBIDO reutilizar qualquer hook já listado como proibido.
 
 Responda APENAS com JSON array:
 [{"text":"...","action":"ação física + expressão facial sutil","duration":4}, ...]`;

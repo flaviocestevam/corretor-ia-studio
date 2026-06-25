@@ -90,10 +90,33 @@ export const generateHooks = createServerFn({ method: "POST" })
     const baseHooks = (char.hooks as Array<{ text: string; action: string }>) || [];
     const { data: sceneRow } = await supabaseAdmin
       .from("scenes")
-      .select("original_room_image")
+      .select("original_room_image, project_id")
       .eq("id", data.sceneId)
       .single();
     const imageDataUrl = await fetchRoomImageDataUrl(supabaseAdmin, sceneRow?.original_room_image);
+
+    // Coleta hooks já gerados/escolhidos pra ESTE personagem (em qualquer projeto)
+    // + hooks já gerados nas outras cenas DESTE projeto. Tudo vira lista proibida.
+    const forbiddenSet = new Set<string>();
+    const { data: charProjects } = await supabaseAdmin
+      .from("projects")
+      .select("id")
+      .eq("character_id", data.characterId);
+    const projectIds = (charProjects ?? []).map((p) => p.id);
+    if (projectIds.length) {
+      const { data: prevHooks } = await supabaseAdmin
+        .from("scenes")
+        .select("hook_options, selected_hook, id")
+        .in("project_id", projectIds);
+      for (const s of prevHooks ?? []) {
+        if (s.id === data.sceneId) continue;
+        const opts = (s.hook_options as Array<{ text?: string }> | null) ?? [];
+        for (const o of opts) if (o?.text) forbiddenSet.add(String(o.text).trim());
+        const sel = s.selected_hook as { text?: string } | null;
+        if (sel?.text) forbiddenSet.add(String(sel.text).trim());
+      }
+    }
+    const forbiddenOpenings = Array.from(forbiddenSet);
 
     const { system, user: userPrompt } = buildHookPrompt({
       character: {
@@ -107,14 +130,20 @@ export const generateHooks = createServerFn({ method: "POST" })
       isFirstScene: data.isFirstScene,
       previousSceneScript: data.previousSceneScript,
       hasRoomImage: !!imageDataUrl,
+      forbiddenOpenings,
+      seed: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
     });
 
     const userContent: ChatPart[] = [{ type: "text", text: userPrompt }];
     if (imageDataUrl) userContent.push({ type: "image_url", image_url: { url: imageDataUrl } });
-    const raw = await chat([
-      { role: "system", content: system },
-      { role: "user", content: userContent },
-    ]);
+    const raw = await chat(
+      [
+        { role: "system", content: system },
+        { role: "user", content: userContent },
+      ],
+      "google/gemini-3-flash-preview",
+      1.3,
+    );
     const hooks = extractJSON(raw);
 
     await supabaseAdmin
