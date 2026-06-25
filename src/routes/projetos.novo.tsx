@@ -78,12 +78,13 @@ function NovoProjeto() {
   const create = useMutation({
     mutationFn: async () => {
       if (!name.trim()) throw new Error("Nome do projeto é obrigatório");
+      if (!clientId) throw new Error("Selecione o cliente (imobiliária)");
       if (!characterId) throw new Error("Selecione um personagem");
       if (rooms.length === 0) throw new Error("Adicione pelo menos uma foto");
 
       const { data: project, error: pErr } = await supabase
         .from("projects")
-        .insert({ name: name.trim(), character_id: characterId })
+        .insert({ name: name.trim(), character_id: characterId, client_id: clientId })
         .select("id")
         .single();
       if (pErr || !project) throw pErr;
