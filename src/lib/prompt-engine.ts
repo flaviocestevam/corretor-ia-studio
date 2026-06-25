@@ -160,13 +160,19 @@ export interface ImagePromptOpts {
 
 export function buildImagePrompt(opts: ImagePromptOpts): string {
   const framing = FRAMING_INSTRUCTIONS[opts.framing] ?? FRAMING_INSTRUCTIONS.corpo_inteiro;
+  const framingLabel = FRAMING_LABEL[opts.framing] ?? FRAMING_LABEL.corpo_inteiro;
 
-  return `🚨🚨🚨 PRIORIDADE MÁXIMA — PRESERVAÇÃO ABSOLUTA DA IMAGEM 1 🚨🚨🚨
+  return `🚨🚨🚨 PRIORIDADE MÁXIMA #1 — PRESERVAÇÃO ABSOLUTA DA IMAGEM 1 🚨🚨🚨
 ${ABSOLUTE_ROOM_PRESERVATION}
 
-TAREFA: inserção fotorrealista, cinematográfica e viral do personagem sobre a IMAGEM 1. Use IMAGEM 1 como CANVAS BASE. Preserve TODOS os pixels do cômodo, exceto a área ocupada pelo corpo do corretor e sua sombra realista.
+🚨🚨🚨 PRIORIDADE MÁXIMA #2 — ENQUADRAMENTO ESCOLHIDO PELO USUÁRIO: ${framingLabel} 🚨🚨🚨
+Respeitar RIGOROSAMENTE o enquadramento escolhido: ${framingLabel}.
+${framing}
+A pessoa DEVE aparecer EXATAMENTE no enquadramento solicitado. AJUSTE A DISTÂNCIA DA CÂMERA E A POSE DO PERSONAGEM para encaixar PERFEITAMENTE neste enquadramento. NÃO cortar o corpo de forma errada. NÃO substituir por outro plano. Se a ação física do hook não couber no enquadramento, ADAPTE a ação ao enquadramento — o enquadramento vence.
 
-SE HOUVER CONFLITO entre qualquer instrução estética/comercial e a preservação da IMAGEM 1, a preservação SEMPRE vence.
+TAREFA: inserção fotorrealista, cinematográfica e viral do personagem sobre a IMAGEM 1, respeitando o enquadramento ${framingLabel}. Use IMAGEM 1 como CANVAS BASE. Preserve TODOS os pixels do cômodo, exceto a área ocupada pelo corpo do corretor e sua sombra realista.
+
+SE HOUVER CONFLITO entre qualquer instrução estética/comercial e (a) preservação da IMAGEM 1 ou (b) o enquadramento ${framingLabel}, essas DUAS regras SEMPRE vencem.
 
 NEGATIVO ABSOLUTO: não redesenhar o cômodo, não trocar móveis, não reorganizar, não corrigir arquitetura, não mudar vista, não adicionar luxo, não mudar iluminação, não inventar nada que não esteja visível na IMAGEM 1.
 
@@ -178,28 +184,28 @@ PERSONAGEM:
 2. Roupa: copie EXATAMENTE da imagem "ROUPA ATIVA".
 3. Rosto/corpo: combine "ROSTO FRONTAL" + "CORPO INTEIRO" para manter a MESMA identidade em todas as cenas.
 4. Descrição canônica: ${opts.character.canonical_prompt ?? opts.character.personality}
-5. AÇÃO + EXPRESSÃO FACIAL (OBRIGATÓRIO executar fielmente): ${opts.hookAction}
+5. AÇÃO + EXPRESSÃO FACIAL (executar fielmente, adaptada ao enquadramento ${framingLabel}): ${opts.hookAction}
    — Essa ação + expressão é o frame de abertura viral do Reel. Deve transparecer o gatilho emocional do hook (confiança, sedução, ironia, descoberta, status). Sem pose neutra, sem sorriso genérico.
 6. Carisma comercial coerente com a personalidade: ${opts.character.personality}.
 
 PROMPT BASE OBRIGATÓRIO (síntese final que o modelo deve executar):
-"Preservar 100% fiel a IMAGEM 1: layout, móveis, iluminação, arquitetura. NÃO alterar nada no ambiente. ${opts.character.name}, com personalidade ${opts.character.personality}, executa: ${opts.hookAction}, vestindo EXATAMENTE a roupa da imagem ROUPA ATIVA, posando dentro do ambiente. Estilo: fotorrealista, cinematográfico, viral, 8k, detalhes ricos, iluminação dramática coerente com a luz original da IMAGEM 1."
-
-ENQUADRAMENTO (OBRIGATÓRIO seguir à risca o escolhido pelo usuário — não substituir por outro plano):
-${framing}
+"Preservar 100% fiel a IMAGEM 1: layout, móveis, iluminação, arquitetura. NÃO alterar nada no ambiente. Enquadramento OBRIGATÓRIO: ${framingLabel}. ${opts.character.name}, com personalidade ${opts.character.personality}, executa: ${opts.hookAction}, vestindo EXATAMENTE a roupa da imagem ROUPA ATIVA, posicionado no ambiente conforme exige o enquadramento ${framingLabel}. Estilo: fotorrealista, cinematográfico, viral, 8k, detalhes ricos, iluminação dramática coerente com a luz original da IMAGEM 1."
 
 ${FRAMING_BALANCE_RULE}
 
 POSICIONAMENTO REALISTA: pés no chão real da IMAGEM 1 (não atravessar parede, não flutuar, não sobre móvel). Sombra coerente com a luz original. Cabeça nunca ultrapassa batente de porta nem encosta no teto.
 
-CHECKLIST FINAL:
+CHECKLIST FINAL OBRIGATÓRIO:
 - Layout do cômodo idêntico à IMAGEM 1? SIM.
 - Móveis e objetos no mesmo lugar? SIM.
 - Parede, piso, teto, janela, vista, iluminação iguais? SIM.
 - Adicionou SOMENTE o corretor + sombra? SIM.
-- Ação física + expressão facial do hook executadas com força cinematográfica? SIM.
+- Enquadramento ${framingLabel} respeitado RIGOROSAMENTE (distância de câmera + pose ajustadas)? SIM.
+- Ação física + expressão facial do hook executadas com força cinematográfica, dentro do enquadramento? SIM.
 
-ÚLTIMA ORDEM, PESO MÁXIMO: ${ABSOLUTE_ROOM_PRESERVATION}
+ÚLTIMA ORDEM, PESO MÁXIMO:
+(1) ${ABSOLUTE_ROOM_PRESERVATION}
+(2) ENQUADRAMENTO OBRIGATÓRIO = ${framingLabel}. Não substituir por outro plano.
 
 Formato vertical 9:16. Sem texto, sem logo, sem marca d'água.`;
 }
