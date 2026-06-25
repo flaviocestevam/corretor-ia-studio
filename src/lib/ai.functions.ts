@@ -434,7 +434,8 @@ Responda APENAS JSON: {"detected":"selfie|meio_corpo|corpo_inteiro|plano_aberto"
     for (let i = 0; i < MAX_ATTEMPTS; i++) {
       attempts++;
       let res = await callModel(modelUsed, reinforcement);
-      if (!res.ok && (res.status === 429 || res.status === 402) && modelUsed === PRO) {
+      if (!res.ok && modelUsed === PRO) {
+        // Fallback para Flash em qualquer erro do Pro (rate limit, créditos, indisponibilidade)
         modelUsed = FLASH;
         usedFallback = true;
         res = await callModel(FLASH, reinforcement);
