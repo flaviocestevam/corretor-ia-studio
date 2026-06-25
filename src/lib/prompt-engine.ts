@@ -193,7 +193,30 @@ PROMPT BASE OBRIGATÓRIO (síntese final que o modelo deve executar):
 
 ${FRAMING_BALANCE_RULE}
 
-POSICIONAMENTO REALISTA: pés no chão real da IMAGEM 1 (não atravessar parede, não flutuar, não sobre móvel). Sombra coerente com a luz original. Cabeça nunca ultrapassa batente de porta nem encosta no teto.
+🚨 INTEGRAÇÃO REALISTA DO PERSONAGEM NA CENA (CRÍTICO — descumprir = REJEITADO):
+
+A) ESCALA HUMANA REAL (anti-gigante / anti-miniatura):
+- Altura humana realista: 1,65m–1,80m. Use os móveis da IMAGEM 1 como RÉGUA visual: cabeça em pé NUNCA ultrapassa portas (~2,10m) nem encosta no teto; ombros ficam ABAIXO do topo das portas; quadris alinham com bancadas/mesas altas (~0,90–1,10m); joelhos alinham com assento de sofá/cadeira (~0,45m); mesa de centro chega na canela.
+- Cabeça humana = ~1/7 da altura total do corpo. PROIBIDO cabeça inflada, tronco gigante ou pessoa-miniatura. Se a pessoa ficar maior que um móvel real, REDUZA a escala antes de renderizar.
+
+B) ATERRISSAGEM NO CHÃO (anti-flutuar / anti-colado):
+- Pés (ou ponto de apoio) TOCAM o piso real visível na IMAGEM 1, respeitando a LINHA DE PERSPECTIVA e o ponto de fuga já existentes.
+- Se houver tapete/desnível, pisar coerentemente. Não atravessar parede, móvel ou objeto. Não flutuar.
+- Respeitar profundidade: o corpo OCLUI parcialmente o que está atrás e É OCLUÍDO pelo que está na frente.
+
+C) PERSPECTIVA / LENTE / ALTURA DE CÂMERA:
+- Use o MESMO ponto de fuga, MESMA altura de câmera e MESMA distância focal aparente da IMAGEM 1. O personagem precisa parecer fotografado pela mesma câmera, no mesmo instante. Sem "recorte plano" colado por cima.
+
+D) ILUMINAÇÃO COERENTE:
+- Identifique as fontes de luz dominantes da IMAGEM 1 (janela, luminária, luz quente de teto, luz fria natural). Ilumine o personagem com a MESMA direção, MESMA temperatura de cor e MESMA intensidade/dureza.
+- Lado iluminado e lado em sombra do rosto/corpo BATEM com os dos móveis próximos. Highlights na pele e roupa vêm da mesma fonte.
+
+E) SOMBRAS PROJETADAS REAIS:
+- Sombra de contato (ambient occlusion) sob os pés, escura e curta, ancorando ao piso.
+- Sombra projetada longa na MESMA direção e com a MESMA suavidade das sombras já existentes dos móveis na IMAGEM 1. Sem sombra = parece colado. Sombra errada = parece fake.
+
+F) INTEGRAÇÃO ÓPTICA:
+- Mesmo grão/ruído, mesma nitidez, mesma faixa dinâmica e mesmo balanço de branco da IMAGEM 1. Sem halo, sem borda recortada, sem brilho de "stock photo" sobre o cenário.
 
 CHECKLIST FINAL OBRIGATÓRIO:
 - Layout do cômodo idêntico à IMAGEM 1? SIM.
@@ -201,6 +224,10 @@ CHECKLIST FINAL OBRIGATÓRIO:
 - Parede, piso, teto, janela, vista, iluminação iguais? SIM.
 - Adicionou SOMENTE o corretor + sombra? SIM.
 - Enquadramento ${framingLabel} respeitado RIGOROSAMENTE (distância de câmera + pose ajustadas)? SIM.
+- Escala humana realista comparada aos móveis (cabeça abaixo de portas, joelho na altura do assento do sofá)? SIM.
+- Pés tocando o piso real na linha de perspectiva correta, com sombra de contato sob eles? SIM.
+- Direção, cor e dureza da luz no personagem IGUAIS às da IMAGEM 1? SIM.
+- Sombra projetada do personagem na MESMA direção das sombras dos móveis existentes? SIM.
 - Ação física + expressão facial do hook executadas com força cinematográfica, dentro do enquadramento? SIM.
 
 ÚLTIMA ORDEM, PESO MÁXIMO:
