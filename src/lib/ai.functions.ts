@@ -94,21 +94,24 @@ export const generateHooks = createServerFn({ method: "POST" })
 
     const hookCraftRules = `
 REGRAS OBRIGATÓRIAS DO HOOK (primeiros 4-6 segundos do Reel — precisa parar o scroll):
-- Tom SEDUTOR, CONFIANTE, ELEGANTE e COMERCIAL — estilo corretor(a) de imóveis de altíssimo padrão.
-- Misture PERSONALIDADE do corretor + DESEJO/aspiração pelo imóvel (não descreva o cômodo de forma fria, provoque emoção).
-- Use gatilhos de desejo, curiosidade, status, exclusividade, pertencimento ou prova social. Pode ser pergunta provocativa, afirmação ousada ou frase de impacto.
+- Tom 100% ADAPTADO à personalidade e ao jeito de falar do personagem acima. NÃO force "alto padrão / luxo" se o corretor não for desse nicho. O hook tem que soar como se ESSE corretor específico tivesse falado.
+  • Corretor de alto padrão → sedutor, elegante, exclusivo, aspiracional.
+  • Corretor popular / família / MCMV → acolhedor, animado, sonho da casa própria, "esse aqui cabe no seu bolso".
+  • Corretor jovem / descolado → direto, com humor, gírias leves, energia de TikTok.
+  • Corretor técnico / investidor → dado de impacto, oportunidade, ROI, "presta atenção nisso aqui".
+  • Corretor consultivo / familiar → conversa próxima, empatia, "imagina sua família aqui".
+- Sempre misture PERSONALIDADE do corretor + DESEJO/emoção pelo imóvel (curiosidade, pertencimento, oportunidade, status, conquista, sonho — escolha o gatilho coerente com o personagem). Nunca descreva o cômodo de forma fria.
 - PROIBIDO hook fraco/genérico tipo "Olha esse cômodo", "Que sala linda", "Vem ver", "Bem-vindo a", listar materiais sem emoção, ou parecer narração de catálogo.
-- Exemplos do nível de qualidade exigido (NÃO copie literalmente, use como referência de força):
-  • "Você imaginaria acordar todos os dias aqui?"
-  • "Esse é o tipo de luxo que você merece viver."
-  • "Tem gente que sonha com isso a vida inteira… e tá aqui, te esperando."
-  • "Para por 3 segundos. Olha o que esse imóvel faz com você."
-  • "Se você acha que já viu uma sala de verdade, espera ver essa."
-- Cada hook DEVE vir acompanhado de uma AÇÃO FÍSICA SUTIL e cinematográfica do(a) corretor(a) (gesto de mão apresentando, olhar marcante pra câmera, leve sorriso de canto, passo lento entrando no ambiente, mão deslizando na bancada, virada de cabeça, etc.) — descrita no campo "action".
-- Linguagem brasileira natural e elegante (pode usar "pra", "tá", mas SEM gírias baratas).
+- Exemplos do nível de IMPACTO exigido (NÃO copie literalmente, e adapte o tom à personalidade):
+  • Alto padrão: "Você imaginaria acordar todos os dias aqui?" / "Esse é o tipo de vida que pouca gente alcança."
+  • Popular/família: "Olha o tamanho desse quintal pros seus filhos brincarem." / "Cabe no seu bolso e ainda tem isso aqui ó."
+  • Descolado: "Pausa o vídeo. Sério. Olha isso." / "Spoiler: você vai querer morar aqui."
+  • Investidor: "Esse imóvel se paga em X anos. Te mostro como." / "Presta atenção no detalhe que ninguém repara."
+- Cada hook DEVE vir com uma AÇÃO FÍSICA SUTIL e cinematográfica do(a) corretor(a) coerente com a personalidade (gesto de mão apresentando, olhar marcante pra câmera, sorriso de canto, passo entrando no ambiente, mão na bancada, virada de cabeça, etc.) — descrita no campo "action".
+- Linguagem brasileira natural, no registro do personagem (pode ser formal, informal, com gírias ou não — siga o "jeito de falar" acima).
 - Respeite 100% a personalidade, jeito de falar e bordões do personagem.`;
     const prompt = data.isFirstScene
-      ? `Você é roteirista sênior de Reels imobiliários de alto padrão. Personagem: "${char.name}".
+      ? `Você é roteirista sênior de Reels imobiliários. Personagem: "${char.name}".
 Personalidade: ${char.personality}
 Jeito de falar: ${char.speaking_style}
 Bordões: ${(char.catchphrases as string[])?.join(" | ")}
