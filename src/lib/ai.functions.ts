@@ -384,16 +384,19 @@ REGRAS OBRIGATÓRIAS:
       .upload(path, bytes, { contentType: "image/png", upsert: false });
     if (upErr) throw upErr;
 
+    const modelShort = modelUsed === PRO ? "gemini-3-pro-image" : "gemini-3.1-flash-image";
+
     await supabaseAdmin
       .from("scenes")
       .update({
         generated_character_image: path,
         image_prompt: imagePrompt,
         status: "gerado",
+        model_used: modelShort,
       })
       .eq("id", data.sceneId);
 
-    return { path, image_prompt: imagePrompt, usedFallback, model: modelUsed };
+    return { path, image_prompt: imagePrompt, usedFallback, model: modelShort };
   });
 
 // ============ GERAR PROMPT DE VÍDEO ============
