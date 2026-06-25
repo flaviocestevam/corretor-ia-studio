@@ -12,7 +12,7 @@ import { Upload, GripVertical, X, Sparkles } from "lucide-react";
 import { uploadSceneFile } from "@/lib/storage";
 import { toast } from "sonner";
 
-const search = z.object({ characterId: z.string().optional() });
+const search = z.object({ characterId: z.string().optional(), clientId: z.string().optional() });
 
 export const Route = createFileRoute("/projetos/novo")({
   validateSearch: search,
@@ -32,6 +32,7 @@ function NovoProjeto() {
   const search = Route.useSearch();
   const [name, setName] = useState("");
   const [characterId, setCharacterId] = useState(search.characterId ?? "");
+  const [clientId, setClientId] = useState(search.clientId ?? "");
   const [rooms, setRooms] = useState<RoomDraft[]>([]);
   const [creating, setCreating] = useState(false);
 
@@ -39,6 +40,15 @@ function NovoProjeto() {
     queryKey: ["characters-min"],
     queryFn: async () => {
       const { data, error } = await supabase.from("characters").select("id, name").order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: clients } = useQuery({
+    queryKey: ["clients-min"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("clients").select("id, name").order("name");
       if (error) throw error;
       return data;
     },
@@ -68,12 +78,13 @@ function NovoProjeto() {
   const create = useMutation({
     mutationFn: async () => {
       if (!name.trim()) throw new Error("Nome do projeto é obrigatório");
+      if (!clientId) throw new Error("Selecione o cliente (imobiliária)");
       if (!characterId) throw new Error("Selecione um personagem");
       if (rooms.length === 0) throw new Error("Adicione pelo menos uma foto");
 
       const { data: project, error: pErr } = await supabase
         .from("projects")
-        .insert({ name: name.trim(), character_id: characterId })
+        .insert({ name: name.trim(), character_id: characterId, client_id: clientId })
         .select("id")
         .single();
       if (pErr || !project) throw pErr;
@@ -115,7 +126,18 @@ function NovoProjeto() {
         <CardHeader><CardTitle>Projeto</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>Nome do projeto *</Label>
+            <Label>Cliente (imobiliária) *</Label>
+            <Select value={clientId} onValueChange={setClientId}>
+              <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
+              <SelectContent>
+                {clients?.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Nome do imóvel *</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Casa Jardim Paulista" />
           </div>
           <div>

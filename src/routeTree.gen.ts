@@ -12,10 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjetosIndexRouteImport } from './routes/projetos.index'
 import { Route as PersonagensIndexRouteImport } from './routes/personagens.index'
+import { Route as ClientesIndexRouteImport } from './routes/clientes.index'
 import { Route as ProjetosNovoRouteImport } from './routes/projetos.novo'
 import { Route as ProjetosIdRouteImport } from './routes/projetos.$id'
 import { Route as PersonagensNovoRouteImport } from './routes/personagens.novo'
 import { Route as PersonagensIdRouteImport } from './routes/personagens.$id'
+import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -30,6 +32,11 @@ const ProjetosIndexRoute = ProjetosIndexRouteImport.update({
 const PersonagensIndexRoute = PersonagensIndexRouteImport.update({
   id: '/personagens/',
   path: '/personagens/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesIndexRoute = ClientesIndexRouteImport.update({
+  id: '/clientes/',
+  path: '/clientes/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjetosNovoRoute = ProjetosNovoRouteImport.update({
@@ -52,32 +59,43 @@ const PersonagensIdRoute = PersonagensIdRouteImport.update({
   path: '/personagens/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClientesIdRoute = ClientesIdRouteImport.update({
+  id: '/clientes/$id',
+  path: '/clientes/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/clientes/$id': typeof ClientesIdRoute
   '/personagens/$id': typeof PersonagensIdRoute
   '/personagens/novo': typeof PersonagensNovoRoute
   '/projetos/$id': typeof ProjetosIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
+  '/clientes/': typeof ClientesIndexRoute
   '/personagens/': typeof PersonagensIndexRoute
   '/projetos/': typeof ProjetosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/clientes/$id': typeof ClientesIdRoute
   '/personagens/$id': typeof PersonagensIdRoute
   '/personagens/novo': typeof PersonagensNovoRoute
   '/projetos/$id': typeof ProjetosIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
+  '/clientes': typeof ClientesIndexRoute
   '/personagens': typeof PersonagensIndexRoute
   '/projetos': typeof ProjetosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/clientes/$id': typeof ClientesIdRoute
   '/personagens/$id': typeof PersonagensIdRoute
   '/personagens/novo': typeof PersonagensNovoRoute
   '/projetos/$id': typeof ProjetosIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
+  '/clientes/': typeof ClientesIndexRoute
   '/personagens/': typeof PersonagensIndexRoute
   '/projetos/': typeof ProjetosIndexRoute
 }
@@ -85,38 +103,46 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/clientes/$id'
     | '/personagens/$id'
     | '/personagens/novo'
     | '/projetos/$id'
     | '/projetos/novo'
+    | '/clientes/'
     | '/personagens/'
     | '/projetos/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/clientes/$id'
     | '/personagens/$id'
     | '/personagens/novo'
     | '/projetos/$id'
     | '/projetos/novo'
+    | '/clientes'
     | '/personagens'
     | '/projetos'
   id:
     | '__root__'
     | '/'
+    | '/clientes/$id'
     | '/personagens/$id'
     | '/personagens/novo'
     | '/projetos/$id'
     | '/projetos/novo'
+    | '/clientes/'
     | '/personagens/'
     | '/projetos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ClientesIdRoute: typeof ClientesIdRoute
   PersonagensIdRoute: typeof PersonagensIdRoute
   PersonagensNovoRoute: typeof PersonagensNovoRoute
   ProjetosIdRoute: typeof ProjetosIdRoute
   ProjetosNovoRoute: typeof ProjetosNovoRoute
+  ClientesIndexRoute: typeof ClientesIndexRoute
   PersonagensIndexRoute: typeof PersonagensIndexRoute
   ProjetosIndexRoute: typeof ProjetosIndexRoute
 }
@@ -142,6 +168,13 @@ declare module '@tanstack/react-router' {
       path: '/personagens'
       fullPath: '/personagens/'
       preLoaderRoute: typeof PersonagensIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/': {
+      id: '/clientes/'
+      path: '/clientes'
+      fullPath: '/clientes/'
+      preLoaderRoute: typeof ClientesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projetos/novo': {
@@ -172,15 +205,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PersonagensIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clientes/$id': {
+      id: '/clientes/$id'
+      path: '/clientes/$id'
+      fullPath: '/clientes/$id'
+      preLoaderRoute: typeof ClientesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ClientesIdRoute: ClientesIdRoute,
   PersonagensIdRoute: PersonagensIdRoute,
   PersonagensNovoRoute: PersonagensNovoRoute,
   ProjetosIdRoute: ProjetosIdRoute,
   ProjetosNovoRoute: ProjetosNovoRoute,
+  ClientesIndexRoute: ClientesIndexRoute,
   PersonagensIndexRoute: PersonagensIndexRoute,
   ProjetosIndexRoute: ProjetosIndexRoute,
 }
