@@ -4,9 +4,10 @@
  *
  * Regras-mestras (válidas para TODOS os prompts):
  * 1. IMAGEM 1 (foto original do cômodo) é IMUTÁVEL.
- * 2. Hooks são abertura emocional, NÃO descrição técnica do ambiente.
- * 3. Prompt de vídeo SEMPRE contém ação física + fala do hook juntas.
+ * 2. Hooks são abertura emocional viral, NÃO descrição técnica do ambiente.
+ * 3. Prompt de vídeo SEMPRE contém ação física + expressão + fala + (na última cena) CTA criativo.
  * 4. Enquadramento escolhido pelo usuário é OBRIGATÓRIO.
+ * 5. Todos os prompts devem ser exagerados, criativos, virais e surpreendentes.
  */
 
 // ============================================================
@@ -15,24 +16,53 @@
 
 export const ABSOLUTE_ROOM_PRESERVATION = `IMAGEM 1 é a referência ABSOLUTA e IMUTÁVEL do cômodo. Copie fielmente TODOS os detalhes: layout exato, posição de todos os móveis, cores das paredes, piso, teto, iluminação, janelas, cortinas, decoração e vista. NÃO INVENTE NADA. NÃO MUDE NADA no ambiente. Apenas coloque o corretor dentro desse espaço exato.`;
 
-export const HOOK_SYSTEM_PROMPT = `Você gera apenas hooks de abertura para vídeos imobiliários verticais (Reels/TikTok). Nunca escreva descrição técnica do ambiente. O hook deve vender desejo, emoção e identidade do corretor nos primeiros 5 segundos. Use o cômodo apenas como pano de fundo emocional. Sempre devolva, junto com o texto, uma AÇÃO FÍSICA SUTIL e cinematográfica do corretor (gesto, olhar, passo, pausa) — essa ação será usada depois no prompt de vídeo.`;
+// Técnicas centrais de storytelling imobiliário viral.
+export const STORYTELLING_FRAMEWORK = `
+ESTRUTURA OBRIGATÓRIA DE STORYTELLING IMOBILIÁRIO:
+1) HOOK (0-3s): frase de impacto, viral, que para o scroll.
+2) CONSTRUÇÃO EMOCIONAL: o ambiente vira símbolo (status, conquista, pertencimento, nova fase).
+3) BENEFÍCIO ASPIRACIONAL: a vida que esse imóvel desbloqueia.
+4) CTA (apenas na última cena): convite criativo, no tom do(a) corretor(a).
+
+GATILHOS MENTAIS PRIORITÁRIOS (usar em TODOS os hooks/roteiros):
+- Exclusividade ("poucos vão poder dizer que moraram aqui")
+- Status ("o tipo de endereço que muda como te enxergam")
+- Aspiração ("a vida que você sempre projetou")
+- FOMO ("imóveis assim somem antes de aparecerem")
+- Curiosidade ("você não vai acreditar no que tem aqui dentro")
+- Prova Social ("quem entende de imóvel não pisca duas vezes")`;
+
+export const VIRAL_HOOK_EXAMPLES = `
+EXEMPLOS DE HOOKS VIRAIS PARA IMÓVEIS DE LUXO (use o NÍVEL, não copie literal):
+- "Enquanto a maioria sonha com isso... você já pode viver."
+- "Você disse que não precisava de tanto luxo... mas olha isso aqui."
+- "Esse não é um imóvel. É uma declaração."
+- "Só quem realmente entende de vida mora em lugares assim."
+- "Tem gente que mora. E tem gente que VIVE — sente a diferença."
+- "Esse aqui não tá no mercado por acaso. Tá esperando a pessoa certa."
+
+EXEMPLOS DE HOOKS POR ESTILO DE CORRETOR (ADAPTE ao personagem atual):
+- Fashionista: "Styling de vida não se discute. Se apresenta."
+- Irônica: "Dinheiro não compra felicidade? Conta outra."
+- Refinada: "Alguns lugares simplesmente elevam quem vive neles."
+- Popular/acessível: "Bora ver de pertinho o que esse aqui te oferece — e por que vale cada centavo."
+- Jovem/energética: "Para tudo. Esse aqui mudou meu dia — e pode mudar o seu."
+- Técnica/consultiva: "Quem investe de verdade reconhece isso em 5 segundos. Olha o porquê."`;
+
+export const HOOK_SYSTEM_PROMPT = `Você é roteirista viral de Reels imobiliários verticais (TikTok/Reels). Sua única missão: gerar HOOKS de abertura (primeiros 3-5 segundos) extremamente impactantes, criativos, surpreendentes, com gatilhos mentais fortes (Exclusividade, Status, Aspiração, FOMO, Curiosidade, Prova Social). Nunca descreva tecnicamente o ambiente — use-o como pano de fundo emocional. Sempre devolva, junto com o texto, uma AÇÃO FÍSICA SUTIL e cinematográfica + EXPRESSÃO FACIAL do(a) corretor(a) (gesto, olhar, passo, pausa, sorriso de canto, olhar firme). Essa ação + expressão serão obrigatoriamente reutilizadas no prompt de imagem e de vídeo. Adapte SEMPRE ao estilo e personalidade do(a) corretor(a) — fashionista, irônica, refinada, popular, jovem, técnica etc.`;
 
 export const HOOK_CRAFT_RULES = `
-NOVA LÓGICA OBRIGATÓRIA DOS HOOKS (primeiros 5 segundos do Reel — abertura forte para parar o scroll):
-- O hook NÃO é descrição do cômodo. É uma frase de ABERTURA emocional, confiante, sedutora, elegante e aspiracional dita pelo(a) corretor(a) olhando para a câmera.
-- Foco: emoção, desejo, sonho, conquista, status, pertencimento, sensação de morar ali e personalidade do(a) corretor(a). O ambiente é só pano de fundo da promessa emocional.
-- Adapte o tom à personalidade do personagem (popular = desejo acessível; premium = refinamento; jovem = energia; técnico = oportunidade emocionada).
-- PROIBIDO descrever tecnicamente o ambiente (móveis, acabamentos, medidas, materiais, iluminação, layout, bancada, piso, armários, janela, decoração, vista).
+REGRAS OBRIGATÓRIAS DOS HOOKS (abertura forte para parar o scroll):
+- O hook NÃO é descrição do cômodo. É uma frase de ABERTURA viral, confiante, sedutora, aspiracional.
+- Use SEMPRE pelo menos 1 gatilho mental (Exclusividade, Status, Aspiração, FOMO, Curiosidade, Prova Social).
+- Adapte o tom à personalidade do personagem: fashionista (styling), irônica (provoca), refinada (eleva), popular (acessível), jovem (energia), técnica (oportunidade emocionada).
+- PROIBIDO descrever tecnicamente o ambiente (móveis, acabamentos, medidas, materiais, layout, bancada, piso, armários, janela, decoração, vista).
 - PROIBIDO começar com: "Olha esse cômodo", "Essa sala", "Aqui temos", "Repare nesse", "Esse ambiente", "Vem conhecer", "Bem-vindo", "Olha que lindo".
-- PERMITIDO mencionar o espaço de forma emocional/ampla: "um lugar assim", "aqui", "esse padrão", "essa sensação", "essa vida", "esse endereço", "esse cenário".
-- Exemplos do NÍVEL de impacto (não copie literalmente):
-  • "Você merece acordar todos os dias num lugar assim..."
-  • "Imagina receber seus amigos aqui? Esse é o padrão que você vai viver."
-  • "Esse é o tipo de refinamento que muda a sua vida."
-  • "Tem imóvel que você visita. E tem lugar que faz você se enxergar morando nele."
-- Cada hook DEVE vir com AÇÃO FÍSICA SUTIL no campo "action" (olhar firme, sorriso de canto, passo lento entrando, gesto leve com a mão, pausa antes da frase). Essa ação será obrigatoriamente reutilizada no prompt do vídeo.
-- "text": até 18 palavras, falado em PT-BR natural, funcional como os PRIMEIROS 5 SEGUNDOS do vídeo.
-- Respeite personalidade, jeito de falar e bordões — sem sacrificar a força emocional.`;
+- PERMITIDO: "um lugar assim", "aqui", "esse padrão", "essa sensação", "essa vida", "esse endereço", "esse cenário".
+- Cada hook DEVE vir com AÇÃO FÍSICA SUTIL + EXPRESSÃO no campo "action" (ex: "olhar firme pra câmera com leve sorriso de canto enquanto encosta a mão no batente da porta"). Essa ação será reutilizada na imagem e no vídeo.
+- "text": até 18 palavras, falado em PT-BR natural, funcional como os PRIMEIROS 3-5 SEGUNDOS do vídeo.
+- Respeite personalidade, jeito de falar e bordões — sem sacrificar a força emocional.
+${VIRAL_HOOK_EXAMPLES}`;
 
 export type Framing = "auto" | "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto";
 
@@ -76,29 +106,33 @@ export function buildHookPrompt(opts: {
 Personalidade: ${c.personality}
 Jeito de falar: ${c.speaking_style}
 Bordões: ${(c.catchphrases ?? []).join(" | ")}
-Hooks de referência: ${JSON.stringify(baseHooks)}
+Hooks de referência do personagem: ${JSON.stringify(baseHooks)}
 ${visionRule}
+${STORYTELLING_FRAMEWORK}
 ${HOOK_CRAFT_RULES}
 
-Gere EXATAMENTE 3 HOOKS DE ABERTURA para o cômodo "${roomName}" com ÂNGULOS EMOCIONAIS DIFERENTES:
-1) merecimento / sonho de viver ali;
-2) projeção social / receber pessoas / nova fase;
-3) refinamento / oportunidade / desejo aspiracional.
+Gere EXATAMENTE 3 HOOKS DE ABERTURA VIRAIS para o cômodo "${roomName}", cada um usando um GATILHO MENTAL DIFERENTE:
+1) Exclusividade OU Status (poucos têm acesso / muda como te enxergam)
+2) Aspiração OU FOMO (a vida que desbloqueia / vai sumir antes de aparecer)
+3) Curiosidade OU Prova Social (provoca clique / quem entende reconhece)
+
+Cada hook deve ter ação física + expressão facial DIFERENTES. Tom adaptado à personalidade do personagem.
 
 Responda APENAS com JSON array:
-[{"text":"...","action":"ação física sutil do corretor durante a fala","duration":4}, ...]`
+[{"text":"...","action":"ação física + expressão facial sutil do corretor durante a fala","duration":4}, ...]`
     : `Personagem: "${c.name}"
 Personalidade: ${c.personality}
 Jeito de falar: ${c.speaking_style}
 Cena anterior terminou com: "${previousSceneScript ?? ""}"
 Cômodo atual: "${roomName}"
 ${visionRule}
+${STORYTELLING_FRAMEWORK}
 ${HOOK_CRAFT_RULES}
 
-Gere 3 HOOKS DE CONTINUAÇÃO (~5s) que conectem com a cena anterior, tom confiante/sedutor/emocional. Não descreva tecnicamente o cômodo. Cada um com ação física sutil DIFERENTE.
+Gere 3 HOOKS DE CONTINUAÇÃO VIRAIS (~5s) que conectem com a cena anterior, cada um com um GATILHO MENTAL DIFERENTE (Exclusividade, Status, Aspiração, FOMO, Curiosidade, Prova Social). Não descreva tecnicamente o cômodo. Cada um com ação física + expressão facial DIFERENTES.
 
 Responda APENAS com JSON array:
-[{"text":"...","action":"ação física sutil","duration":4}, ...]`;
+[{"text":"...","action":"ação física + expressão facial sutil","duration":4}, ...]`;
 
   return { system: HOOK_SYSTEM_PROMPT, user };
 }
@@ -121,7 +155,7 @@ export function buildImagePrompt(opts: ImagePromptOpts): string {
   return `🚨🚨🚨 PRIORIDADE MÁXIMA — PRESERVAÇÃO ABSOLUTA DA IMAGEM 1 🚨🚨🚨
 ${ABSOLUTE_ROOM_PRESERVATION}
 
-TAREFA: inserção fotorrealista do personagem sobre a IMAGEM 1. Use IMAGEM 1 como CANVAS BASE. Preserve TODOS os pixels do cômodo, exceto a área ocupada pelo corpo do corretor e sua sombra realista.
+TAREFA: inserção fotorrealista, cinematográfica e viral do personagem sobre a IMAGEM 1. Use IMAGEM 1 como CANVAS BASE. Preserve TODOS os pixels do cômodo, exceto a área ocupada pelo corpo do corretor e sua sombra realista.
 
 SE HOUVER CONFLITO entre qualquer instrução estética/comercial e a preservação da IMAGEM 1, a preservação SEMPRE vence.
 
@@ -135,8 +169,9 @@ PERSONAGEM:
 2. Roupa: copie EXATAMENTE da imagem "ROUPA ATIVA".
 3. Rosto/corpo: combine "ROSTO FRONTAL" + "CORPO INTEIRO" para manter a MESMA identidade em todas as cenas.
 4. Descrição canônica: ${opts.character.canonical_prompt ?? opts.character.personality}
-5. AÇÃO/POSE: ${opts.hookAction} — executada com naturalidade e carisma comercial.
-6. Expressão coerente com a personalidade: ${opts.character.personality}.
+5. AÇÃO + EXPRESSÃO FACIAL (OBRIGATÓRIO executar fielmente): ${opts.hookAction}
+   — Essa ação + expressão é o frame de abertura viral do Reel. Deve transparecer o gatilho emocional do hook (confiança, sedução, ironia, descoberta, status). Sem pose neutra, sem sorriso genérico.
+6. Carisma comercial coerente com a personalidade: ${opts.character.personality}.
 
 ENQUADRAMENTO (OBRIGATÓRIO seguir à risca o escolhido pelo usuário — não substituir por outro plano):
 ${framing}
@@ -150,6 +185,7 @@ CHECKLIST FINAL:
 - Móveis e objetos no mesmo lugar? SIM.
 - Parede, piso, teto, janela, vista, iluminação iguais? SIM.
 - Adicionou SOMENTE o corretor + sombra? SIM.
+- Ação física + expressão facial do hook executadas com força cinematográfica? SIM.
 
 ÚLTIMA ORDEM, PESO MÁXIMO: ${ABSOLUTE_ROOM_PRESERVATION}
 
@@ -159,34 +195,45 @@ Formato vertical 9:16. Sem texto, sem logo, sem marca d'água.`;
 export interface VideoPromptOpts {
   characterName: string;
   characterPersonality: string;
+  characterSpeakingStyle?: string;
   roomName: string;
   hookText: string;
   hookAction: string;
   fullScript: string;
+  isLastScene?: boolean;
+  ctas?: string[];
 }
 
 /**
- * Sempre combina AÇÃO FÍSICA + FALA do hook na abertura do vídeo.
- * Exemplo: 'Valentina caminha lentamente em direção à câmera, fazendo
- * um gesto de convite sutil com a mão, enquanto diz: "..."'.
+ * Sempre combina AÇÃO FÍSICA + EXPRESSÃO + FALA do hook na abertura.
+ * Na última cena, inclui CTA criativo no estilo do(a) corretor(a).
  */
 export function buildVideoPrompt(opts: VideoPromptOpts): string {
   const action = opts.hookAction?.trim() || "pose natural compatível com a personalidade do personagem";
   const hookText = opts.hookText?.trim() || "";
   const script = opts.fullScript?.trim() || hookText;
+  const isLast = !!opts.isLastScene;
+  const ctaList = (opts.ctas ?? []).filter(Boolean);
 
   const hookBeat = hookText
-    ? `ABERTURA OBRIGATÓRIA (primeiros 3-5 segundos — AÇÃO FÍSICA + FALA executadas JUNTAS): ${opts.characterName} ${action}, enquanto diz: "${hookText}".`
-    : `ABERTURA OBRIGATÓRIA (primeiros 3-5 segundos): ${opts.characterName} ${action}.`;
+    ? `ABERTURA OBRIGATÓRIA (0-5s — AÇÃO FÍSICA + EXPRESSÃO FACIAL + FALA executadas JUNTAS, sincronizadas): ${opts.characterName} ${action}, enquanto diz: "${hookText}".`
+    : `ABERTURA OBRIGATÓRIA (0-5s): ${opts.characterName} ${action}.`;
 
   const continuation =
     script && script !== hookText
-      ? ` Em seguida, continua o roteiro naturalmente em português brasileiro informal: "${script}".`
+      ? ` CONSTRUÇÃO EMOCIONAL + BENEFÍCIO ASPIRACIONAL (5-9s): continua o roteiro com tom de história, criando desejo e projetando a vida que esse imóvel desbloqueia: "${script}".`
       : "";
 
-  return `Use a imagem enviada como referência principal. Crie um vídeo vertical 9:16 de 10 segundos. O personagem "${opts.characterName}" aparece dentro do cômodo "${opts.roomName}", mantendo o ambiente EXATAMENTE igual à imagem (sem alterar móveis, paredes, piso, iluminação ou decoração).
+  const ctaBlock = isLast
+    ? ` CTA FINAL CRIATIVO (últimos 1-2s, OBRIGATÓRIO, no estilo do(a) corretor(a) — NÃO genérico): convite curto, viral, com gatilho de FOMO/exclusividade, coerente com a personalidade "${opts.characterPersonality}" e jeito de falar "${opts.characterSpeakingStyle ?? ""}". Use como referência um destes CTAs do personagem (adapte, não copie literal): ${ctaList.length ? ctaList.map((c) => `"${c}"`).join(" | ") : "(personagem sem CTAs cadastrados — invente um CTA curto no estilo dele)"}.`
+    : ` SEM CTA nesta cena — termine com gancho natural pra próxima cena.`;
 
-${hookBeat}${continuation}
+  return `Use a imagem enviada como referência principal. Crie um vídeo vertical 9:16 de 10 segundos, ESTILO REELS/TIKTOK VIRAL, fotorrealista e cinematográfico. O personagem "${opts.characterName}" aparece dentro do cômodo "${opts.roomName}", mantendo o ambiente EXATAMENTE igual à imagem (sem alterar móveis, paredes, piso, iluminação ou decoração).
 
-A AÇÃO FÍSICA descrita ("${action}") DEVE ser executada de forma clara e visível, sincronizada com a fala — NUNCA omita o gesto, movimento ou olhar do hook. Personalidade do personagem: ${opts.characterPersonality}. Expressão coerente com essa personalidade. Movimento natural de câmera, estilo Reels/TikTok, fotorrealista.`;
+ESTRUTURA DE STORYTELLING IMOBILIÁRIO (siga à risca):
+${hookBeat}${continuation}${ctaBlock}
+
+GATILHOS MENTAIS ATIVOS na entrega: Exclusividade, Status, Aspiração, FOMO, Curiosidade, Prova Social — devem transparecer no olhar, no tom de voz e nos gestos.
+
+A AÇÃO FÍSICA descrita ("${action}") DEVE ser executada de forma clara, visível e cinematográfica, sincronizada com a fala — NUNCA omita o gesto, movimento, expressão facial ou olhar do hook. Personalidade do personagem: ${opts.characterPersonality}. Jeito de falar: ${opts.characterSpeakingStyle ?? ""}. Movimento natural de câmera (handheld sutil ou dolly leve), corte ritmado estilo Reels, áudio limpo em PT-BR.`;
 }
