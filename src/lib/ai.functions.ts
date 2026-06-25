@@ -329,7 +329,10 @@ export const generateSceneImage = createServerFn({ method: "POST" })
       if (sci?.signedUrl) contentBlocks.push({ type: "image_url", image_url: { url: sci.signedUrl } });
     }
 
-    async function callModel(model: string) {
+    async function callModel(model: string, extraReinforcement: string) {
+      const userBlocks = extraReinforcement
+        ? [{ type: "text", text: extraReinforcement }, ...contentBlocks]
+        : contentBlocks;
       return fetch(`${GATEWAY}/images/generations`, {
         method: "POST",
         headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
@@ -337,32 +340,99 @@ export const generateSceneImage = createServerFn({ method: "POST" })
           model,
           messages: [
             { role: "system", content: absoluteRoomPreservationRule },
-            { role: "user", content: contentBlocks },
+            { role: "user", content: userBlocks },
           ],
           modalities: ["image", "text"],
         }),
       });
     }
 
+    // ============ VALIDADOR DE ENQUADRAMENTO (vision) ============
+    async function validateFraming(imageDataUrl: string): Promise<{
+      ok: boolean;
+      detected: string;
+      reason: string;
+    }> {
+      const expectedLabel = framingKey;
+      const rubric = `Você é auditor de enquadramento fotográfico. Classifique a imagem em UM destes valores EXATOS:
+- "selfie" → apenas cabeça e ombros, rosto domina o frame
+- "meio_corpo" → da cintura pra cima, sem pernas/pés
+- "corpo_inteiro" → cabeça aos pés com pés visíveis tocando o chão
+- "plano_aberto" → pessoa pequena (<35% da altura), cômodo dominando
+Esperado: "${expectedLabel}".
+Responda APENAS JSON: {"detected":"selfie|meio_corpo|corpo_inteiro|plano_aberto","ok":true|false,"reason":"curta"}`;
+      try {
+        const raw = await chat(
+          [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: rubric },
+                { type: "image_url", image_url: { url: imageDataUrl } },
+              ],
+            },
+          ],
+          "google/gemini-3-flash-preview",
+          0.1,
+        );
+        const cleaned = raw.replace(/```json|```/g, "").trim();
+        const start = cleaned.indexOf("{");
+        const end = cleaned.lastIndexOf("}");
+        const parsed = JSON.parse(cleaned.slice(start, end + 1));
+        const detected = String(parsed.detected ?? "");
+        const ok = expectedLabel === "auto" ? true : detected === expectedLabel;
+        return { ok, detected, reason: String(parsed.reason ?? "") };
+      } catch {
+        return { ok: true, detected: "unknown", reason: "validator-failed" };
+      }
+    }
+
     const PRO = "google/gemini-3-pro-image";
     const FLASH = "google/gemini-3.1-flash-image";
     let usedFallback = false;
     let modelUsed = PRO;
-    let res = await callModel(PRO);
+    let reinforcement = "";
+    let b64: string | undefined;
+    let validation: { ok: boolean; detected: string; reason: string } = {
+      ok: true,
+      detected: "auto",
+      reason: "skipped",
+    };
+    const MAX_ATTEMPTS = 3;
+    let attempts = 0;
 
-    if (!res.ok && (res.status === 429 || res.status === 402)) {
-      // Pro bateu limite/quota — fallback para Flash
-      res = await callModel(FLASH);
-      usedFallback = true;
-      modelUsed = FLASH;
+    for (let i = 0; i < MAX_ATTEMPTS; i++) {
+      attempts++;
+      let res = await callModel(modelUsed, reinforcement);
+      if (!res.ok && (res.status === 429 || res.status === 402) && modelUsed === PRO) {
+        modelUsed = FLASH;
+        usedFallback = true;
+        res = await callModel(FLASH, reinforcement);
+      }
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`Gateway ${res.status}: ${txt}`);
+      }
+      const json = await res.json();
+      const candidate = json.data?.[0]?.b64_json;
+      if (!candidate) throw new Error("IA não retornou imagem");
+
+      if (framingKey === "auto") {
+        b64 = candidate;
+        break;
+      }
+      validation = await validateFraming(`data:image/png;base64,${candidate}`);
+      if (validation.ok) {
+        b64 = candidate;
+        break;
+      }
+      if (i === MAX_ATTEMPTS - 1) {
+        b64 = candidate;
+        break;
+      }
+      reinforcement = `⚠️ TENTATIVA ${i + 2}/${MAX_ATTEMPTS}: A geração anterior foi REJEITADA pelo validador de enquadramento. Detectado: "${validation.detected}". Esperado: "${framingKey}". Motivo: ${validation.reason}. CORRIJA AGORA — aplique RIGOROSAMENTE as regras do enquadramento "${framingKey}". Ajuste DISTÂNCIA DA CÂMERA e ESCALA do personagem antes de qualquer outra coisa.`;
     }
 
-    if (!res.ok) {
-      const txt = await res.text();
-      throw new Error(`Gateway ${res.status}: ${txt}`);
-    }
-    const json = await res.json();
-    const b64 = json.data?.[0]?.b64_json;
     if (!b64) throw new Error("IA não retornou imagem");
 
     const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
@@ -384,7 +454,18 @@ export const generateSceneImage = createServerFn({ method: "POST" })
       })
       .eq("id", data.sceneId);
 
-    return { path, image_prompt: imagePrompt, usedFallback, model: modelShort };
+    return {
+      path,
+      image_prompt: imagePrompt,
+      usedFallback,
+      model: modelShort,
+      framing_validation: {
+        expected: framingKey,
+        detected: validation.detected,
+        ok: validation.ok,
+        attempts,
+      },
+    };
   });
 
 // ============ GERAR PROMPT DE VÍDEO ============
