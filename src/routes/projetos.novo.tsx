@@ -126,7 +126,18 @@ function NovoProjeto() {
         <CardHeader><CardTitle>Projeto</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>Nome do projeto *</Label>
+            <Label>Cliente (imobiliária) *</Label>
+            <Select value={clientId} onValueChange={setClientId}>
+              <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
+              <SelectContent>
+                {clients?.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Nome do imóvel *</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Casa Jardim Paulista" />
           </div>
           <div>
