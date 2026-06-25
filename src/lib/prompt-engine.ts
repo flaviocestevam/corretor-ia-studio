@@ -67,15 +67,23 @@ ${VIRAL_HOOK_EXAMPLES}`;
 
 export type Framing = "auto" | "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto";
 
-export const FRAMING_INSTRUCTIONS: Record<Framing, string> = {
-  auto: `ESCOLHA AUTOMÁTICA: decida o melhor enquadramento (selfie, meio corpo, corpo inteiro ou plano aberto) considerando o cômodo e a ação. Varie entre cenas.`,
-  selfie: `SELFIE / POV próximo (OBRIGATÓRIO): câmera a ~40-60cm do rosto, cabeça e ombros visíveis, NUNCA cortar testa nem queixo. Cômodo aparece desfocado ao fundo (não tela preta).`,
-  meio_corpo: `MEIO CORPO (OBRIGATÓRIO — escolhido pelo usuário): câmera a ~1,8-2,2m, enquadrando da cintura PARA CIMA. NUNCA cortar cabeça, ombros ou mãos. Personagem ocupa ~55-65% da altura. EQUILÍBRIO: cômodo aparece claramente em volta (paredes, móveis, janelas visíveis nas laterais e atrás). Pessoa proporcional ao ambiente.`,
-  corpo_inteiro: `CORPO INTEIRO (OBRIGATÓRIO — escolhido pelo usuário): câmera a ~3-4m, mostrando o personagem INTEIRO da cabeça aos pés, com pés tocando o chão. NUNCA cortar cabeça, pés, mãos. Personagem ocupa ~65-80% da altura. Sobra espaço acima da cabeça e abaixo dos pés. EQUILÍBRIO: pessoa proporcional ao cômodo (~1,70-1,80m vs portas ~2,10m).`,
-  plano_aberto: `PLANO ABERTO / WIDE (OBRIGATÓRIO): câmera a ~5-7m, lente 24mm. Personagem aparece pequeno (~25-35% da altura) mas SEMPRE INTEIRO. Cômodo domina a composição.`,
+export const FRAMING_LABEL: Record<Framing, string> = {
+  auto: "AUTOMÁTICO",
+  selfie: "SELFIE / CLOSE NO ROSTO",
+  meio_corpo: "MEIO CORPO (cintura pra cima)",
+  corpo_inteiro: "CORPO INTEIRO (cabeça aos pés)",
+  plano_aberto: "PLANO ABERTO / WIDE (pessoa pequena no ambiente)",
 };
 
-export const FRAMING_BALANCE_RULE = `REGRA UNIVERSAL DE ENQUADRAMENTO: a pessoa deve estar BEM ENQUADRADA, PROPORCIONAL ao ambiente, SEM CORTAR partes do corpo desnecessariamente, EQUILIBRADA visualmente (centralizada ou em terço, com respiro ao redor, sem encostar nas bordas). A perspectiva e o ângulo do CÔMODO devem permanecer iguais aos da IMAGEM 1 — apenas posicione o personagem dentro.`;
+export const FRAMING_INSTRUCTIONS: Record<Framing, string> = {
+  auto: `ESCOLHA AUTOMÁTICA: decida o melhor enquadramento (selfie, meio corpo, corpo inteiro ou plano aberto) considerando o cômodo e a ação. Varie entre cenas.`,
+  selfie: `SELFIE / POV CLOSE NO ROSTO (OBRIGATÓRIO — escolhido pelo usuário): câmera a ~40-60cm do rosto. APENAS CABEÇA + OMBROS visíveis, ocupando ~70-80% do frame. PROIBIDO mostrar peito, cintura, pernas ou pés. PROIBIDO cortar testa ou queixo. Cômodo DESFOCADO ao fundo.`,
+  meio_corpo: `MEIO CORPO (OBRIGATÓRIO — escolhido pelo usuário): câmera a ~1,8-2,2m. Enquadrar EXATAMENTE da CINTURA PRA CIMA. PROIBIDO mostrar pernas, joelhos ou pés. PROIBIDO cortar cabeça, ombros ou mãos. Personagem ocupa ~55-65% da altura do frame. Cômodo claramente visível em volta.`,
+  corpo_inteiro: `CORPO INTEIRO (OBRIGATÓRIO — escolhido pelo usuário): câmera a ~3-4m. Personagem INTEIRO da CABEÇA AOS PÉS, com PÉS TOCANDO O CHÃO visíveis no frame. PROIBIDO cortar cabeça, pés ou mãos. Personagem ocupa ~65-80% da altura. Sobra espaço acima da cabeça e abaixo dos pés.`,
+  plano_aberto: `PLANO ABERTO / WIDE (OBRIGATÓRIO — escolhido pelo usuário): câmera a ~5-7m, lente 24mm. Personagem PEQUENO (~25-35% da altura) mas SEMPRE INTEIRO da cabeça aos pés. CÔMODO DOMINA a composição (~70% do frame). PROIBIDO close, selfie ou meio corpo.`,
+};
+
+export const FRAMING_BALANCE_RULE = `REGRA UNIVERSAL DE ENQUADRAMENTO: ajuste a DISTÂNCIA DA CÂMERA e a POSE do personagem para encaixar PERFEITAMENTE no enquadramento escolhido. Pessoa proporcional ao ambiente, sem cortes errados, equilibrada (centralizada ou em terço, sem encostar nas bordas). A perspectiva e o ângulo do CÔMODO permanecem iguais aos da IMAGEM 1 — apenas posicione o personagem dentro.`;
 
 // ============================================================
 // BUILDERS
