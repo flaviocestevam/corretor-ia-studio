@@ -175,11 +175,12 @@ function ProjectDetail() {
   return (
     <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
+        <div className="flex-1 min-w-0">
           <h1 className="text-3xl font-bold tracking-tight">{data.project.name}</h1>
           <p className="text-muted-foreground mt-1">
             {data.character.name} · {data.scenes.length} cena(s)
           </p>
+          <PropertyUrlField projectId={id} initial={(data.project as any).property_url ?? ""} />
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={downloadAll}>
@@ -199,6 +200,7 @@ function ProjectDetail() {
           </ConfirmButton>
         </div>
       </div>
+
 
       {/* Progresso global */}
       <Card>
@@ -902,3 +904,57 @@ function SceneCard({
     </Card>
   );
 }
+
+function PropertyUrlField({ projectId, initial }: { projectId: string; initial: string }) {
+  const qc = useQueryClient();
+  const [value, setValue] = useState(initial);
+  const [editing, setEditing] = useState(!initial);
+  const save = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("projects")
+        .update({ property_url: value.trim() || null })
+        .eq("id", projectId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Link salvo");
+      setEditing(false);
+      qc.invalidateQueries({ queryKey: ["project", projectId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (!editing && value) {
+    return (
+      <div className="mt-2 flex items-center gap-2 text-sm">
+        <a
+          href={value}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary underline truncate max-w-md"
+        >
+          🔗 {value}
+        </a>
+        <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>Editar</Button>
+      </div>
+    );
+  }
+  return (
+    <div className="mt-2 flex items-center gap-2 max-w-xl">
+      <Input
+        type="url"
+        placeholder="https://link-do-imovel.com"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+      />
+      <Button size="sm" onClick={() => save.mutate()} disabled={save.isPending}>Salvar</Button>
+      {initial && (
+        <Button size="sm" variant="ghost" onClick={() => { setValue(initial); setEditing(false); }}>
+          Cancelar
+        </Button>
+      )}
+    </div>
+  );
+}
+
