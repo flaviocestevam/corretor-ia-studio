@@ -503,10 +503,25 @@ export const generateVideoPrompt = createServerFn({ method: "POST" })
     if (!char) throw new Error("Personagem não encontrado");
 
     const selectedHook = scene.selected_hook as { action?: string; text?: string } | null;
-    const action = selectedHook?.action ?? "pose natural";
-    const roteiro = scene.selected_script ?? selectedHook?.text ?? "";
+    const hookAction = selectedHook?.action?.trim() || "pose natural compatível com a personalidade do personagem";
+    const hookText = selectedHook?.text?.trim() || "";
+    const roteiro = scene.selected_script?.trim() || hookText;
 
-    const videoPrompt = `Use a imagem enviada como referência principal. Crie um vídeo vertical 9:16 de 10 segundos. O personagem "${char.name}" aparece dentro do cômodo "${scene.room_name}", mantendo o ambiente exatamente igual à imagem. Ele deve agir de acordo com sua personalidade: ${char.personality}. Ação: ${action}. Expressão: coerente com ${char.personality}. Ele fala em português brasileiro informal: "${roteiro}". Movimento natural de câmera, estilo Reels/TikTok, fotorrealista, sem alterar móveis, paredes, iluminação ou decoração do imóvel.`;
+    // Estrutura obrigatória: AÇÃO FÍSICA + FALA do hook, sempre juntas no início do vídeo.
+    const hookBeat = hookText
+      ? `ABERTURA OBRIGATÓRIA (primeiros 3-5 segundos, ação + fala juntas): ${char.name} ${hookAction}, enquanto diz: "${hookText}".`
+      : `ABERTURA OBRIGATÓRIA (primeiros 3-5 segundos): ${char.name} ${hookAction}.`;
+
+    const continuacao =
+      roteiro && roteiro !== hookText
+        ? ` Em seguida, continua o roteiro naturalmente em português brasileiro informal: "${roteiro}".`
+        : "";
+
+    const videoPrompt = `Use a imagem enviada como referência principal. Crie um vídeo vertical 9:16 de 10 segundos. O personagem "${char.name}" aparece dentro do cômodo "${scene.room_name}", mantendo o ambiente exatamente igual à imagem (sem alterar móveis, paredes, piso, iluminação ou decoração).
+
+${hookBeat}${continuacao}
+
+A AÇÃO FÍSICA descrita acima ("${hookAction}") deve ser executada de forma clara e visível, sincronizada com a fala — nunca omita o gesto, movimento ou olhar do hook. Personalidade do personagem: ${char.personality}. Expressão coerente com essa personalidade. Movimento natural de câmera, estilo Reels/TikTok, fotorrealista.`;
 
     await supabaseAdmin.from("scenes").update({ video_prompt: videoPrompt }).eq("id", data.sceneId);
     return videoPrompt;
