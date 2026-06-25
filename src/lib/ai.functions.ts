@@ -310,11 +310,22 @@ export const generateSceneImage = createServerFn({ method: "POST" })
     const framingKey = (scene as any).camera_framing ?? "corpo_inteiro";
     const framingInstruction = framingMap[framingKey] ?? framingMap.corpo_inteiro;
 
-    const imagePrompt = `IMAGEM 1 = FOTO ORIGINAL E IMUTÁVEL DO CÔMODO (cenário fixo, intocável).
+    const hookPool = [
+      `${char.name}, com elegância magnética e sorriso confiante, apresenta o imóvel dos sonhos como se cada detalhe fosse exclusivo para quem assiste.`,
+      `Com carisma irresistível e postura de alto padrão, ${char.name} guia o olhar do espectador por um ambiente que respira sofisticação e desejo.`,
+      `${char.name} surge no ambiente como a anfitriã perfeita de um lifestyle premium — luxo discreto, charme cinematográfico e energia de venda irresistível.`,
+      `Olhar marcante, presença de capa de revista: ${char.name} transforma a visita em uma experiência sedutora, cinematográfica e aspiracional.`,
+    ];
+    const hook = hookPool[Math.floor(Math.random() * hookPool.length)];
+
+    const imagePrompt = `🎬 HOOK CINEMATOGRÁFICO (tom da cena, NÃO altera o cômodo):
+${hook} Estética de anúncio imobiliário de altíssimo padrão, iluminação cinematográfica natural, atmosfera aspiracional, comercial premium estilo Netflix/Architectural Digest — porém SEM modificar absolutamente nada do ambiente real da IMAGEM 1.
+
+IMAGEM 1 = FOTO ORIGINAL E IMUTÁVEL DO CÔMODO (cenário fixo, intocável, sagrado).
 ${refsDescription}
 
 ⚠️ REGRA SUPREMA — PRESERVAÇÃO TOTAL DO CÔMODO (descumprir = imagem REJEITADA):
-A IMAGEM 1 é a foto ORIGINAL do imóvel real que está sendo vendido. Você DEVE manter EXATAMENTE o mesmo ambiente, pixel a pixel no que diz respeito ao espaço:
+A IMAGEM 1 é a foto ORIGINAL do imóvel real que está sendo vendido. Você DEVE manter 100% EXATO o mesmo ambiente, pixel a pixel no que diz respeito ao espaço:
 - Layout idêntico (mesma planta, mesma perspectiva, mesmo ângulo da câmera original).
 - Móveis idênticos (mesmos sofás, camas, mesas, cadeiras, armários, eletrodomésticos, louças, espelhos, quadros, tapetes, cortinas, vasos, objetos de decoração — nas MESMAS posições).
 - Paredes idênticas (mesma cor, mesma textura, mesmo revestimento, mesmos rodapés, mesmas tomadas e interruptores).
@@ -324,22 +335,24 @@ A IMAGEM 1 é a foto ORIGINAL do imóvel real que está sendo vendido. Você DEV
 - Iluminação idêntica (mesma temperatura de cor, mesmas sombras, mesma direção da luz natural e artificial).
 - Cores e decoração idênticas.
 
-É TERMINANTEMENTE PROIBIDO: adicionar móveis, remover móveis, mover móveis, trocar acabamentos, mudar a cor das paredes, mudar o piso, mudar a iluminação, mudar a vista da janela, redecorar, "melhorar", "valorizar" ou "estilizar" o ambiente. NÃO invente cristaleira, lustre, plantas, quadros, tapetes, mármore, marcenaria, LED ou qualquer item que NÃO esteja visível na IMAGEM 1. Se o cômodo for simples ou vazio, mantenha simples ou vazio. Isto vale para QUALQUER tipo de cômodo: sala, cozinha, quarto, banheiro, lavabo, varanda, área de serviço, escritório, closet, garagem, hall, área externa.
+É TERMINANTEMENTE PROIBIDO: adicionar móveis, remover móveis, mover móveis, trocar acabamentos, mudar a cor das paredes, mudar o piso, mudar a iluminação, mudar a vista da janela, redecorar, "melhorar", "valorizar", "luxuosizar" ou "estilizar" o ambiente. NÃO invente cristaleira, lustre, plantas, quadros, tapetes, mármore, marcenaria, LED ou qualquer item que NÃO esteja visível na IMAGEM 1. Se o cômodo for simples ou vazio, mantenha simples ou vazio. O CLIMA cinematográfico vem da PRESENÇA do personagem e do enquadramento, NUNCA da modificação do cenário. Isto vale para QUALQUER tipo de cômodo: sala, cozinha, quarto, banheiro, lavabo, varanda, área de serviço, escritório, closet, garagem, hall, área externa.
 
 Sua ÚNICA modificação permitida é INSERIR o personagem dentro desse cômodo original, como se ele tivesse entrado ali no momento da foto.
 
-REGRAS DO PERSONAGEM:
-1. Insira o personagem "${char.name}" dentro do cômodo de forma fotorrealista, integrado com a iluminação, sombras e perspectiva ORIGINAIS da IMAGEM 1.
-2. Roupa: copie EXATAMENTE a roupa da imagem marcada como "ROUPA ATIVA" (cor, corte, acessórios). Ignore roupas das outras imagens de referência.
-3. Rosto e proporções: combine as imagens marcadas como "ROSTO FRONTAL" e "CORPO INTEIRO" para manter a mesma identidade física (rosto, traços, cabelo, altura, tipo físico) em todas as cenas.
+REGRAS DO PERSONAGEM (descrição consistente e canônica em TODAS as cenas):
+1. Insira "${char.name}" dentro do cômodo de forma 100% fotorrealista, integrado com a iluminação, sombras e perspectiva ORIGINAIS da IMAGEM 1. Pele com textura real, fios de cabelo definidos, olhar vivo, expressão sedutora e confiante de corretor(a) de alto padrão.
+2. Roupa: copie EXATAMENTE a roupa da imagem marcada como "ROUPA ATIVA" (cor, corte, tecido, acessórios, calçado). Ignore roupas das outras imagens de referência.
+3. Rosto e proporções: combine fielmente as imagens marcadas como "ROSTO FRONTAL" e "CORPO INTEIRO" para manter a MESMA identidade física (mesmo rosto, mesmos traços, mesmo cabelo, mesma altura, mesmo tipo físico) em todas as cenas — sem variações entre cenas.
 4. Descrição visual canônica adicional: ${char.canonical_prompt ?? char.personality}
-5. Pose / ação na cena: ${action}
-6. Expressão coerente com a personalidade: ${char.personality}
+5. Pose / ação na cena: ${action} — executada com naturalidade, carisma e elegância comercial.
+6. Expressão coerente com a personalidade: ${char.personality}. Linguagem corporal de quem vende um sonho: confiança, charme, olhar magnético.
 7. ENQUADRAMENTO DE CÂMERA: ${framingInstruction}
    IMPORTANTE: o enquadramento descreve a DISTÂNCIA do personagem na cena, MAS a perspectiva, ângulo e composição do CÔMODO devem permanecer iguais aos da IMAGEM 1. Não refaça a foto do ambiente por outro ângulo — apenas posicione o personagem dentro do ambiente original.
 8. POSICIONAMENTO REALISTA: escolha um ponto do chão que exista de verdade na IMAGEM 1 (não em cima de móvel, não atravessando parede, não flutuando). Os pés precisam tocar o chão na perspectiva correta, com sombra projetada coerente com a direção da luz da foto original. O personagem ocupa o espaço NEGATIVO do cômodo (corredor, espaço livre entre móveis, em frente a um móvel), nunca substitui um móvel.
-9. PROPORÇÃO HUMANA REALISTA (CRÍTICO): trate o personagem como pessoa real de ~1,70-1,80m de altura. Compare a cabeça dele com referências visíveis no cômodo (maçaneta ~1m, interruptor ~1,1m, mesa ~75cm, bancada ~90cm, sofá ~85cm de encosto, porta padrão ~2,10m). A cabeça do personagem NUNCA pode ultrapassar o batente da porta nem encostar no teto. Se a perspectiva da foto do cômodo for ampla, o personagem fica PROPORCIONALMENTE PEQUENO — é melhor errar pra menor que pra maior. Pés tocando o chão na perspectiva correta, sombra coerente com a iluminação do ambiente.
-10. Formato vertical 9:16. Sem texto, sem logo, sem marca d'água.`;
+9. PROPORÇÃO HUMANA REALISTA (CRÍTICO): trate o personagem como pessoa real de ~1,70-1,80m de altura. Compare a cabeça dele com referências visíveis no cômodo (maçaneta ~1m, interruptor ~1,1m, mesa ~75cm, bancada ~90cm, sofá ~85cm de encosto, porta padrão ~2,10m). A cabeça do personagem NUNCA pode ultrapassar o batente da porta nem encostar no teto. Se a perspectiva da foto do cômodo for ampla, o personagem fica PROPORCIONALMENTE PEQUENO — é melhor errar pra menor que pra maior.
+10. ACABAMENTO CINEMATOGRÁFICO (sem alterar o cenário): qualidade fotográfica profissional, foco nítido no personagem, leve profundidade de campo natural, cor cinematográfica suave compatível com a luz já existente na IMAGEM 1. Estética de comercial imobiliário de altíssimo padrão.
+11. Formato vertical 9:16. Sem texto, sem logo, sem marca d'água, sem legendas.`;
+
 
 
     // signed URL for room photo
