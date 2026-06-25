@@ -174,6 +174,9 @@ PERSONAGEM:
    — Essa ação + expressão é o frame de abertura viral do Reel. Deve transparecer o gatilho emocional do hook (confiança, sedução, ironia, descoberta, status). Sem pose neutra, sem sorriso genérico.
 6. Carisma comercial coerente com a personalidade: ${opts.character.personality}.
 
+PROMPT BASE OBRIGATÓRIO (síntese final que o modelo deve executar):
+"Preservar 100% fiel a IMAGEM 1: layout, móveis, iluminação, arquitetura. NÃO alterar nada no ambiente. ${opts.character.name}, com personalidade ${opts.character.personality}, executa: ${opts.hookAction}, vestindo EXATAMENTE a roupa da imagem ROUPA ATIVA, posando dentro do ambiente. Estilo: fotorrealista, cinematográfico, viral, 8k, detalhes ricos, iluminação dramática coerente com a luz original da IMAGEM 1."
+
 ENQUADRAMENTO (OBRIGATÓRIO seguir à risca o escolhido pelo usuário — não substituir por outro plano):
 ${framing}
 
