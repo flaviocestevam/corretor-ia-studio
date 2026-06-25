@@ -124,7 +124,7 @@ As 3 opções devem ter ÂNGULOS DIFERENTES entre si (ex: 1 pergunta provocativa
 
 Responda APENAS com JSON array no formato:
 [{"text":"...","action":"descrição da ação física sutil do corretor durante a fala","duration":4}, ...]`
-      : `Você é roteirista sênior de Reels imobiliários de alto padrão. Personagem: "${char.name}".
+      : `Você é roteirista sênior de Reels imobiliários. Personagem: "${char.name}".
 Personalidade: ${char.personality}
 Jeito de falar: ${char.speaking_style}
 Cena anterior terminou com: "${data.previousSceneScript ?? ""}"
