@@ -611,7 +611,14 @@ function SceneCard({
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => run(() => genImage({ data: { sceneId: scene.id } }), setLoadingImage, "Imagem gerada ✨", "Gerar imagem")}
+                  onClick={() => run(
+                    () => genImage({ data: { sceneId: scene.id } }),
+                    setLoadingImage,
+                    (res) => (res as { usedFallback?: boolean }).usedFallback
+                      ? "Pro atingiu limite diário. Gerando com Flash — qualidade um pouco menor."
+                      : "Imagem gerada ✨",
+                    "Gerar imagem",
+                  )}
                   disabled={busy || !scene.original_room_image}
 
                 >

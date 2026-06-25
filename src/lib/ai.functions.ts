@@ -344,15 +344,31 @@ REGRAS OBRIGATÓRIAS:
       if (sci?.signedUrl) contentBlocks.push({ type: "image_url", image_url: { url: sci.signedUrl } });
     }
 
-    const res = await fetch(`${GATEWAY}/images/generations`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3.1-flash-image",
-        messages: [{ role: "user", content: contentBlocks }],
-        modalities: ["image", "text"],
-      }),
-    });
+    async function callModel(model: string) {
+      return fetch(`${GATEWAY}/images/generations`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "user", content: contentBlocks }],
+          modalities: ["image", "text"],
+        }),
+      });
+    }
+
+    const PRO = "google/gemini-3-pro-image";
+    const FLASH = "google/gemini-3.1-flash-image";
+    let usedFallback = false;
+    let modelUsed = PRO;
+    let res = await callModel(PRO);
+
+    if (!res.ok && (res.status === 429 || res.status === 402)) {
+      // Pro bateu limite/quota — fallback para Flash
+      res = await callModel(FLASH);
+      usedFallback = true;
+      modelUsed = FLASH;
+    }
+
     if (!res.ok) {
       const txt = await res.text();
       throw new Error(`Gateway ${res.status}: ${txt}`);
@@ -377,7 +393,7 @@ REGRAS OBRIGATÓRIAS:
       })
       .eq("id", data.sceneId);
 
-    return { path, image_prompt: imagePrompt };
+    return { path, image_prompt: imagePrompt, usedFallback, model: modelUsed };
   });
 
 // ============ GERAR PROMPT DE VÍDEO ============
