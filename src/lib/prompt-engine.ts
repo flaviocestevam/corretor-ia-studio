@@ -151,6 +151,7 @@ export interface ImagePromptOpts {
     name: string;
     personality: string;
     canonical_prompt?: string | null;
+    height_cm?: number | null;
   };
   roomName: string;
   framing: Framing;
@@ -161,9 +162,14 @@ export interface ImagePromptOpts {
 export function buildImagePrompt(opts: ImagePromptOpts): string {
   const framing = FRAMING_INSTRUCTIONS[opts.framing] ?? FRAMING_INSTRUCTIONS.corpo_inteiro;
   const framingLabel = FRAMING_LABEL[opts.framing] ?? FRAMING_LABEL.corpo_inteiro;
+  const heightM = opts.character.height_cm ? (opts.character.height_cm / 100).toFixed(2).replace(".", ",") : null;
+  const heightLine = heightM
+    ? `\n🚨 ALTURA REAL OBRIGATÓRIA: ${opts.character.name} mede EXATAMENTE ${heightM}m. Use essa altura como régua absoluta — pés firmes no piso, sombra natural, proporção correta com móveis, portas (~2,10m) e teto. NÃO renderize maior nem menor.\n`
+    : "";
 
   return `🚨🚨🚨 PRIORIDADE MÁXIMA #1 — PRESERVAÇÃO ABSOLUTA DA IMAGEM 1 🚨🚨🚨
 ${ABSOLUTE_ROOM_PRESERVATION}
+${heightLine}
 
 🚨🚨🚨 PRIORIDADE MÁXIMA #2 — ENQUADRAMENTO ESCOLHIDO PELO USUÁRIO: ${framingLabel} 🚨🚨🚨
 Respeitar RIGOROSAMENTE o enquadramento escolhido: ${framingLabel}.
@@ -189,7 +195,7 @@ PERSONAGEM:
 6. Carisma comercial coerente com a personalidade: ${opts.character.personality}.
 
 PROMPT BASE OBRIGATÓRIO (síntese final que o modelo deve executar):
-"Preservar 100% fiel a IMAGEM 1: layout, móveis, iluminação, arquitetura. NÃO alterar nada no ambiente. Enquadramento OBRIGATÓRIO: ${framingLabel}. ${opts.character.name}, com personalidade ${opts.character.personality}, executa: ${opts.hookAction}, vestindo EXATAMENTE a roupa da imagem ROUPA ATIVA, posicionado no ambiente conforme exige o enquadramento ${framingLabel}. Estilo: fotorrealista, cinematográfico, viral, 8k, detalhes ricos, iluminação dramática coerente com a luz original da IMAGEM 1."
+"Preservar 100% fiel a IMAGEM 1: layout, móveis, iluminação, arquitetura. NÃO alterar nada no ambiente. Enquadramento OBRIGATÓRIO: ${framingLabel}. ${opts.character.name}${heightM ? ` com altura exata de ${heightM}m, pés firmes no piso, sombra natural, proporção correta com os móveis e teto,` : ""} com personalidade ${opts.character.personality}, executa: ${opts.hookAction}, vestindo EXATAMENTE a roupa da imagem ROUPA ATIVA, posicionado no ambiente conforme exige o enquadramento ${framingLabel}. Estilo: fotorrealista, cinematográfico, viral, 8k, detalhes ricos, iluminação dramática coerente com a luz original da IMAGEM 1."
 
 ${FRAMING_BALANCE_RULE}
 

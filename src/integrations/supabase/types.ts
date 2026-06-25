@@ -24,6 +24,7 @@ export type Database = {
           created_at: string
           ctas: Json
           face_reference_image: string | null
+          height_cm: number | null
           hooks: Json
           id: string
           name: string
@@ -41,6 +42,7 @@ export type Database = {
           created_at?: string
           ctas?: Json
           face_reference_image?: string | null
+          height_cm?: number | null
           hooks?: Json
           id?: string
           name: string
@@ -58,6 +60,7 @@ export type Database = {
           created_at?: string
           ctas?: Json
           face_reference_image?: string | null
+          height_cm?: number | null
           hooks?: Json
           id?: string
           name?: string

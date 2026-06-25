@@ -300,6 +300,7 @@ export const generateSceneImage = createServerFn({ method: "POST" })
         name: char.name,
         personality: char.personality ?? "",
         canonical_prompt: (char as any).canonical_prompt ?? null,
+        height_cm: (char as any).height_cm ?? null,
       },
       roomName: scene.room_name,
       framing: framingKey,
