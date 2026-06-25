@@ -318,8 +318,11 @@ export const generateSceneImage = createServerFn({ method: "POST" })
     ];
     const hook = hookPool[Math.floor(Math.random() * hookPool.length)];
 
-    const imagePrompt = `🎬 HOOK CINEMATOGRÁFICO (tom da cena, NÃO altera o cômodo):
-${hook} Estética de anúncio imobiliário de altíssimo padrão, iluminação cinematográfica natural, atmosfera aspiracional, comercial premium estilo Netflix/Architectural Digest — porém SEM modificar absolutamente nada do ambiente real da IMAGEM 1.
+    const imagePrompt = `⚠️ REGRA #0 — PRESERVAÇÃO ABSOLUTA DA IMAGEM 1 (lei suprema, antes de qualquer outra instrução):
+Preservar 100% fiel a IMAGEM 1: layout exato, móveis, paredes, piso, iluminação, arquitetura, janelas, decoração, perspectiva e ângulo de câmera. NÃO alterar NADA no ambiente original. A única coisa que você pode adicionar é o personagem dentro desse cômodo.
+
+🎬 HOOK COMERCIAL (tom cinematográfico da cena — NÃO modifica o cômodo, só guia a presença do personagem):
+${hook} Estética de anúncio imobiliário de altíssimo padrão, iluminação cinematográfica natural já existente na IMAGEM 1, atmosfera aspiracional, comercial premium estilo Netflix/Architectural Digest — porém SEM modificar absolutamente nada do ambiente real.
 
 IMAGEM 1 = FOTO ORIGINAL E IMUTÁVEL DO CÔMODO (cenário fixo, intocável, sagrado).
 ${refsDescription}
