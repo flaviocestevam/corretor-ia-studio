@@ -1,5 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import {
+  ABSOLUTE_ROOM_PRESERVATION,
+  buildHookPrompt,
+  buildImagePrompt,
+  buildVideoPrompt,
+  type Framing,
+} from "./prompt-engine";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 
@@ -88,67 +95,24 @@ export const generateHooks = createServerFn({ method: "POST" })
       .single();
     const imageDataUrl = await fetchRoomImageDataUrl(supabaseAdmin, sceneRow?.original_room_image);
 
-    const visionRule = imageDataUrl
-      ? `\nVOCÊ ESTÁ VENDO A FOTO REAL DO CÔMODO em anexo. Use a imagem APENAS como pano de fundo emocional para entender a sensação do espaço. NÃO transforme o hook em descrição técnica de móveis, materiais, acabamentos ou decoração. É proibido inventar itens que não estão na imagem.`
-      : "";
+    const { system, user: userPrompt } = buildHookPrompt({
+      character: {
+        name: char.name,
+        personality: char.personality ?? "",
+        speaking_style: char.speaking_style ?? "",
+        catchphrases: char.catchphrases as string[] | null,
+        hooks: baseHooks,
+      },
+      roomName: data.roomName,
+      isFirstScene: data.isFirstScene,
+      previousSceneScript: data.previousSceneScript,
+      hasRoomImage: !!imageDataUrl,
+    });
 
-    const hookCraftRules = `
-NOVA LÓGICA OBRIGATÓRIA DOS HOOKS (primeiros 5 segundos do Reel — abertura forte para parar o scroll):
-- O hook NÃO é descrição do cômodo. O hook é uma frase de ABERTURA emocional, confiante, sedutora, elegante e aspiracional dita pelo(a) corretor(a) olhando para a câmera.
-- Foco principal: emoção, desejo, sonho, conquista, status, pertencimento, sensação de morar ali e personalidade do(a) corretor(a). O ambiente é apenas pano de fundo para a promessa emocional.
-- Tom 100% adaptado à personalidade e ao jeito de falar do personagem, mas sempre com presença comercial forte. Se o personagem for popular, mantenha desejo e sonho acessível; se for premium, use refinamento; se for jovem, use energia; se for técnico, transforme oportunidade em emoção.
-- PROIBIDO descrever tecnicamente o ambiente: não listar móveis, acabamentos, medidas, materiais, iluminação, layout, bancada, piso, armários, janela, decoração, vista ou itens físicos como foco da frase.
-- PROIBIDO começar com frases fracas/descritivas: "Olha esse cômodo", "Essa sala", "Aqui temos", "Repare nesse", "Esse ambiente", "Vem conhecer", "Bem-vindo", "Olha que lindo", "Que espaço incrível".
-- Permitido mencionar o espaço de forma emocional e ampla, sem técnica: "um lugar assim", "aqui", "esse padrão", "essa sensação", "essa vida", "esse endereço", "esse cenário".
-- Exemplos do nível de IMPACTO exigido (NÃO copie literalmente; crie variações melhores e adaptadas ao personagem):
-  • "Você merece acordar todos os dias num lugar assim..."
-  • "Imagina receber seus amigos aqui? Esse é o padrão que você vai viver."
-  • "Esse é o tipo de refinamento que muda a sua vida."
-  • "Tem imóvel que você visita. E tem lugar que faz você se enxergar morando nele."
-  • "Se a sua próxima fase tivesse um cenário, talvez fosse esse aqui."
-- Cada hook DEVE vir com uma AÇÃO FÍSICA SUTIL e cinematográfica no campo "action" (olhar firme para a câmera, sorriso de canto, passo lento entrando no ambiente, gesto leve com a mão, pausa antes da frase, encostar discretamente em um ponto do espaço sem descrevê-lo).
-- O campo "text" deve ter no máximo 18 palavras, soar falado em português brasileiro natural e funcionar como os PRIMEIROS 5 SEGUNDOS do vídeo.
-- Respeite 100% a personalidade, jeito de falar e bordões do personagem, mas nunca sacrifique a força emocional do hook.`;
-
-    const hookSystemPrompt = `Você gera apenas hooks de abertura para vídeos imobiliários. Nunca escreva descrição técnica do ambiente. O hook deve vender desejo, emoção e identidade do corretor nos primeiros 5 segundos. Use o cômodo só como pano de fundo emocional.`;
-    const prompt = data.isFirstScene
-      ? `Você é roteirista sênior de Reels imobiliários. Personagem: "${char.name}".
-Personalidade: ${char.personality}
-Jeito de falar: ${char.speaking_style}
-Bordões: ${(char.catchphrases as string[])?.join(" | ")}
-Hooks de referência do personagem: ${JSON.stringify(baseHooks)}
-${visionRule}
-${hookCraftRules}
-
-Gere EXATAMENTE 3 opções de HOOK DE ABERTURA (primeira cena) para um vídeo gravado no cômodo "${data.roomName}".
-IMPORTANTE: não descreva o cômodo. Use "${data.roomName}" apenas para sentir o contexto; a frase precisa vender emoção, desejo e personalidade do corretor.
-As 3 opções devem ter ÂNGULOS EMOCIONAIS DIFERENTES entre si:
-1) merecimento / sonho de viver ali;
-2) projeção social / receber pessoas / nova fase;
-3) refinamento / oportunidade / desejo aspiracional.
-Nunca gere 3 variações da mesma ideia.
-
-Responda APENAS com JSON array no formato:
-[{"text":"...","action":"descrição da ação física sutil do corretor durante a fala","duration":4}, ...]`
-      : `Você é roteirista sênior de Reels imobiliários. Personagem: "${char.name}".
-Personalidade: ${char.personality}
-Jeito de falar: ${char.speaking_style}
-Cena anterior terminou com: "${data.previousSceneScript ?? ""}"
-Cômodo atual: "${data.roomName}"
-${visionRule}
-${hookCraftRules}
-
-Gere 3 HOOKS DE CONTINUAÇÃO curtos (~5s) que conectem com a cena anterior MANTENDO tom confiante, sedutor, elegante, desejável e emocional.
-IMPORTANTE: não descreva tecnicamente o cômodo atual. Não fale de móveis, acabamentos, layout ou materiais. Use o espaço apenas como pano de fundo para criar expectativa, desejo e personalidade.
-Exemplos de força: "E eu achei que já tinha te impressionado…", "Agora imagina viver essa próxima parte todos os dias.", "Respira fundo, porque essa sensação aqui muda o jogo.", "Se você sentiu algo lá atrás, espera até ver essa fase.". Cada um com ação física sutil diferente.
-
-Responda APENAS com JSON array:
-[{"text":"...","action":"descrição da ação física sutil do corretor durante a fala","duration":4}, ...]`;
-
-    const userContent: ChatPart[] = [{ type: "text", text: prompt }];
+    const userContent: ChatPart[] = [{ type: "text", text: userPrompt }];
     if (imageDataUrl) userContent.push({ type: "image_url", image_url: { url: imageDataUrl } });
     const raw = await chat([
-      { role: "system", content: hookSystemPrompt },
+      { role: "system", content: system },
       { role: "user", content: userContent },
     ]);
     const hooks = extractJSON(raw);
@@ -157,6 +121,7 @@ Responda APENAS com JSON array:
       .from("scenes")
       .update({ hook_options: hooks })
       .eq("id", data.sceneId);
+
 
     return hooks;
   });
@@ -328,80 +293,21 @@ export const generateSceneImage = createServerFn({ method: "POST" })
       .map((r, i) => `IMAGEM ${i + 2} = ${r.label}`)
       .join("\n");
 
-    const framingMap: Record<string, string> = {
-      auto: `ESCOLHA AUTOMÁTICA: você decide o melhor enquadramento (selfie POV próximo, meio corpo, corpo inteiro ou plano aberto wide) considerando: cômodo "${scene.room_name}", ação do personagem (${action}), e o que dá mais impacto visual num Reel vertical. Varie entre cenas para evitar monotonia.`,
-      selfie: "SELFIE / POV próximo (OBRIGATÓRIO RESPEITAR): câmera na altura do rosto, a ~40-60cm do personagem, mostrando cabeça, ombros e parte do peito — NUNCA cortar a testa nem o queixo. O personagem segura o celular (POV de quem grava). Cômodo aparece desfocado ao fundo. Cabeça ocupa ~50-60% da altura do quadro, centralizada. Equilíbrio: rosto nítido em primeiro plano + sugestão clara do ambiente desfocado atrás (não tela preta, não fundo neutro).",
-      meio_corpo: "MEIO CORPO (OBRIGATÓRIO RESPEITAR — enquadramento escolhido pelo usuário): câmera a ~1,8-2,2m de distância, na altura do peito do personagem, enquadrando da CINTURA (ou um pouco abaixo, na altura do quadril) PARA CIMA, mostrando cabeça inteira, tronco, braços e mãos. NUNCA corte a cabeça, o topo da cabeça, os ombros ou as mãos. Personagem ocupa ~55-65% da altura do quadro, centralizado horizontalmente (ou em terço da composição). EQUILÍBRIO COM O AMBIENTE: o cômodo precisa aparecer claramente em volta e atrás do personagem (paredes, móveis, janelas visíveis e reconhecíveis nas laterais e atrás), de forma que o espectador veja AO MESMO TEMPO o corretor e onde ele está. Pessoa proporcional ao ambiente, sem parecer gigante nem espremida.",
-      corpo_inteiro: "CORPO INTEIRO (OBRIGATÓRIO RESPEITAR — enquadramento escolhido pelo usuário): câmera a ~3-4m de distância, mostrando o personagem INTEIRO dentro do cômodo, DA CABEÇA AOS PÉS, com os pés visíveis tocando o chão. NUNCA corte a cabeça, os pés, as mãos nem nenhum membro. Personagem ocupa ~65-80% da ALTURA do quadro (não mais que isso). Sobra espaço acima da cabeça (mostrando teto/parede superior) e abaixo dos pés (mostrando piso), além de espaço nas laterais mostrando móveis e parede do cômodo. EQUILÍBRIO COM O AMBIENTE: a pessoa precisa estar PROPORCIONAL ao cômodo (altura humana ~1,70-1,80m comparada a portas ~2,10m, móveis, janelas) e bem POSICIONADA visualmente — em um ponto onde caiba o corpo todo sem encostar em parede, móvel ou borda do quadro. Centralizada ou em terço da composição, com o cômodo respirando ao redor.",
-      plano_aberto: "PLANO ABERTO / WIDE (tour imobiliário — OBRIGATÓRIO RESPEITAR): câmera AFASTADA a ~5-7m do personagem, lente grande angular 24mm, posicionada de um canto do cômodo. O personagem aparece PEQUENO e DISTANTE, ocupando NO MÁXIMO 25-35% da altura do quadro (estilo pessoa fotografada de longe num ambiente grande), porém SEMPRE INTEIRO (cabeça aos pés visíveis, nada cortado). NUNCA cole o personagem na câmera. O cômodo inteiro (paredes, teto, móveis) precisa dominar a composição — o personagem é um detalhe humano dentro do espaço, não o protagonista visual.",
-    };
-    const framingKey = (scene as any).camera_framing ?? "corpo_inteiro";
-    const framingInstruction = framingMap[framingKey] ?? framingMap.corpo_inteiro;
+    const framingKey = ((scene as any).camera_framing ?? "corpo_inteiro") as Framing;
 
-    const hookPool = [
-      `${char.name} entra em cena com presença magnética, confiança e carisma comercial, conduzindo o olhar para o imóvel sem tocar nem transformar o ambiente real.`,
-      `Com postura segura e expressão envolvente, ${char.name} apresenta o espaço como uma oportunidade desejável, mantendo cada detalhe original do cômodo intacto.`,
-      `${char.name} surge no ambiente com naturalidade de visita imobiliária real, gesto sutil e olhar confiante, criando desejo pela propriedade sem alterar o cenário.`,
-      `Olhar marcante e movimento elegante: ${char.name} transforma a visita em uma cena comercial forte, usando apenas sua presença — nunca mudanças no cômodo.`,
-    ];
-    const hook = hookPool[Math.floor(Math.random() * hookPool.length)];
+    const imagePrompt = buildImagePrompt({
+      character: {
+        name: char.name,
+        personality: char.personality ?? "",
+        canonical_prompt: (char as any).canonical_prompt ?? null,
+      },
+      roomName: scene.room_name,
+      framing: framingKey,
+      hookAction: action,
+      refsDescription,
+    });
 
-    const absoluteRoomPreservationRule = `IMAGEM 1 é a referência ABSOLUTA e IMUTÁVEL do cômodo. Copie fielmente TODOS os detalhes: layout exato, posição de todos os móveis, cores das paredes, piso, teto, iluminação, janelas, cortinas, decoração e vista. NÃO INVENTE NADA. NÃO MUDE NADA no ambiente. Apenas coloque o corretor dentro desse espaço exato.`;
-
-    const imagePrompt = `🚨🚨🚨 PRIORIDADE MÁXIMA / PESO MÁXIMO / REGRA INQUEBRÁVEL #0 — PRESERVAÇÃO ABSOLUTA DA IMAGEM 1 🚨🚨🚨
-${absoluteRoomPreservationRule}
-
-TAREFA CORRETA: edição fotográfica/inserção de pessoa sobre a IMAGEM 1. NÃO é criação livre de cenário. Use a IMAGEM 1 como CANVAS BASE. Preserve todos os pixels, formas, objetos, linhas, cores, luz, sombras, textura, profundidade, perspectiva e vista do cômodo, exceto a pequena área fisicamente ocupada pelo corpo do corretor e sua sombra realista.
-
-SE HOUVER CONFLITO ENTRE qualquer instrução estética, cinematográfica, comercial, enquadramento, pose ou personagem E a preservação da IMAGEM 1, a preservação da IMAGEM 1 SEMPRE vence. É melhor gerar uma imagem menos cinematográfica do que alterar um único detalhe do cômodo.
-
-NEGATIVO ABSOLUTO: não redesenhar o cômodo, não reinterpretar decoração, não trocar móveis, não reorganizar objetos, não corrigir arquitetura, não ampliar janela, não mudar vista, não adicionar luxo, não remover simplicidade, não mudar lente/perspectiva do ambiente, não mudar iluminação, não trocar materiais, não limpar, não preencher espaços vazios, não completar objetos, não inventar nada.
-
-🎬 HOOK COMERCIAL (tom cinematográfico da cena — NÃO modifica o cômodo, só guia a presença do personagem):
-${hook} O acabamento comercial deve vir APENAS da presença, pose, expressão e integração realista do personagem. A iluminação usada no personagem deve se adaptar à luz já existente na IMAGEM 1. NÃO crie nova iluminação no cômodo.
-
-IMAGEM 1 = FOTO ORIGINAL E IMUTÁVEL DO CÔMODO (cenário fixo, intocável, sagrado).
-${refsDescription}
-
-⚠️ REGRA SUPREMA — PRESERVAÇÃO TOTAL DO CÔMODO (descumprir = imagem REJEITADA):
-${absoluteRoomPreservationRule}
-
-A IMAGEM 1 é a foto ORIGINAL do imóvel real que está sendo vendido. Você DEVE manter 100% EXATO o mesmo ambiente, pixel a pixel no que diz respeito ao espaço:
-- Layout idêntico (mesma planta, mesma perspectiva, mesmo ângulo da câmera original).
-- Móveis idênticos (mesmos sofás, camas, mesas, cadeiras, armários, eletrodomésticos, louças, espelhos, quadros, tapetes, cortinas, vasos, objetos de decoração — nas MESMAS posições).
-- Paredes idênticas (mesma cor, mesma textura, mesmo revestimento, mesmos rodapés, mesmas tomadas e interruptores).
-- Piso idêntico (mesmo material, mesma cor, mesmo padrão, mesmas juntas).
-- Teto idêntico (mesma altura, mesmas luminárias, mesmo acabamento).
-- Janelas e portas idênticas (mesmo tamanho, mesma posição, mesma vista pela janela).
-- Iluminação idêntica (mesma temperatura de cor, mesmas sombras, mesma direção da luz natural e artificial).
-- Cores e decoração idênticas.
-
-É TERMINANTEMENTE PROIBIDO: adicionar móveis, remover móveis, mover móveis, trocar acabamentos, mudar a cor das paredes, mudar o piso, mudar a iluminação, mudar a vista da janela, redecorar, "melhorar", "valorizar", "luxuosizar" ou "estilizar" o ambiente. NÃO invente cristaleira, lustre, plantas, quadros, tapetes, mármore, marcenaria, LED ou qualquer item que NÃO esteja visível na IMAGEM 1. Se o cômodo for simples ou vazio, mantenha simples ou vazio. Se houver bagunça, objeto simples, parede vazia, piso comum, cortina simples ou vista comum, mantenha exatamente assim. O CLIMA cinematográfico vem da PRESENÇA do personagem e do enquadramento, NUNCA da modificação do cenário. Isto vale para QUALQUER tipo de cômodo: sala, cozinha, quarto, banheiro, lavabo, varanda, área de serviço, escritório, closet, garagem, hall, área externa.
-
-Sua ÚNICA modificação permitida é INSERIR o personagem dentro desse cômodo original, como se ele tivesse entrado ali no momento da foto.
-
-REGRAS DO PERSONAGEM (descrição consistente e canônica em TODAS as cenas):
-1. Insira "${char.name}" dentro do cômodo de forma 100% fotorrealista, integrado com a iluminação, sombras e perspectiva ORIGINAIS da IMAGEM 1. Pele com textura real, fios de cabelo definidos, olhar vivo, expressão sedutora e confiante de corretor(a) de alto padrão.
-2. Roupa: copie EXATAMENTE a roupa da imagem marcada como "ROUPA ATIVA" (cor, corte, tecido, acessórios, calçado). Ignore roupas das outras imagens de referência.
-3. Rosto e proporções: combine fielmente as imagens marcadas como "ROSTO FRONTAL" e "CORPO INTEIRO" para manter a MESMA identidade física (mesmo rosto, mesmos traços, mesmo cabelo, mesma altura, mesmo tipo físico) em todas as cenas — sem variações entre cenas.
-4. Descrição visual canônica adicional: ${char.canonical_prompt ?? char.personality}
-5. Pose / ação na cena: ${action} — executada com naturalidade, carisma e elegância comercial.
-6. Expressão coerente com a personalidade: ${char.personality}. Linguagem corporal de quem vende um sonho: confiança, charme, olhar magnético.
-7. ENQUADRAMENTO DE CÂMERA (OBRIGATÓRIO seguir à risca o tipo escolhido pelo usuário — não mudar, não interpretar, não substituir por outro plano): ${framingInstruction}
-   REGRA UNIVERSAL DE ENQUADRAMENTO E EQUILÍBRIO (vale para QUALQUER plano acima): a pessoa deve estar BEM ENQUADRADA, com PROPORÇÃO CORRETA em relação ao ambiente, SEM CORTAR partes do corpo desnecessariamente (nunca cortar cabeça, rosto, mãos ou pés a menos que o tipo de plano exija explicitamente — selfie pode mostrar só rosto/ombros; meio corpo NUNCA corta cabeça nem mãos; corpo inteiro e plano aberto NUNCA cortam cabeça nem pés), e EQUILIBRADA visualmente dentro do cômodo (centralizada ou em terço, com respiro ao redor, sem encostar nas bordas do quadro, sem ficar espremida em um canto, sem sobrepor móvel). O enquadramento descreve a DISTÂNCIA do personagem, MAS a perspectiva, ângulo e composição do CÔMODO devem permanecer iguais aos da IMAGEM 1 — não refaça a foto do ambiente por outro ângulo, apenas posicione o personagem dentro do ambiente original respeitando o plano escolhido.
-8. POSICIONAMENTO REALISTA: escolha um ponto do chão que exista de verdade na IMAGEM 1 (não em cima de móvel, não atravessando parede, não flutuando). Os pés precisam tocar o chão na perspectiva correta, com sombra projetada coerente com a direção da luz da foto original. O personagem ocupa o espaço NEGATIVO do cômodo (corredor, espaço livre entre móveis, em frente a um móvel), nunca substitui um móvel.
-9. PROPORÇÃO HUMANA REALISTA (CRÍTICO): trate o personagem como pessoa real de ~1,70-1,80m de altura. Compare a cabeça dele com referências visíveis no cômodo (maçaneta ~1m, interruptor ~1,1m, mesa ~75cm, bancada ~90cm, sofá ~85cm de encosto, porta padrão ~2,10m). A cabeça do personagem NUNCA pode ultrapassar o batente da porta nem encostar no teto. Se a perspectiva da foto do cômodo for ampla, o personagem fica PROPORCIONALMENTE PEQUENO — é melhor errar pra menor que pra maior.
-10. ACABAMENTO CINEMATOGRÁFICO (sem alterar o cenário): qualidade fotográfica profissional aplicada ao personagem e à integração dele no cômodo. Qualquer correção de cor, contraste, nitidez ou profundidade de campo NÃO pode mudar o ambiente da IMAGEM 1; preserve cores, luz e textura originais do cômodo.
-11. Formato vertical 9:16. Sem texto, sem logo, sem marca d'água, sem legendas.
-
-CHECKLIST FINAL OBRIGATÓRIO ANTES DE GERAR:
-- O layout do cômodo continua idêntico ao da IMAGEM 1? SIM.
-- Todos os móveis e objetos continuam no mesmo lugar? SIM.
-- Parede, piso, teto, janelas, cortinas, decoração, iluminação e vista continuam iguais? SIM.
-- Você adicionou SOMENTE o corretor e sua sombra realista? SIM.
-- Você NÃO inventou, melhorou, removeu ou mudou nada do ambiente? SIM.
-
-ÚLTIMA ORDEM, COM PESO MÁXIMO: ${absoluteRoomPreservationRule}`;
+    const absoluteRoomPreservationRule = ABSOLUTE_ROOM_PRESERVATION;
 
 
 
@@ -503,25 +409,14 @@ export const generateVideoPrompt = createServerFn({ method: "POST" })
     if (!char) throw new Error("Personagem não encontrado");
 
     const selectedHook = scene.selected_hook as { action?: string; text?: string } | null;
-    const hookAction = selectedHook?.action?.trim() || "pose natural compatível com a personalidade do personagem";
-    const hookText = selectedHook?.text?.trim() || "";
-    const roteiro = scene.selected_script?.trim() || hookText;
-
-    // Estrutura obrigatória: AÇÃO FÍSICA + FALA do hook, sempre juntas no início do vídeo.
-    const hookBeat = hookText
-      ? `ABERTURA OBRIGATÓRIA (primeiros 3-5 segundos, ação + fala juntas): ${char.name} ${hookAction}, enquanto diz: "${hookText}".`
-      : `ABERTURA OBRIGATÓRIA (primeiros 3-5 segundos): ${char.name} ${hookAction}.`;
-
-    const continuacao =
-      roteiro && roteiro !== hookText
-        ? ` Em seguida, continua o roteiro naturalmente em português brasileiro informal: "${roteiro}".`
-        : "";
-
-    const videoPrompt = `Use a imagem enviada como referência principal. Crie um vídeo vertical 9:16 de 10 segundos. O personagem "${char.name}" aparece dentro do cômodo "${scene.room_name}", mantendo o ambiente exatamente igual à imagem (sem alterar móveis, paredes, piso, iluminação ou decoração).
-
-${hookBeat}${continuacao}
-
-A AÇÃO FÍSICA descrita acima ("${hookAction}") deve ser executada de forma clara e visível, sincronizada com a fala — nunca omita o gesto, movimento ou olhar do hook. Personalidade do personagem: ${char.personality}. Expressão coerente com essa personalidade. Movimento natural de câmera, estilo Reels/TikTok, fotorrealista.`;
+    const videoPrompt = buildVideoPrompt({
+      characterName: char.name,
+      characterPersonality: char.personality ?? "",
+      roomName: scene.room_name,
+      hookText: selectedHook?.text ?? "",
+      hookAction: selectedHook?.action ?? "",
+      fullScript: scene.selected_script ?? "",
+    });
 
     await supabaseAdmin.from("scenes").update({ video_prompt: videoPrompt }).eq("id", data.sceneId);
     return videoPrompt;
