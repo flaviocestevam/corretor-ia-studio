@@ -58,11 +58,13 @@ REGRAS OBRIGATÓRIAS DOS HOOKS (abertura forte para parar o scroll):
 - Use SEMPRE pelo menos 1 gatilho mental (Exclusividade, Status, Aspiração, FOMO, Curiosidade, Prova Social).
 - Adapte o tom à personalidade do personagem: fashionista (styling), irônica (provoca), refinada (eleva), popular (acessível), jovem (energia), técnica (oportunidade emocionada).
 - PROIBIDO descrever tecnicamente o ambiente (móveis, acabamentos, medidas, materiais, layout, bancada, piso, armários, janela, decoração, vista).
-- PROIBIDO começar com: "Olha esse cômodo", "Essa sala", "Aqui temos", "Repare nesse", "Esse ambiente", "Vem conhecer", "Bem-vindo", "Olha que lindo".
-- PERMITIDO: "um lugar assim", "aqui", "esse padrão", "essa sensação", "essa vida", "esse endereço", "esse cenário".
-- Cada hook DEVE vir com AÇÃO FÍSICA SUTIL + EXPRESSÃO no campo "action" (ex: "olhar firme pra câmera com leve sorriso de canto enquanto encosta a mão no batente da porta"). Essa ação será reutilizada na imagem e no vídeo.
+- PROIBIDO começar com fórmulas batidas: "Olha esse cômodo", "Essa sala", "Aqui temos", "Repare nesse", "Esse ambiente", "Vem conhecer", "Bem-vindo", "Olha que lindo", "Enquanto a maioria", "Você disse que", "Esse não é um", "Só quem", "Imagina acordar", "Tem gente que", "Esse aqui não".
+- PROIBIDO reaproveitar literalmente os hooks de referência do personagem ou exemplos deste prompt — use-os APENAS como NÍVEL de inspiração. Reescreva do zero.
+- VARIAÇÃO OBRIGATÓRIA entre as 3 opções: cada hook precisa usar uma ESTRUTURA SINTÁTICA diferente. Escolha 3 estruturas distintas entre: pergunta retórica curta · afirmação provocadora · frase em 2 tempos com pausa (".../...") · comparação ("isso aqui é tipo...") · convite direto em 2ª pessoa · declaração em 1ª pessoa · número/dado curto ("3 segundos e você entende") · paradoxo ("luxo discreto grita mais").
+- VARIAÇÃO de PRIMEIRA PALAVRA: as 3 opções DEVEM começar com palavras totalmente diferentes umas das outras (e diferentes das proibidas acima).
 - "text": até 18 palavras, falado em PT-BR natural, funcional como os PRIMEIROS 3-5 SEGUNDOS do vídeo.
-- Respeite personalidade, jeito de falar e bordões — sem sacrificar a força emocional.
+- Cada hook DEVE vir com AÇÃO FÍSICA SUTIL + EXPRESSÃO diferente no campo "action" (gesto, olhar, passo, pausa). Essa ação será reutilizada na imagem e no vídeo.
+- Respeite personalidade, jeito de falar e bordões — sem sacrificar a força emocional nem cair em repetição.
 ${VIRAL_HOOK_EXAMPLES}`;
 
 export type Framing = "auto" | "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto";
