@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, FolderKanban, Search } from "lucide-react";
+import { SignedImage } from "@/components/signed-image";
 
 export const Route = createFileRoute("/projetos/")({
   head: () => ({ meta: [{ title: "Projetos — Corretor IA Studio" }] }),
