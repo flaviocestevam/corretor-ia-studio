@@ -98,8 +98,8 @@ export const generateHooks = createServerFn({ method: "POST" })
     const { system, user: userPrompt } = buildHookPrompt({
       character: {
         name: char.name,
-        personality: char.personality,
-        speaking_style: char.speaking_style,
+        personality: char.personality ?? "",
+        speaking_style: char.speaking_style ?? "",
         catchphrases: char.catchphrases as string[] | null,
         hooks: baseHooks,
       },
