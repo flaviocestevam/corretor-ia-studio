@@ -25,7 +25,7 @@ function Dashboard() {
         supabase.from("scenes").select("id, status, project_id"),
         supabase
           .from("projects")
-          .select("id, name, created_at, character_id, characters(name)")
+          .select("id, name, created_at, character_id, characters(name), scenes(generated_character_image, scene_order)")
           .order("created_at", { ascending: false })
           .limit(6),
       ]);
