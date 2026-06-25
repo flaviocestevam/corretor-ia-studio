@@ -95,67 +95,24 @@ export const generateHooks = createServerFn({ method: "POST" })
       .single();
     const imageDataUrl = await fetchRoomImageDataUrl(supabaseAdmin, sceneRow?.original_room_image);
 
-    const visionRule = imageDataUrl
-      ? `\nVOCÊ ESTÁ VENDO A FOTO REAL DO CÔMODO em anexo. Use a imagem APENAS como pano de fundo emocional para entender a sensação do espaço. NÃO transforme o hook em descrição técnica de móveis, materiais, acabamentos ou decoração. É proibido inventar itens que não estão na imagem.`
-      : "";
+    const { system, user: userPrompt } = buildHookPrompt({
+      character: {
+        name: char.name,
+        personality: char.personality,
+        speaking_style: char.speaking_style,
+        catchphrases: char.catchphrases as string[] | null,
+        hooks: baseHooks,
+      },
+      roomName: data.roomName,
+      isFirstScene: data.isFirstScene,
+      previousSceneScript: data.previousSceneScript,
+      hasRoomImage: !!imageDataUrl,
+    });
 
-    const hookCraftRules = `
-NOVA LÓGICA OBRIGATÓRIA DOS HOOKS (primeiros 5 segundos do Reel — abertura forte para parar o scroll):
-- O hook NÃO é descrição do cômodo. O hook é uma frase de ABERTURA emocional, confiante, sedutora, elegante e aspiracional dita pelo(a) corretor(a) olhando para a câmera.
-- Foco principal: emoção, desejo, sonho, conquista, status, pertencimento, sensação de morar ali e personalidade do(a) corretor(a). O ambiente é apenas pano de fundo para a promessa emocional.
-- Tom 100% adaptado à personalidade e ao jeito de falar do personagem, mas sempre com presença comercial forte. Se o personagem for popular, mantenha desejo e sonho acessível; se for premium, use refinamento; se for jovem, use energia; se for técnico, transforme oportunidade em emoção.
-- PROIBIDO descrever tecnicamente o ambiente: não listar móveis, acabamentos, medidas, materiais, iluminação, layout, bancada, piso, armários, janela, decoração, vista ou itens físicos como foco da frase.
-- PROIBIDO começar com frases fracas/descritivas: "Olha esse cômodo", "Essa sala", "Aqui temos", "Repare nesse", "Esse ambiente", "Vem conhecer", "Bem-vindo", "Olha que lindo", "Que espaço incrível".
-- Permitido mencionar o espaço de forma emocional e ampla, sem técnica: "um lugar assim", "aqui", "esse padrão", "essa sensação", "essa vida", "esse endereço", "esse cenário".
-- Exemplos do nível de IMPACTO exigido (NÃO copie literalmente; crie variações melhores e adaptadas ao personagem):
-  • "Você merece acordar todos os dias num lugar assim..."
-  • "Imagina receber seus amigos aqui? Esse é o padrão que você vai viver."
-  • "Esse é o tipo de refinamento que muda a sua vida."
-  • "Tem imóvel que você visita. E tem lugar que faz você se enxergar morando nele."
-  • "Se a sua próxima fase tivesse um cenário, talvez fosse esse aqui."
-- Cada hook DEVE vir com uma AÇÃO FÍSICA SUTIL e cinematográfica no campo "action" (olhar firme para a câmera, sorriso de canto, passo lento entrando no ambiente, gesto leve com a mão, pausa antes da frase, encostar discretamente em um ponto do espaço sem descrevê-lo).
-- O campo "text" deve ter no máximo 18 palavras, soar falado em português brasileiro natural e funcionar como os PRIMEIROS 5 SEGUNDOS do vídeo.
-- Respeite 100% a personalidade, jeito de falar e bordões do personagem, mas nunca sacrifique a força emocional do hook.`;
-
-    const hookSystemPrompt = `Você gera apenas hooks de abertura para vídeos imobiliários. Nunca escreva descrição técnica do ambiente. O hook deve vender desejo, emoção e identidade do corretor nos primeiros 5 segundos. Use o cômodo só como pano de fundo emocional.`;
-    const prompt = data.isFirstScene
-      ? `Você é roteirista sênior de Reels imobiliários. Personagem: "${char.name}".
-Personalidade: ${char.personality}
-Jeito de falar: ${char.speaking_style}
-Bordões: ${(char.catchphrases as string[])?.join(" | ")}
-Hooks de referência do personagem: ${JSON.stringify(baseHooks)}
-${visionRule}
-${hookCraftRules}
-
-Gere EXATAMENTE 3 opções de HOOK DE ABERTURA (primeira cena) para um vídeo gravado no cômodo "${data.roomName}".
-IMPORTANTE: não descreva o cômodo. Use "${data.roomName}" apenas para sentir o contexto; a frase precisa vender emoção, desejo e personalidade do corretor.
-As 3 opções devem ter ÂNGULOS EMOCIONAIS DIFERENTES entre si:
-1) merecimento / sonho de viver ali;
-2) projeção social / receber pessoas / nova fase;
-3) refinamento / oportunidade / desejo aspiracional.
-Nunca gere 3 variações da mesma ideia.
-
-Responda APENAS com JSON array no formato:
-[{"text":"...","action":"descrição da ação física sutil do corretor durante a fala","duration":4}, ...]`
-      : `Você é roteirista sênior de Reels imobiliários. Personagem: "${char.name}".
-Personalidade: ${char.personality}
-Jeito de falar: ${char.speaking_style}
-Cena anterior terminou com: "${data.previousSceneScript ?? ""}"
-Cômodo atual: "${data.roomName}"
-${visionRule}
-${hookCraftRules}
-
-Gere 3 HOOKS DE CONTINUAÇÃO curtos (~5s) que conectem com a cena anterior MANTENDO tom confiante, sedutor, elegante, desejável e emocional.
-IMPORTANTE: não descreva tecnicamente o cômodo atual. Não fale de móveis, acabamentos, layout ou materiais. Use o espaço apenas como pano de fundo para criar expectativa, desejo e personalidade.
-Exemplos de força: "E eu achei que já tinha te impressionado…", "Agora imagina viver essa próxima parte todos os dias.", "Respira fundo, porque essa sensação aqui muda o jogo.", "Se você sentiu algo lá atrás, espera até ver essa fase.". Cada um com ação física sutil diferente.
-
-Responda APENAS com JSON array:
-[{"text":"...","action":"descrição da ação física sutil do corretor durante a fala","duration":4}, ...]`;
-
-    const userContent: ChatPart[] = [{ type: "text", text: prompt }];
+    const userContent: ChatPart[] = [{ type: "text", text: userPrompt }];
     if (imageDataUrl) userContent.push({ type: "image_url", image_url: { url: imageDataUrl } });
     const raw = await chat([
-      { role: "system", content: hookSystemPrompt },
+      { role: "system", content: system },
       { role: "user", content: userContent },
     ]);
     const hooks = extractJSON(raw);
@@ -164,6 +121,7 @@ Responda APENAS com JSON array:
       .from("scenes")
       .update({ hook_options: hooks })
       .eq("id", data.sceneId);
+
 
     return hooks;
   });
