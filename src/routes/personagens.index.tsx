@@ -139,13 +139,13 @@ function PersonagensList() {
 
 
               <CardContent className="p-4 sm:p-5 space-y-3">
-                <div className="flex items-start justify-between gap-2 min-w-0">
-                  <h3 className="font-semibold text-base sm:text-lg leading-tight truncate min-w-0">{c.name}</h3>
-                  <Badge variant="secondary" className="shrink-0 text-xs">{c.hooks?.length ?? 0} hooks</Badge>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-base sm:text-lg leading-tight break-words">{c.name}</h3>
                 </div>
-                <p className="text-sm text-muted-foreground line-clamp-3 min-h-[3.75rem]">
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                   {c.short_bio}
                 </p>
+
                 {c.personality && (
                   <p className="text-xs text-muted-foreground italic line-clamp-1">
                     {c.personality}
