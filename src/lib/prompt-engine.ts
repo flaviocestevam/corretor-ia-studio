@@ -162,9 +162,14 @@ export interface ImagePromptOpts {
 export function buildImagePrompt(opts: ImagePromptOpts): string {
   const framing = FRAMING_INSTRUCTIONS[opts.framing] ?? FRAMING_INSTRUCTIONS.corpo_inteiro;
   const framingLabel = FRAMING_LABEL[opts.framing] ?? FRAMING_LABEL.corpo_inteiro;
+  const heightM = opts.character.height_cm ? (opts.character.height_cm / 100).toFixed(2).replace(".", ",") : null;
+  const heightLine = heightM
+    ? `\n🚨 ALTURA REAL OBRIGATÓRIA: ${opts.character.name} mede EXATAMENTE ${heightM}m. Use essa altura como régua absoluta — pés firmes no piso, sombra natural, proporção correta com móveis, portas (~2,10m) e teto. NÃO renderize maior nem menor.\n`
+    : "";
 
   return `🚨🚨🚨 PRIORIDADE MÁXIMA #1 — PRESERVAÇÃO ABSOLUTA DA IMAGEM 1 🚨🚨🚨
 ${ABSOLUTE_ROOM_PRESERVATION}
+${heightLine}
 
 🚨🚨🚨 PRIORIDADE MÁXIMA #2 — ENQUADRAMENTO ESCOLHIDO PELO USUÁRIO: ${framingLabel} 🚨🚨🚨
 Respeitar RIGOROSAMENTE o enquadramento escolhido: ${framingLabel}.
