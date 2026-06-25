@@ -250,7 +250,10 @@ export function CharacterForm({ initial, characterId }: Props) {
                     )}
                     <div className="absolute inset-x-0 bottom-0 bg-background/90 backdrop-blur p-2 flex gap-1">
                       {!isActive && (
-                        <Button type="button" size="sm" variant="secondary" className="flex-1 h-7 text-xs" onClick={() => setActiveOutfit(path)}>
+                        <Button type="button" size="sm" variant="secondary" className="flex-1 h-7 text-xs" onClick={() => {
+                          setActiveOutfit(path);
+                          setCanonicalImages((arr) => [path, ...arr.filter((p) => p !== path)]);
+                        }}>
                           Usar como roupa
                         </Button>
                       )}
