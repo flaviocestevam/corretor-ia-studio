@@ -452,6 +452,19 @@ function SceneCard({
               <Badge variant={statusVariant(scene.status)}>{scene.status}</Badge>
               {isFirst && <Badge variant="outline">Abertura</Badge>}
               {isLast && <Badge variant="outline">CTA final</Badge>}
+              {scene.model_used && (
+                <Badge
+                  variant="outline"
+                  className={
+                    scene.model_used.includes("pro")
+                      ? "border-green-500/40 bg-green-500/10 text-green-700 dark:text-green-400"
+                      : "border-yellow-500/40 bg-yellow-500/10 text-yellow-700 dark:text-yellow-500"
+                  }
+                  title={`Imagem gerada com ${scene.model_used}`}
+                >
+                  {scene.model_used.includes("pro") ? "Gerado com Pro" : "Gerado com Flash"}
+                </Badge>
+              )}
               {next && (
                 <Badge variant={next.tone === "done" ? "default" : "secondary"} className="text-[10px]">
                   {next.label}
