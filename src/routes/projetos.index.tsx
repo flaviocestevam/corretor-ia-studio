@@ -69,7 +69,7 @@ function ProjectsList() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {filtered.map((p: any) => {
             const firstScene = [...(p.scenes ?? [])].sort((a: any, b: any) => a.scene_order - b.scene_order)[0];
             const thumb = firstScene?.generated_character_image;
