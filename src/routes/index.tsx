@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, FolderKanban, Plus, Sparkles, Clock, CheckCircle2, AlertCircle, Film } from "lucide-react";
+import { SignedImage } from "@/components/signed-image";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -25,7 +27,7 @@ function Dashboard() {
         supabase.from("scenes").select("id, status, project_id"),
         supabase
           .from("projects")
-          .select("id, name, created_at, character_id, characters(name)")
+          .select("id, name, created_at, character_id, characters(name), scenes(generated_character_image, scene_order)")
           .order("created_at", { ascending: false })
           .limit(6),
       ]);
@@ -96,20 +98,31 @@ function Dashboard() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {stats?.recent.map((p: any) => (
-              <Link key={p.id} to="/projetos/$id" params={{ id: p.id }}>
-                <Card className="hover:shadow-[var(--shadow-elevated)] transition-shadow cursor-pointer h-full">
-                  <CardContent className="p-4">
-                    <div className="font-medium">{p.name}</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {p.characters?.name ?? "—"} · {new Date(p.created_at).toLocaleDateString("pt-BR")}
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3">
+            {stats?.recent.map((p: any) => {
+              const firstScene = [...(p.scenes ?? [])].sort((a: any, b: any) => a.scene_order - b.scene_order)[0];
+              const thumb = firstScene?.generated_character_image;
+              return (
+                <Link key={p.id} to="/projetos/$id" params={{ id: p.id }}>
+                  <Card className="hover:shadow-[var(--shadow-elevated)] transition-shadow cursor-pointer h-full overflow-hidden">
+                    <SignedImage
+                      path={thumb}
+                      alt={p.name}
+                      className="w-full aspect-[9/16] object-cover"
+                      fallbackClassName="w-full aspect-[9/16]"
+                    />
+                    <CardContent className="p-4">
+                      <div className="font-medium">{p.name}</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {p.characters?.name ?? "—"} · {new Date(p.created_at).toLocaleDateString("pt-BR")}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
+
         )}
       </div>
     </div>
