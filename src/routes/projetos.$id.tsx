@@ -175,11 +175,12 @@ function ProjectDetail() {
   return (
     <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
+        <div className="flex-1 min-w-0">
           <h1 className="text-3xl font-bold tracking-tight">{data.project.name}</h1>
           <p className="text-muted-foreground mt-1">
             {data.character.name} · {data.scenes.length} cena(s)
           </p>
+          <PropertyUrlField projectId={id} initial={(data.project as any).property_url ?? ""} />
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={downloadAll}>
@@ -199,6 +200,7 @@ function ProjectDetail() {
           </ConfirmButton>
         </div>
       </div>
+
 
       {/* Progresso global */}
       <Card>
