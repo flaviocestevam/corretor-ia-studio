@@ -71,9 +71,43 @@ export type Database = {
         }
         Relationships: []
       }
+      clients: {
+        Row: {
+          contact: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          notes: string | null
+          trade_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          contact?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          notes?: string | null
+          trade_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contact?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          notes?: string | null
+          trade_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           character_id: string
+          client_id: string
           created_at: string
           id: string
           name: string
@@ -82,6 +116,7 @@ export type Database = {
         }
         Insert: {
           character_id: string
+          client_id: string
           created_at?: string
           id?: string
           name: string
@@ -90,6 +125,7 @@ export type Database = {
         }
         Update: {
           character_id?: string
+          client_id?: string
           created_at?: string
           id?: string
           name?: string
@@ -102,6 +138,13 @@ export type Database = {
             columns: ["character_id"]
             isOneToOne: false
             referencedRelation: "characters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
