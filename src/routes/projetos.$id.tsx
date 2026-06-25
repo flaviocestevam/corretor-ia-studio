@@ -580,15 +580,15 @@ function SceneCard({
             <div className="mt-2 space-y-2">
               <div>
                 <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">
-                  Enquadramento — como o corretor aparece dentro do cômodo
+                  Enquadramento da câmera — escolha como o corretor aparece dentro do cômodo (a IA seguirá à risca)
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {([
-                    { v: "auto", l: "✨ IA decide", d: "Deixa a IA escolher" },
-                    { v: "selfie", l: "Selfie", d: "POV próximo, rosto e ombros" },
-                    { v: "meio_corpo", l: "Meio corpo", d: "Da cintura pra cima" },
-                    { v: "corpo_inteiro", l: "Corpo inteiro", d: "Pessoa inteira no cômodo" },
-                    { v: "plano_aberto", l: "Plano aberto", d: "Wide, pessoa pequena no ambiente" },
+                    { v: "auto", l: "✨ IA decide", d: "Deixa a IA escolher o melhor plano" },
+                    { v: "selfie", l: "📱 Selfie (POV)", d: "POV próximo: rosto e ombros, fundo desfocado" },
+                    { v: "meio_corpo", l: "🎯 Meio corpo", d: "Da cintura pra cima, equilibrando pessoa e ambiente" },
+                    { v: "corpo_inteiro", l: "🧍 Corpo inteiro", d: "Pessoa inteira dos pés à cabeça dentro do cômodo" },
+                    { v: "plano_aberto", l: "🏠 Plano aberto (Wide)", d: "Cômodo domina, pessoa pequena ao fundo" },
                   ] as const).map((opt) => {
                     const active = (scene.camera_framing ?? "corpo_inteiro") === opt.v;
                     return (
