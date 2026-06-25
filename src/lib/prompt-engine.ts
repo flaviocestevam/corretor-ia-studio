@@ -105,29 +105,38 @@ export function buildHookPrompt(opts: {
   isFirstScene: boolean;
   previousSceneScript?: string | null;
   hasRoomImage: boolean;
+  forbiddenOpenings?: string[];
+  seed?: string;
 }): { system: string; user: string } {
   const { character: c, roomName, isFirstScene, previousSceneScript, hasRoomImage } = opts;
   const baseHooks = c.hooks ?? [];
   const visionRule = hasRoomImage
     ? `\nVocê está vendo a foto real do cômodo. Use APENAS como pano de fundo emocional. É proibido descrever tecnicamente ou inventar itens.`
     : "";
+  const seed = opts.seed ?? `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const forbidden = (opts.forbiddenOpenings ?? []).filter(Boolean).slice(0, 40);
+  const forbiddenBlock = forbidden.length
+    ? `\n🚫 HOOKS JÁ USADOS PARA ESTE PERSONAGEM OU OUTROS — É PROIBIDO repetir, parafrasear ou começar de forma parecida com qualquer um destes (varie estrutura, primeira palavra, ritmo e gatilho):
+${forbidden.map((h, i) => `${i + 1}) "${h}"`).join("\n")}\n`
+    : "";
+  const freshnessBlock = `\n🎲 SEED DE VARIAÇÃO: ${seed} — use como semente criativa. As 3 opções DEVEM ser inéditas, com primeira palavra, estrutura sintática e gatilho mental diferentes entre si. Nada de fórmulas reutilizadas.`;
 
   const user = isFirstScene
     ? `Personagem: "${c.name}"
 Personalidade: ${c.personality}
 Jeito de falar: ${c.speaking_style}
 Bordões: ${(c.catchphrases ?? []).join(" | ")}
-Hooks de referência do personagem: ${JSON.stringify(baseHooks)}
-${visionRule}
+Hooks de referência (APENAS inspiração de NÍVEL — não copiar, não parafrasear): ${JSON.stringify(baseHooks)}
+${visionRule}${forbiddenBlock}${freshnessBlock}
 ${STORYTELLING_FRAMEWORK}
 ${HOOK_CRAFT_RULES}
 
-Gere EXATAMENTE 3 HOOKS DE ABERTURA VIRAIS para o cômodo "${roomName}", cada um usando um GATILHO MENTAL DIFERENTE:
+Gere EXATAMENTE 3 HOOKS DE ABERTURA VIRAIS INÉDITOS para o cômodo "${roomName}", cada um usando um GATILHO MENTAL DIFERENTE e uma ESTRUTURA SINTÁTICA DIFERENTE:
 1) Exclusividade OU Status (poucos têm acesso / muda como te enxergam)
 2) Aspiração OU FOMO (a vida que desbloqueia / vai sumir antes de aparecer)
 3) Curiosidade OU Prova Social (provoca clique / quem entende reconhece)
 
-Cada hook deve ter ação física + expressão facial DIFERENTES. Tom adaptado à personalidade do personagem.
+Cada hook deve ter ação física + expressão facial DIFERENTES. Tom adaptado à personalidade do personagem. PROIBIDO repetir primeira palavra ou estrutura entre as 3 opções.
 
 Responda APENAS com JSON array:
 [{"text":"...","action":"ação física + expressão facial sutil do corretor durante a fala","duration":4}, ...]`
@@ -136,11 +145,11 @@ Personalidade: ${c.personality}
 Jeito de falar: ${c.speaking_style}
 Cena anterior terminou com: "${previousSceneScript ?? ""}"
 Cômodo atual: "${roomName}"
-${visionRule}
+${visionRule}${forbiddenBlock}${freshnessBlock}
 ${STORYTELLING_FRAMEWORK}
 ${HOOK_CRAFT_RULES}
 
-Gere 3 HOOKS DE CONTINUAÇÃO VIRAIS (~5s) que conectem com a cena anterior, cada um com um GATILHO MENTAL DIFERENTE (Exclusividade, Status, Aspiração, FOMO, Curiosidade, Prova Social). Não descreva tecnicamente o cômodo. Cada um com ação física + expressão facial DIFERENTES.
+Gere 3 HOOKS DE CONTINUAÇÃO VIRAIS INÉDITOS (~5s) que conectem com a cena anterior, cada um com um GATILHO MENTAL DIFERENTE (Exclusividade, Status, Aspiração, FOMO, Curiosidade, Prova Social) e ESTRUTURA SINTÁTICA DIFERENTE. Não descreva tecnicamente o cômodo. Cada um com ação física + expressão facial DIFERENTES. PROIBIDO repetir primeira palavra ou estrutura entre as 3 opções, e PROIBIDO reutilizar qualquer hook já listado como proibido.
 
 Responda APENAS com JSON array:
 [{"text":"...","action":"ação física + expressão facial sutil","duration":4}, ...]`;
