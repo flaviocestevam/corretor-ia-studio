@@ -393,7 +393,7 @@ REGRAS OBRIGATÓRIAS:
       })
       .eq("id", data.sceneId);
 
-    return { path, image_prompt: imagePrompt };
+    return { path, image_prompt: imagePrompt, usedFallback, model: modelUsed };
   });
 
 // ============ GERAR PROMPT DE VÍDEO ============
