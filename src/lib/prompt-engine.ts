@@ -67,15 +67,23 @@ ${VIRAL_HOOK_EXAMPLES}`;
 
 export type Framing = "auto" | "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto";
 
-export const FRAMING_INSTRUCTIONS: Record<Framing, string> = {
-  auto: `ESCOLHA AUTOMÁTICA: decida o melhor enquadramento (selfie, meio corpo, corpo inteiro ou plano aberto) considerando o cômodo e a ação. Varie entre cenas.`,
-  selfie: `SELFIE / POV próximo (OBRIGATÓRIO): câmera a ~40-60cm do rosto, cabeça e ombros visíveis, NUNCA cortar testa nem queixo. Cômodo aparece desfocado ao fundo (não tela preta).`,
-  meio_corpo: `MEIO CORPO (OBRIGATÓRIO — escolhido pelo usuário): câmera a ~1,8-2,2m, enquadrando da cintura PARA CIMA. NUNCA cortar cabeça, ombros ou mãos. Personagem ocupa ~55-65% da altura. EQUILÍBRIO: cômodo aparece claramente em volta (paredes, móveis, janelas visíveis nas laterais e atrás). Pessoa proporcional ao ambiente.`,
-  corpo_inteiro: `CORPO INTEIRO (OBRIGATÓRIO — escolhido pelo usuário): câmera a ~3-4m, mostrando o personagem INTEIRO da cabeça aos pés, com pés tocando o chão. NUNCA cortar cabeça, pés, mãos. Personagem ocupa ~65-80% da altura. Sobra espaço acima da cabeça e abaixo dos pés. EQUILÍBRIO: pessoa proporcional ao cômodo (~1,70-1,80m vs portas ~2,10m).`,
-  plano_aberto: `PLANO ABERTO / WIDE (OBRIGATÓRIO): câmera a ~5-7m, lente 24mm. Personagem aparece pequeno (~25-35% da altura) mas SEMPRE INTEIRO. Cômodo domina a composição.`,
+export const FRAMING_LABEL: Record<Framing, string> = {
+  auto: "AUTOMÁTICO",
+  selfie: "SELFIE / CLOSE NO ROSTO",
+  meio_corpo: "MEIO CORPO (cintura pra cima)",
+  corpo_inteiro: "CORPO INTEIRO (cabeça aos pés)",
+  plano_aberto: "PLANO ABERTO / WIDE (pessoa pequena no ambiente)",
 };
 
-export const FRAMING_BALANCE_RULE = `REGRA UNIVERSAL DE ENQUADRAMENTO: a pessoa deve estar BEM ENQUADRADA, PROPORCIONAL ao ambiente, SEM CORTAR partes do corpo desnecessariamente, EQUILIBRADA visualmente (centralizada ou em terço, com respiro ao redor, sem encostar nas bordas). A perspectiva e o ângulo do CÔMODO devem permanecer iguais aos da IMAGEM 1 — apenas posicione o personagem dentro.`;
+export const FRAMING_INSTRUCTIONS: Record<Framing, string> = {
+  auto: `ESCOLHA AUTOMÁTICA: decida o melhor enquadramento (selfie, meio corpo, corpo inteiro ou plano aberto) considerando o cômodo e a ação. Varie entre cenas.`,
+  selfie: `SELFIE / POV CLOSE NO ROSTO (OBRIGATÓRIO — escolhido pelo usuário): câmera a ~40-60cm do rosto. APENAS CABEÇA + OMBROS visíveis, ocupando ~70-80% do frame. PROIBIDO mostrar peito, cintura, pernas ou pés. PROIBIDO cortar testa ou queixo. Cômodo DESFOCADO ao fundo.`,
+  meio_corpo: `MEIO CORPO (OBRIGATÓRIO — escolhido pelo usuário): câmera a ~1,8-2,2m. Enquadrar EXATAMENTE da CINTURA PRA CIMA. PROIBIDO mostrar pernas, joelhos ou pés. PROIBIDO cortar cabeça, ombros ou mãos. Personagem ocupa ~55-65% da altura do frame. Cômodo claramente visível em volta.`,
+  corpo_inteiro: `CORPO INTEIRO (OBRIGATÓRIO — escolhido pelo usuário): câmera a ~3-4m. Personagem INTEIRO da CABEÇA AOS PÉS, com PÉS TOCANDO O CHÃO visíveis no frame. PROIBIDO cortar cabeça, pés ou mãos. Personagem ocupa ~65-80% da altura. Sobra espaço acima da cabeça e abaixo dos pés.`,
+  plano_aberto: `PLANO ABERTO / WIDE (OBRIGATÓRIO — escolhido pelo usuário): câmera a ~5-7m, lente 24mm. Personagem PEQUENO (~25-35% da altura) mas SEMPRE INTEIRO da cabeça aos pés. CÔMODO DOMINA a composição (~70% do frame). PROIBIDO close, selfie ou meio corpo.`,
+};
+
+export const FRAMING_BALANCE_RULE = `REGRA UNIVERSAL DE ENQUADRAMENTO: ajuste a DISTÂNCIA DA CÂMERA e a POSE do personagem para encaixar PERFEITAMENTE no enquadramento escolhido. Pessoa proporcional ao ambiente, sem cortes errados, equilibrada (centralizada ou em terço, sem encostar nas bordas). A perspectiva e o ângulo do CÔMODO permanecem iguais aos da IMAGEM 1 — apenas posicione o personagem dentro.`;
 
 // ============================================================
 // BUILDERS
@@ -152,13 +160,19 @@ export interface ImagePromptOpts {
 
 export function buildImagePrompt(opts: ImagePromptOpts): string {
   const framing = FRAMING_INSTRUCTIONS[opts.framing] ?? FRAMING_INSTRUCTIONS.corpo_inteiro;
+  const framingLabel = FRAMING_LABEL[opts.framing] ?? FRAMING_LABEL.corpo_inteiro;
 
-  return `🚨🚨🚨 PRIORIDADE MÁXIMA — PRESERVAÇÃO ABSOLUTA DA IMAGEM 1 🚨🚨🚨
+  return `🚨🚨🚨 PRIORIDADE MÁXIMA #1 — PRESERVAÇÃO ABSOLUTA DA IMAGEM 1 🚨🚨🚨
 ${ABSOLUTE_ROOM_PRESERVATION}
 
-TAREFA: inserção fotorrealista, cinematográfica e viral do personagem sobre a IMAGEM 1. Use IMAGEM 1 como CANVAS BASE. Preserve TODOS os pixels do cômodo, exceto a área ocupada pelo corpo do corretor e sua sombra realista.
+🚨🚨🚨 PRIORIDADE MÁXIMA #2 — ENQUADRAMENTO ESCOLHIDO PELO USUÁRIO: ${framingLabel} 🚨🚨🚨
+Respeitar RIGOROSAMENTE o enquadramento escolhido: ${framingLabel}.
+${framing}
+A pessoa DEVE aparecer EXATAMENTE no enquadramento solicitado. AJUSTE A DISTÂNCIA DA CÂMERA E A POSE DO PERSONAGEM para encaixar PERFEITAMENTE neste enquadramento. NÃO cortar o corpo de forma errada. NÃO substituir por outro plano. Se a ação física do hook não couber no enquadramento, ADAPTE a ação ao enquadramento — o enquadramento vence.
 
-SE HOUVER CONFLITO entre qualquer instrução estética/comercial e a preservação da IMAGEM 1, a preservação SEMPRE vence.
+TAREFA: inserção fotorrealista, cinematográfica e viral do personagem sobre a IMAGEM 1, respeitando o enquadramento ${framingLabel}. Use IMAGEM 1 como CANVAS BASE. Preserve TODOS os pixels do cômodo, exceto a área ocupada pelo corpo do corretor e sua sombra realista.
+
+SE HOUVER CONFLITO entre qualquer instrução estética/comercial e (a) preservação da IMAGEM 1 ou (b) o enquadramento ${framingLabel}, essas DUAS regras SEMPRE vencem.
 
 NEGATIVO ABSOLUTO: não redesenhar o cômodo, não trocar móveis, não reorganizar, não corrigir arquitetura, não mudar vista, não adicionar luxo, não mudar iluminação, não inventar nada que não esteja visível na IMAGEM 1.
 
@@ -170,28 +184,28 @@ PERSONAGEM:
 2. Roupa: copie EXATAMENTE da imagem "ROUPA ATIVA".
 3. Rosto/corpo: combine "ROSTO FRONTAL" + "CORPO INTEIRO" para manter a MESMA identidade em todas as cenas.
 4. Descrição canônica: ${opts.character.canonical_prompt ?? opts.character.personality}
-5. AÇÃO + EXPRESSÃO FACIAL (OBRIGATÓRIO executar fielmente): ${opts.hookAction}
+5. AÇÃO + EXPRESSÃO FACIAL (executar fielmente, adaptada ao enquadramento ${framingLabel}): ${opts.hookAction}
    — Essa ação + expressão é o frame de abertura viral do Reel. Deve transparecer o gatilho emocional do hook (confiança, sedução, ironia, descoberta, status). Sem pose neutra, sem sorriso genérico.
 6. Carisma comercial coerente com a personalidade: ${opts.character.personality}.
 
 PROMPT BASE OBRIGATÓRIO (síntese final que o modelo deve executar):
-"Preservar 100% fiel a IMAGEM 1: layout, móveis, iluminação, arquitetura. NÃO alterar nada no ambiente. ${opts.character.name}, com personalidade ${opts.character.personality}, executa: ${opts.hookAction}, vestindo EXATAMENTE a roupa da imagem ROUPA ATIVA, posando dentro do ambiente. Estilo: fotorrealista, cinematográfico, viral, 8k, detalhes ricos, iluminação dramática coerente com a luz original da IMAGEM 1."
-
-ENQUADRAMENTO (OBRIGATÓRIO seguir à risca o escolhido pelo usuário — não substituir por outro plano):
-${framing}
+"Preservar 100% fiel a IMAGEM 1: layout, móveis, iluminação, arquitetura. NÃO alterar nada no ambiente. Enquadramento OBRIGATÓRIO: ${framingLabel}. ${opts.character.name}, com personalidade ${opts.character.personality}, executa: ${opts.hookAction}, vestindo EXATAMENTE a roupa da imagem ROUPA ATIVA, posicionado no ambiente conforme exige o enquadramento ${framingLabel}. Estilo: fotorrealista, cinematográfico, viral, 8k, detalhes ricos, iluminação dramática coerente com a luz original da IMAGEM 1."
 
 ${FRAMING_BALANCE_RULE}
 
 POSICIONAMENTO REALISTA: pés no chão real da IMAGEM 1 (não atravessar parede, não flutuar, não sobre móvel). Sombra coerente com a luz original. Cabeça nunca ultrapassa batente de porta nem encosta no teto.
 
-CHECKLIST FINAL:
+CHECKLIST FINAL OBRIGATÓRIO:
 - Layout do cômodo idêntico à IMAGEM 1? SIM.
 - Móveis e objetos no mesmo lugar? SIM.
 - Parede, piso, teto, janela, vista, iluminação iguais? SIM.
 - Adicionou SOMENTE o corretor + sombra? SIM.
-- Ação física + expressão facial do hook executadas com força cinematográfica? SIM.
+- Enquadramento ${framingLabel} respeitado RIGOROSAMENTE (distância de câmera + pose ajustadas)? SIM.
+- Ação física + expressão facial do hook executadas com força cinematográfica, dentro do enquadramento? SIM.
 
-ÚLTIMA ORDEM, PESO MÁXIMO: ${ABSOLUTE_ROOM_PRESERVATION}
+ÚLTIMA ORDEM, PESO MÁXIMO:
+(1) ${ABSOLUTE_ROOM_PRESERVATION}
+(2) ENQUADRAMENTO OBRIGATÓRIO = ${framingLabel}. Não substituir por outro plano.
 
 Formato vertical 9:16. Sem texto, sem logo, sem marca d'água.`;
 }
