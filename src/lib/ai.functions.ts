@@ -310,18 +310,34 @@ export const generateSceneImage = createServerFn({ method: "POST" })
     const framingKey = (scene as any).camera_framing ?? "corpo_inteiro";
     const framingInstruction = framingMap[framingKey] ?? framingMap.corpo_inteiro;
 
-    const imagePrompt = `IMAGEM 1 = foto real do cômodo (cenário fixo).
+    const imagePrompt = `IMAGEM 1 = FOTO ORIGINAL E IMUTÁVEL DO CÔMODO (cenário fixo, intocável).
 ${refsDescription}
 
-REGRAS OBRIGATÓRIAS:
-1. Use a IMAGEM 1 como cenário. NÃO altere móveis, paredes, piso, janelas, iluminação ou decoração do cômodo.
-2. Insira o personagem "${char.name}" dentro do cômodo de forma fotorrealista, com iluminação coerente com o ambiente.
-3. Roupa: copie EXATAMENTE a roupa da imagem marcada como "ROUPA ATIVA" (cor, corte, acessórios). Ignore roupas das outras imagens de referência.
-4. Rosto e proporções: combine as imagens marcadas como "ROSTO FRONTAL" e "CORPO INTEIRO" para manter a mesma identidade física (rosto, traços, cabelo, altura, tipo físico) em todas as cenas.
-5. Descrição visual canônica adicional: ${char.canonical_prompt ?? char.personality}
-6. Pose / ação na cena: ${action}
-7. Expressão coerente com a personalidade: ${char.personality}
-8. ENQUADRAMENTO DE CÂMERA: ${framingInstruction}
+⚠️ REGRA SUPREMA — PRESERVAÇÃO TOTAL DO CÔMODO (descumprir = imagem REJEITADA):
+A IMAGEM 1 é a foto ORIGINAL do imóvel real que está sendo vendido. Você DEVE manter EXATAMENTE o mesmo ambiente, pixel a pixel no que diz respeito ao espaço:
+- Layout idêntico (mesma planta, mesma perspectiva, mesmo ângulo da câmera original).
+- Móveis idênticos (mesmos sofás, camas, mesas, cadeiras, armários, eletrodomésticos, louças, espelhos, quadros, tapetes, cortinas, vasos, objetos de decoração — nas MESMAS posições).
+- Paredes idênticas (mesma cor, mesma textura, mesmo revestimento, mesmos rodapés, mesmas tomadas e interruptores).
+- Piso idêntico (mesmo material, mesma cor, mesmo padrão, mesmas juntas).
+- Teto idêntico (mesma altura, mesmas luminárias, mesmo acabamento).
+- Janelas e portas idênticas (mesmo tamanho, mesma posição, mesma vista pela janela).
+- Iluminação idêntica (mesma temperatura de cor, mesmas sombras, mesma direção da luz natural e artificial).
+- Cores e decoração idênticas.
+
+É TERMINANTEMENTE PROIBIDO: adicionar móveis, remover móveis, mover móveis, trocar acabamentos, mudar a cor das paredes, mudar o piso, mudar a iluminação, mudar a vista da janela, redecorar, "melhorar", "valorizar" ou "estilizar" o ambiente. NÃO invente cristaleira, lustre, plantas, quadros, tapetes, mármore, marcenaria, LED ou qualquer item que NÃO esteja visível na IMAGEM 1. Se o cômodo for simples ou vazio, mantenha simples ou vazio. Isto vale para QUALQUER tipo de cômodo: sala, cozinha, quarto, banheiro, lavabo, varanda, área de serviço, escritório, closet, garagem, hall, área externa.
+
+Sua ÚNICA modificação permitida é INSERIR o personagem dentro desse cômodo original, como se ele tivesse entrado ali no momento da foto.
+
+REGRAS DO PERSONAGEM:
+1. Insira o personagem "${char.name}" dentro do cômodo de forma fotorrealista, integrado com a iluminação, sombras e perspectiva ORIGINAIS da IMAGEM 1.
+2. Roupa: copie EXATAMENTE a roupa da imagem marcada como "ROUPA ATIVA" (cor, corte, acessórios). Ignore roupas das outras imagens de referência.
+3. Rosto e proporções: combine as imagens marcadas como "ROSTO FRONTAL" e "CORPO INTEIRO" para manter a mesma identidade física (rosto, traços, cabelo, altura, tipo físico) em todas as cenas.
+4. Descrição visual canônica adicional: ${char.canonical_prompt ?? char.personality}
+5. Pose / ação na cena: ${action}
+6. Expressão coerente com a personalidade: ${char.personality}
+7. ENQUADRAMENTO DE CÂMERA: ${framingInstruction}
+   IMPORTANTE: o enquadramento descreve a DISTÂNCIA do personagem na cena, MAS a perspectiva, ângulo e composição do CÔMODO devem permanecer iguais aos da IMAGEM 1. Não refaça a foto do ambiente por outro ângulo — apenas posicione o personagem dentro do ambiente original.
+8. POSICIONAMENTO REALISTA: escolha um ponto do chão que exista de verdade na IMAGEM 1 (não em cima de móvel, não atravessando parede, não flutuando). Os pés precisam tocar o chão na perspectiva correta, com sombra projetada coerente com a direção da luz da foto original. O personagem ocupa o espaço NEGATIVO do cômodo (corredor, espaço livre entre móveis, em frente a um móvel), nunca substitui um móvel.
 9. PROPORÇÃO HUMANA REALISTA (CRÍTICO): trate o personagem como pessoa real de ~1,70-1,80m de altura. Compare a cabeça dele com referências visíveis no cômodo (maçaneta ~1m, interruptor ~1,1m, mesa ~75cm, bancada ~90cm, sofá ~85cm de encosto, porta padrão ~2,10m). A cabeça do personagem NUNCA pode ultrapassar o batente da porta nem encostar no teto. Se a perspectiva da foto do cômodo for ampla, o personagem fica PROPORCIONALMENTE PEQUENO — é melhor errar pra menor que pra maior. Pés tocando o chão na perspectiva correta, sombra coerente com a iluminação do ambiente.
 10. Formato vertical 9:16. Sem texto, sem logo, sem marca d'água.`;
 
