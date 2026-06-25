@@ -151,6 +151,7 @@ export interface ImagePromptOpts {
     name: string;
     personality: string;
     canonical_prompt?: string | null;
+    height_cm?: number | null;
   };
   roomName: string;
   framing: Framing;
