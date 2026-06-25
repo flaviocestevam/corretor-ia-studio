@@ -1,5 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import {
+  ABSOLUTE_ROOM_PRESERVATION,
+  buildHookPrompt,
+  buildImagePrompt,
+  buildVideoPrompt,
+  type Framing,
+} from "./prompt-engine";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 
