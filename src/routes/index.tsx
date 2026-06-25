@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, FolderKanban, Plus, Sparkles, Clock, CheckCircle2, AlertCircle, Film } from "lucide-react";
+import { SignedImage } from "@/components/signed-image";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
