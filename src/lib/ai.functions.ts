@@ -408,14 +408,31 @@ export const generateVideoPrompt = createServerFn({ method: "POST" })
       .single();
     if (!char) throw new Error("Personagem não encontrado");
 
+    // Detectar se esta é a ÚLTIMA cena do projeto (pra incluir CTA).
+    const { data: maxRow } = await supabaseAdmin
+      .from("scenes")
+      .select("scene_order")
+      .eq("project_id", scene.project_id)
+      .order("scene_order", { ascending: false })
+      .limit(1)
+      .single();
+    const isLastScene = !!maxRow && maxRow.scene_order === scene.scene_order;
+
     const selectedHook = scene.selected_hook as { action?: string; text?: string } | null;
+    const ctas = ((char.ctas as Array<{ text: string }> | null) ?? [])
+      .map((c) => c.text)
+      .filter(Boolean);
+
     const videoPrompt = buildVideoPrompt({
       characterName: char.name,
       characterPersonality: char.personality ?? "",
+      characterSpeakingStyle: char.speaking_style ?? "",
       roomName: scene.room_name,
       hookText: selectedHook?.text ?? "",
       hookAction: selectedHook?.action ?? "",
       fullScript: scene.selected_script ?? "",
+      isLastScene,
+      ctas,
     });
 
     await supabaseAdmin.from("scenes").update({ video_prompt: videoPrompt }).eq("id", data.sceneId);
