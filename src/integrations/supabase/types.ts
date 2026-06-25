@@ -109,6 +109,7 @@ export type Database = {
           hook_options: Json
           id: string
           image_prompt: string | null
+          model_used: string | null
           original_room_image: string | null
           project_id: string
           room_name: string
@@ -128,6 +129,7 @@ export type Database = {
           hook_options?: Json
           id?: string
           image_prompt?: string | null
+          model_used?: string | null
           original_room_image?: string | null
           project_id: string
           room_name: string
@@ -147,6 +149,7 @@ export type Database = {
           hook_options?: Json
           id?: string
           image_prompt?: string | null
+          model_used?: string | null
           original_room_image?: string | null
           project_id?: string
           room_name?: string
