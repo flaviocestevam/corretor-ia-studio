@@ -347,34 +347,58 @@ export const generateSceneImage = createServerFn({ method: "POST" })
       .createSignedUrl(scene.original_room_image, 600);
     if (urlErr || !signed) throw new Error("Não foi possível ler a foto do cômodo");
 
-    const contentBlocks: Array<Record<string, unknown>> = [
-      { type: "text", text: imagePrompt },
-      { type: "image_url", image_url: { url: signed.signedUrl } },
-    ];
+    // Helper: baixa URL e devolve { data: base64, mime_type }
+    async function urlToInline(url: string): Promise<{ data: string; mime_type: string }> {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`Falha ao baixar imagem ref (${r.status})`);
+      const mime = r.headers.get("content-type")?.split(";")[0] || "image/jpeg";
+      const buf = new Uint8Array(await r.arrayBuffer());
+      let bin = "";
+      for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+      return { data: btoa(bin), mime_type: mime };
+    }
 
+    // Monta parts: texto + cômodo + referências
+    const roomInline = await urlToInline(signed.signedUrl);
+    const parts: Array<Record<string, unknown>> = [
+      { text: imagePrompt },
+      { inline_data: roomInline },
+    ];
     for (const r of refs) {
       const { data: sci } = await supabaseAdmin.storage
         .from("scene-assets")
         .createSignedUrl(r.path, 600);
-      if (sci?.signedUrl) contentBlocks.push({ type: "image_url", image_url: { url: sci.signedUrl } });
+      if (sci?.signedUrl) {
+        const inl = await urlToInline(sci.signedUrl);
+        parts.push({ inline_data: inl });
+      }
+    }
+
+    function googleKey() {
+      const k = process.env.GOOGLE_AI_API_KEY;
+      if (!k) throw new Error("GOOGLE_AI_API_KEY ausente");
+      return k;
     }
 
     async function callModel(model: string, extraReinforcement: string) {
-      const userBlocks = extraReinforcement
-        ? [{ type: "text", text: extraReinforcement }, ...contentBlocks]
-        : contentBlocks;
-      return fetch(`${GATEWAY}/images/generations`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: absoluteRoomPreservationRule },
-            { role: "user", content: userBlocks },
-          ],
-          modalities: ["image", "text"],
-        }),
-      });
+      const finalParts = extraReinforcement
+        ? [{ text: extraReinforcement }, ...parts]
+        : parts;
+      return fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+        {
+          method: "POST",
+          headers: {
+            "x-goog-api-key": googleKey(),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: absoluteRoomPreservationRule }] },
+            contents: [{ role: "user", parts: finalParts }],
+            generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+          }),
+        },
+      );
     }
 
     // ============ VALIDADOR DE ENQUADRAMENTO (vision) ============
@@ -417,8 +441,8 @@ Responda APENAS JSON: {"detected":"selfie|meio_corpo|corpo_inteiro|plano_aberto"
       }
     }
 
-    const PRO = "google/gemini-3-pro-image";
-    const FLASH = "google/gemini-3.1-flash-image";
+    const PRO = "gemini-3-pro-image-preview";
+    const FLASH = "gemini-2.5-flash-image-preview";
     let usedFallback = false;
     let modelUsed = PRO;
     let reinforcement = "";
@@ -442,10 +466,16 @@ Responda APENAS JSON: {"detected":"selfie|meio_corpo|corpo_inteiro|plano_aberto"
       }
       if (!res.ok) {
         const txt = await res.text();
-        throw new Error(`Gateway ${res.status}: ${txt}`);
+        throw new Error(`Google API ${res.status}: ${txt}`);
       }
       const json = await res.json();
-      const candidate = json.data?.[0]?.b64_json;
+      // Extrai a primeira parte com inline_data
+      const respParts = json?.candidates?.[0]?.content?.parts ?? [];
+      const imgPart = respParts.find(
+        (p: any) => p?.inline_data?.data || p?.inlineData?.data,
+      );
+      const candidate: string | undefined =
+        imgPart?.inline_data?.data ?? imgPart?.inlineData?.data;
       if (!candidate) throw new Error("IA não retornou imagem");
 
       if (framingKey === "auto") {
@@ -473,7 +503,8 @@ Responda APENAS JSON: {"detected":"selfie|meio_corpo|corpo_inteiro|plano_aberto"
       .upload(path, bytes, { contentType: "image/png", upsert: false });
     if (upErr) throw upErr;
 
-    const modelShort = modelUsed === PRO ? "gemini-3-pro-image" : "gemini-3.1-flash-image";
+    const modelShort = modelUsed;
+
 
     await supabaseAdmin
       .from("scenes")
