@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, FolderKanban, Search } from "lucide-react";
+import { SignedImage } from "@/components/signed-image";
 
 export const Route = createFileRoute("/projetos/")({
   head: () => ({ meta: [{ title: "Projetos — Corretor IA Studio" }] }),
@@ -19,7 +20,7 @@ function ProjectsList() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("id, name, created_at, characters(name)")
+        .select("id, name, created_at, characters(name), scenes(generated_character_image, scene_order)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -69,18 +70,28 @@ function ProjectsList() {
         </Card>
       ) : (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((p: any) => (
-            <Link key={p.id} to="/projetos/$id" params={{ id: p.id }}>
-              <Card className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-shadow h-full">
-                <CardContent className="p-4">
-                  <div className="font-semibold">{p.name}</div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {p.characters?.name} · {new Date(p.created_at).toLocaleDateString("pt-BR")}
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+          {filtered.map((p: any) => {
+            const firstScene = [...(p.scenes ?? [])].sort((a: any, b: any) => a.scene_order - b.scene_order)[0];
+            const thumb = firstScene?.generated_character_image;
+            return (
+              <Link key={p.id} to="/projetos/$id" params={{ id: p.id }}>
+                <Card className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-shadow h-full overflow-hidden">
+                  <SignedImage
+                    path={thumb}
+                    alt={p.name}
+                    className="w-full aspect-[9/16] object-cover"
+                    fallbackClassName="w-full aspect-[9/16]"
+                  />
+                  <CardContent className="p-4">
+                    <div className="font-semibold">{p.name}</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {p.characters?.name} · {new Date(p.created_at).toLocaleDateString("pt-BR")}
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
