@@ -92,33 +92,47 @@ export const generateHooks = createServerFn({ method: "POST" })
       ? `\nVOCÊ ESTÁ VENDO A FOTO REAL DO CÔMODO em anexo. Baseie os hooks SOMENTE no que aparece visivelmente na foto (materiais, móveis, iluminação, vista, acabamentos reais). É PROIBIDO inventar itens que não estão na imagem (ex: cristaleira, lustre, torneira gourmet, mármore, LED, marcenaria ripada) se eles não aparecem. Se a foto for simples, faça hooks simples.`
       : "";
 
+    const hookCraftRules = `
+REGRAS OBRIGATÓRIAS DO HOOK (primeiros 4-6 segundos do Reel — precisa parar o scroll):
+- Tom SEDUTOR, CONFIANTE, ELEGANTE e COMERCIAL — estilo corretor(a) de imóveis de altíssimo padrão.
+- Misture PERSONALIDADE do corretor + DESEJO/aspiração pelo imóvel (não descreva o cômodo de forma fria, provoque emoção).
+- Use gatilhos de desejo, curiosidade, status, exclusividade, pertencimento ou prova social. Pode ser pergunta provocativa, afirmação ousada ou frase de impacto.
+- PROIBIDO hook fraco/genérico tipo "Olha esse cômodo", "Que sala linda", "Vem ver", "Bem-vindo a", listar materiais sem emoção, ou parecer narração de catálogo.
+- Exemplos do nível de qualidade exigido (NÃO copie literalmente, use como referência de força):
+  • "Você imaginaria acordar todos os dias aqui?"
+  • "Esse é o tipo de luxo que você merece viver."
+  • "Tem gente que sonha com isso a vida inteira… e tá aqui, te esperando."
+  • "Para por 3 segundos. Olha o que esse imóvel faz com você."
+  • "Se você acha que já viu uma sala de verdade, espera ver essa."
+- Cada hook DEVE vir acompanhado de uma AÇÃO FÍSICA SUTIL e cinematográfica do(a) corretor(a) (gesto de mão apresentando, olhar marcante pra câmera, leve sorriso de canto, passo lento entrando no ambiente, mão deslizando na bancada, virada de cabeça, etc.) — descrita no campo "action".
+- Linguagem brasileira natural e elegante (pode usar "pra", "tá", mas SEM gírias baratas).
+- Respeite 100% a personalidade, jeito de falar e bordões do personagem.`;
     const prompt = data.isFirstScene
-      ? `Você é roteirista de Reels imobiliários. Personagem: "${char.name}".
+      ? `Você é roteirista sênior de Reels imobiliários de alto padrão. Personagem: "${char.name}".
 Personalidade: ${char.personality}
 Jeito de falar: ${char.speaking_style}
 Bordões: ${(char.catchphrases as string[])?.join(" | ")}
 Hooks de referência do personagem: ${JSON.stringify(baseHooks)}
 ${visionRule}
+${hookCraftRules}
 
-Gere EXATAMENTE 3 opções de hook de ABERTURA (primeira cena) para o cômodo "${data.roomName}".
-Cada hook tem ~4 segundos, deve prender atenção, combinar 100% com a personalidade, ter ação visual clara e NÃO parecer propaganda formal.
-Use linguagem brasileira informal (pra, tá, olha isso, vou falar a verdade).
+Gere EXATAMENTE 3 opções de HOOK DE ABERTURA (primeira cena) para o cômodo "${data.roomName}".
+As 3 opções devem ter ÂNGULOS DIFERENTES entre si (ex: 1 pergunta provocativa de desejo, 1 afirmação ousada de status, 1 frase de curiosidade/exclusividade) — nunca 3 variações da mesma ideia.
 
 Responda APENAS com JSON array no formato:
-[{"text":"...","action":"...","duration":4}, ...]`
-      : `Você é roteirista de Reels imobiliários. Personagem: "${char.name}".
+[{"text":"...","action":"descrição da ação física sutil do corretor durante a fala","duration":4}, ...]`
+      : `Você é roteirista sênior de Reels imobiliários de alto padrão. Personagem: "${char.name}".
 Personalidade: ${char.personality}
 Jeito de falar: ${char.speaking_style}
 Cena anterior terminou com: "${data.previousSceneScript ?? ""}"
 Cômodo atual: "${data.roomName}"
 ${visionRule}
+${hookCraftRules}
 
-Gere 3 hooks curtos (~4s) de CONTINUAÇÃO que conectem com a cena anterior, no estilo:
-"E eu achei que já tinha visto tudo lá fora…" / "Agora piorou. Olha isso." / "Se já tava bom, espera..."
-Respeite o jeito de falar do personagem.
+Gere 3 HOOKS DE CONTINUAÇÃO curtos (~4-6s) que conectem com a cena anterior MANTENDO o tom sedutor, confiante e desejável. Exemplos de força: "E eu achei que já tinha te impressionado…", "Agora prepara o coração.", "Se você gostou da última, essa aqui vai te desarmar.", "Respira fundo antes de entrar nesse próximo.". Cada um com ação física sutil diferente.
 
 Responda APENAS com JSON array:
-[{"text":"...","action":"...","duration":4}, ...]`;
+[{"text":"...","action":"descrição da ação física sutil do corretor durante a fala","duration":4}, ...]`;
 
     const userContent: ChatPart[] = [{ type: "text", text: prompt }];
     if (imageDataUrl) userContent.push({ type: "image_url", image_url: { url: imageDataUrl } });
