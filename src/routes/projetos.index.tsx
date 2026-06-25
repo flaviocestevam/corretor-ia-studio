@@ -20,7 +20,7 @@ function ProjectsList() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("id, name, created_at, characters(name)")
+        .select("id, name, created_at, characters(name), scenes(generated_character_image, scene_order)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
