@@ -32,6 +32,7 @@ function NovoProjeto() {
   const search = Route.useSearch();
   const [name, setName] = useState("");
   const [characterId, setCharacterId] = useState(search.characterId ?? "");
+  const [clientId, setClientId] = useState(search.clientId ?? "");
   const [rooms, setRooms] = useState<RoomDraft[]>([]);
   const [creating, setCreating] = useState(false);
 
@@ -39,6 +40,15 @@ function NovoProjeto() {
     queryKey: ["characters-min"],
     queryFn: async () => {
       const { data, error } = await supabase.from("characters").select("id, name").order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: clients } = useQuery({
+    queryKey: ["clients-min"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("clients").select("id, name").order("name");
       if (error) throw error;
       return data;
     },
