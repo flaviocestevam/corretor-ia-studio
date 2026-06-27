@@ -64,12 +64,27 @@ async function getActiveGoogleKey(
     .limit(1)
     .maybeSingle();
   if (!data) {
-    throw new Error(
-      "Nenhuma API key do Google ativa. Cadastre uma em Configurações (ou resete cotas esgotadas).",
-    );
+    const { data: all } = await supabaseAdmin
+      .from("google_api_keys")
+      .select("label, is_active, is_exhausted")
+      .order("created_at", { ascending: true });
+    const rows = (all ?? []) as Array<{ label: string; is_active: boolean; is_exhausted: boolean }>;
+    const diag =
+      rows.length === 0
+        ? "Keys no banco: 0."
+        : `Keys no banco: ${rows.length}. ` +
+          rows
+            .map(
+              (k, i) =>
+                `Key ${i + 1} (${k.label}): is_active=${k.is_active}, is_exhausted=${k.is_exhausted}`,
+            )
+            .join(". ") +
+          ".";
+    throw new Error(`Nenhuma key ativa. ${diag}`);
   }
   return data as { id: string; api_key: string };
 }
+
 
 async function markGoogleKeyExhausted(supabaseAdmin: AdminClient, id: string) {
   await supabaseAdmin
