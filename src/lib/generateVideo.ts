@@ -48,7 +48,7 @@ export async function generateSceneVideo({
     const imageBase64 = await blobToBase64(imageBlob);
 
     let operation = await client.models.generateVideos({
-      model: "veo-3.1-generate-preview",
+      model: "veo-3.1-fast-generate-preview",
       prompt: videoPrompt,
       image: { imageBytes: imageBase64, mimeType },
       config: { aspectRatio: "9:16", durationSeconds: 8 },

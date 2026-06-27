@@ -59,7 +59,7 @@ export function SceneVideoSection({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Video className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Vídeo — Veo 3.1</span>
+          <span className="text-sm font-medium">Vídeo — Veo 3.1 Fast</span>
         </div>
         {videoStatus === "gerado" && <Badge className="bg-green-600 text-xs">Gerado</Badge>}
         {videoStatus === "gerando" && <Badge variant="secondary" className="text-xs">Gerando...</Badge>}
@@ -111,7 +111,7 @@ export function SceneVideoSection({
           ) : (
             <>
               <Video className="h-4 w-4 mr-2" />
-              Gerar vídeo com Veo 3.1
+              Gerar vídeo (Veo 3.1 Fast)
             </>
           )}
         </Button>
