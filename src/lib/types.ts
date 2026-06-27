@@ -27,10 +27,13 @@ export interface Character {
   updated_at: string;
 }
 
+export type ProjectType = "reels" | "tour";
+
 export interface Project {
   id: string;
   name: string;
-  character_id: string;
+  character_id: string | null;
+  project_type: ProjectType;
   created_at: string;
   updated_at: string;
 }
