@@ -1087,6 +1087,7 @@ function SceneCard({
             )}
           </section>
         </div>
+        </>)}
 
       </CardContent>
     </Card>
