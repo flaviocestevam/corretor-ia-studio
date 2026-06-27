@@ -864,22 +864,15 @@ REGRAS ABSOLUTAS DE COMPOSIÇÃO (descumprir = REJEITADO):
 Resultado: um frame inicial forte e imersivo, claramente "câmera presa ao corpo", pronto para virar vídeo POV de tour.`;
 
     async function callImg(model: string) {
-      return fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-        {
-          method: "POST",
-          headers: { "x-goog-api-key": googleKey(), "Content-Type": "application/json" },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: "Câmera SEMPRE presa ao corpo do animal (POV body-mount sobre os ombros/pescoço). NUNCA mostrar o animal inteiro, rabo ou patas traseiras. Fidelidade absoluta ao cômodo da imagem 1." }] },
-            contents: [{ role: "user", parts: [
-              { text: imagePrompt },
-              { inline_data: roomInline },
-              { inline_data: animalInline },
-            ] }],
-            generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
-          }),
-        },
-      );
+      return callGeminiImage(supabaseAdmin, model, {
+        systemInstruction: { parts: [{ text: "Câmera SEMPRE presa ao corpo do animal (POV body-mount sobre os ombros/pescoço). NUNCA mostrar o animal inteiro, rabo ou patas traseiras. Fidelidade absoluta ao cômodo da imagem 1." }] },
+        contents: [{ role: "user", parts: [
+          { text: imagePrompt },
+          { inline_data: roomInline },
+          { inline_data: animalInline },
+        ] }],
+        generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+      });
     }
     let imgRes = await callImg("gemini-3-pro-image");
     let modelUsed = "gemini-3-pro-image";
