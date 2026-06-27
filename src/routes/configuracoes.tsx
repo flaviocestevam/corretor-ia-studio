@@ -40,6 +40,11 @@ function ConfiguracoesPage() {
 
   async function addKey() {
     if (!newLabel || !newKey) return toast.error("Preencha o nome e a API key.");
+    if (!newKey.trim().startsWith("AIza")) {
+      return toast.error(
+        "API key inválida. A chave correta começa com AIza e é gerada em aistudio.google.com/apikey"
+      );
+    }
     if (keys.length >= 5) return toast.error("Máximo de 5 contas cadastradas.");
     setLoading(true);
     const { error } = await supabase.from("google_api_keys").insert({
