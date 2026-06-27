@@ -392,7 +392,7 @@ export const generateSceneImage = createServerFn({ method: "POST" })
       const finalParts = extraReinforcement
         ? [{ text: extraReinforcement }, ...parts]
         : parts;
-      return callGeminiImage(supabaseAdmin, model, {
+      return callGeminiImage(model, {
         systemInstruction: { parts: [{ text: absoluteRoomPreservationRule }] },
         contents: [{ role: "user", parts: finalParts }],
         generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
@@ -683,7 +683,7 @@ REFERÊNCIA DETALHADA (preservar 100%): ${description.trim().slice(0, 1500)}
 Saída: FOTOGRAFIA realista 9:16, mesma luz/cor/materiais da foto original, sem texto, sem logo, sem marca d'água.`;
 
     async function callImg(model: string) {
-      return callGeminiImage(supabaseAdmin, model, {
+      return callGeminiImage(model, {
         systemInstruction: { parts: [{ text: "Fidelidade absoluta à foto anexa. Apenas recomposição vertical 9:16. Nunca inventar nada." }] },
         contents: [{ role: "user", parts: [{ text: verticalPrompt }, { inline_data: roomInline }] }],
         generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
@@ -823,7 +823,7 @@ REGRAS ABSOLUTAS DE COMPOSIÇÃO (descumprir = REJEITADO):
 Resultado: um frame inicial forte e imersivo, claramente "câmera presa ao corpo", pronto para virar vídeo POV de tour.`;
 
     async function callImg(model: string) {
-      return callGeminiImage(supabaseAdmin, model, {
+      return callGeminiImage(model, {
         systemInstruction: { parts: [{ text: "Câmera SEMPRE presa ao corpo do animal (POV body-mount sobre os ombros/pescoço). NUNCA mostrar o animal inteiro, rabo ou patas traseiras. Fidelidade absoluta ao cômodo da imagem 1." }] },
         contents: [{ role: "user", parts: [
           { text: imagePrompt },
