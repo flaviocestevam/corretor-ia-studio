@@ -439,7 +439,7 @@ Responda APENAS JSON: {"detected":"selfie|meio_corpo|corpo_inteiro|plano_aberto"
       }
     }
 
-    const PRO = "gemini-3.1-flash-image";
+    const PRO = "gemini-3-pro-image";
     const FLASH = "gemini-3.1-flash-image";
 
     let usedFallback = false;
