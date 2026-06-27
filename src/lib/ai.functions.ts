@@ -49,92 +49,18 @@ async function fetchRoomImageDataUrl(
   return `data:${mime};base64,${buf.toString("base64")}`;
 }
 
-// ============ ROTAÇÃO DE API KEY DO GOOGLE (tabela google_api_keys) ============
-type AdminClient = { from: (t: string) => any };
-
-async function getActiveGoogleKey(
-  supabaseAdmin: AdminClient,
-): Promise<{ id: string; api_key: string }> {
-  const { data } = await supabaseAdmin
-    .from("google_api_keys")
-    .select("id, api_key")
-    .eq("is_active", true)
-    .eq("is_exhausted", false)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  if (!data) {
-    const { data: all, error: allErr } = await supabaseAdmin
-      .from("google_api_keys")
-      .select("label, api_key, is_active, is_exhausted, exhausted_at")
-      .order("created_at", { ascending: true });
-    const rows = (all ?? []) as Array<{
-      label: string;
-      api_key: string;
-      is_active: boolean;
-      is_exhausted: boolean;
-      exhausted_at: string | null;
-    }>;
-    const diag =
-      rows.length === 0
-        ? `Keys no banco: 0.${allErr ? ` (queryErr: ${allErr.message})` : ""}`
-        : `Keys no banco: ${rows.length}. ` +
-          rows
-            .map((k, i) => {
-              const prefix = (k.api_key ?? "").slice(0, 6);
-              return `Key ${i + 1} [${k.label}] prefix=${prefix}… is_active=${k.is_active} is_exhausted=${k.is_exhausted} exhausted_at=${k.exhausted_at ?? "null"}`;
-            })
-            .join(" | ");
-    throw new Error(`Nenhuma key ativa. ${diag}`);
-  }
-  return data as { id: string; api_key: string };
-}
-
-
-async function markGoogleKeyExhausted(supabaseAdmin: AdminClient, id: string) {
-  await supabaseAdmin
-    .from("google_api_keys")
-    .update({ is_exhausted: true, exhausted_at: new Date().toISOString() })
-    .eq("id", id);
-}
-
-async function callGeminiImage(
-  supabaseAdmin: AdminClient,
-  model: string,
-  body: unknown,
-): Promise<Response> {
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const key = await getActiveGoogleKey(supabaseAdmin);
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-      {
-        method: "POST",
-        headers: { "x-goog-api-key": key.api_key, "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      },
-    );
-    if (res.status === 429) {
-      await markGoogleKeyExhausted(supabaseAdmin, key.id);
-      continue;
-    }
-    if (res.status === 401 || res.status === 403) {
-      const txt = await res.text();
-      throw new Error(`Erro de autenticação na Google API (${res.status}). Verifique se a key é válida. Detalhe: ${txt}`);
-    }
-    if (!res.ok) {
-      const txt = await res.text();
-      // Check for RESOURCE_EXHAUSTED in body even on non-429 (some quota errors)
-      if (/RESOURCE_EXHAUSTED/i.test(txt)) {
-        await markGoogleKeyExhausted(supabaseAdmin, key.id);
-        continue;
-      }
-      throw new Error(`Google API ${res.status}: ${txt}`);
-    }
-    return res;
-  }
-  throw new Error(
-    "Todas as API keys do Google estão esgotadas. Adicione novas contas em Configurações ou resete as cotas.",
+async function callGeminiImage(model: string, body: unknown): Promise<Response> {
+  const apiKey = process.env.GOOGLE_AI_API_KEY;
+  if (!apiKey) throw new Error("GOOGLE_AI_API_KEY não configurada");
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+    {
+      method: "POST",
+      headers: { "x-goog-api-key": apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
   );
+  return res;
 }
 
 function extractJSON(raw: string) {
