@@ -64,22 +64,27 @@ async function getActiveGoogleKey(
     .limit(1)
     .maybeSingle();
   if (!data) {
-    const { data: all } = await supabaseAdmin
+    const { data: all, error: allErr } = await supabaseAdmin
       .from("google_api_keys")
-      .select("label, is_active, is_exhausted")
+      .select("label, api_key, is_active, is_exhausted, exhausted_at")
       .order("created_at", { ascending: true });
-    const rows = (all ?? []) as Array<{ label: string; is_active: boolean; is_exhausted: boolean }>;
+    const rows = (all ?? []) as Array<{
+      label: string;
+      api_key: string;
+      is_active: boolean;
+      is_exhausted: boolean;
+      exhausted_at: string | null;
+    }>;
     const diag =
       rows.length === 0
-        ? "Keys no banco: 0."
+        ? `Keys no banco: 0.${allErr ? ` (queryErr: ${allErr.message})` : ""}`
         : `Keys no banco: ${rows.length}. ` +
           rows
-            .map(
-              (k, i) =>
-                `Key ${i + 1} (${k.label}): is_active=${k.is_active}, is_exhausted=${k.is_exhausted}`,
-            )
-            .join(". ") +
-          ".";
+            .map((k, i) => {
+              const prefix = (k.api_key ?? "").slice(0, 6);
+              return `Key ${i + 1} [${k.label}] prefix=${prefix}… is_active=${k.is_active} is_exhausted=${k.is_exhausted} exhausted_at=${k.exhausted_at ?? "null"}`;
+            })
+            .join(" | ");
     throw new Error(`Nenhuma key ativa. ${diag}`);
   }
   return data as { id: string; api_key: string };
