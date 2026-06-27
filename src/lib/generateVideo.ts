@@ -34,10 +34,12 @@ export async function generateSceneVideo({
 
   const apiKey = await getActiveApiKey();
   if (!apiKey) {
-    const msg = "Nenhuma API key disponível. Cadastre uma em Configurações.";
+    const diag = await buildKeysDiagnostic();
+    const msg = `Nenhuma key ativa. ${diag}`;
     await supabase.from("scenes").update({ video_status: "erro", video_error: msg }).eq("id", sceneId);
     return { success: false, error: msg };
   }
+
 
   try {
     const client = new GoogleGenAI({ apiKey });
