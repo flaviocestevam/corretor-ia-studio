@@ -106,29 +106,32 @@ export type Database = {
       }
       projects: {
         Row: {
-          character_id: string
+          character_id: string | null
           client_id: string
           created_at: string
           id: string
           name: string
+          project_type: string
           property_url: string | null
           updated_at: string
         }
         Insert: {
-          character_id: string
+          character_id?: string | null
           client_id: string
           created_at?: string
           id?: string
           name: string
+          project_type?: string
           property_url?: string | null
           updated_at?: string
         }
         Update: {
-          character_id?: string
+          character_id?: string | null
           client_id?: string
           created_at?: string
           id?: string
           name?: string
+          project_type?: string
           property_url?: string | null
           updated_at?: string
         }
