@@ -689,7 +689,7 @@ Saída: FOTOGRAFIA realista 9:16, mesma luz/cor/materiais da foto original, sem 
         generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
       });
     }
-    let imgRes = await callImg("gemini-3.1-flash-image");
+    let imgRes = await callImg("gemini-3-pro-image");
     if (!imgRes.ok) imgRes = await callImg("gemini-3.1-flash-image");
     if (!imgRes.ok) throw new Error(`Google API ${imgRes.status}: ${await imgRes.text()}`);
     const imgJson = await imgRes.json();
