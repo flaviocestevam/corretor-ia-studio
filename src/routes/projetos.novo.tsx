@@ -31,6 +31,7 @@ function NovoProjeto() {
   const navigate = useNavigate();
   const search = Route.useSearch();
   const [name, setName] = useState("");
+  const [projectType, setProjectType] = useState<"reels" | "tour">("reels");
   const [characterId, setCharacterId] = useState(search.characterId ?? "");
   const [clientId, setClientId] = useState(search.clientId ?? "");
   const [rooms, setRooms] = useState<RoomDraft[]>([]);
@@ -79,12 +80,17 @@ function NovoProjeto() {
     mutationFn: async () => {
       if (!name.trim()) throw new Error("Nome do projeto é obrigatório");
       if (!clientId) throw new Error("Selecione o cliente (imobiliária)");
-      if (!characterId) throw new Error("Selecione um personagem");
+      if (projectType === "reels" && !characterId) throw new Error("Selecione um personagem");
       if (rooms.length === 0) throw new Error("Adicione pelo menos uma foto");
 
       const { data: project, error: pErr } = await supabase
         .from("projects")
-        .insert({ name: name.trim(), character_id: characterId, client_id: clientId })
+        .insert({
+          name: name.trim(),
+          character_id: projectType === "reels" ? characterId : null,
+          client_id: clientId,
+          project_type: projectType,
+        } as any)
         .select("id")
         .single();
       if (pErr || !project) throw pErr;
@@ -99,6 +105,7 @@ function NovoProjeto() {
           room_name: r.name.trim() || `Cena ${i + 1}`,
           original_room_image: path,
           status: "pendente",
+          scene_mode: projectType === "tour" ? "room_tour" : "character",
         });
       }
       const { error: sErr } = await supabase.from("scenes").insert(scenesPayload);
@@ -126,6 +133,27 @@ function NovoProjeto() {
         <CardHeader><CardTitle>Projeto</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div>
+            <Label>Tipo de projeto *</Label>
+            <div className="grid grid-cols-2 gap-2 mt-1">
+              <button
+                type="button"
+                onClick={() => setProjectType("reels")}
+                className={`rounded-md border px-3 py-3 text-left text-sm transition ${projectType === "reels" ? "border-primary bg-primary/10" : "border-border hover:bg-muted/40"}`}
+              >
+                <div className="font-semibold">🎬 Reels com corretor</div>
+                <div className="text-xs text-muted-foreground mt-0.5">Hooks, roteiros, CTA e cenas com personagem</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setProjectType("tour")}
+                className={`rounded-md border px-3 py-3 text-left text-sm transition ${projectType === "tour" ? "border-primary bg-primary/10" : "border-border hover:bg-muted/40"}`}
+              >
+                <div className="font-semibold">🏠 Tour do imóvel</div>
+                <div className="text-xs text-muted-foreground mt-0.5">Só câmera passeando pelos cômodos, sem corretor</div>
+              </button>
+            </div>
+          </div>
+          <div>
             <Label>Cliente (imobiliária) *</Label>
             <Select value={clientId} onValueChange={setClientId}>
               <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
@@ -140,17 +168,19 @@ function NovoProjeto() {
             <Label>Nome do imóvel *</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Casa Jardim Paulista" />
           </div>
-          <div>
-            <Label>Personagem *</Label>
-            <Select value={characterId} onValueChange={setCharacterId}>
-              <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
-              <SelectContent>
-                {characters?.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {projectType === "reels" && (
+            <div>
+              <Label>Personagem *</Label>
+              <Select value={characterId} onValueChange={setCharacterId}>
+                <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                <SelectContent>
+                  {characters?.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </CardContent>
       </Card>
 
