@@ -585,9 +585,10 @@ function SceneCard({
             <div className="rounded-lg border border-dashed border-primary/40 bg-primary/5 p-3 text-xs space-y-1">
               <div className="font-semibold text-foreground">🎥 Tour no Cômodo — passo a passo</div>
               <div>1️⃣ Escolha a vibe da música abaixo.</div>
-              <div>2️⃣ Clique em <b>Gerar tour</b> — a IA descreve o cômodo inteiro e monta UM prompt único pra colar no Veo/Sora/Kling/Runway junto da foto original.</div>
-              <div>3️⃣ Suba a foto original + o prompt no gerador de vídeo (saída 9:16, 5s).</div>
+              <div>2️⃣ Clique em <b>Gerar tour</b> — a IA descreve o cômodo e cria uma <b>imagem vertical 9:16</b> recomposta da foto original (com fidelidade total).</div>
+              <div>3️⃣ Suba a <b>imagem vertical 9:16</b> + o prompt no gerador de vídeo (Veo/Sora/Kling, saída 9:16, 5s). Isso garante que o vídeo saia vertical de verdade.</div>
               <div>4️⃣ Clique em <b>Aprovar</b> quando estiver pronta.</div>
+
             </div>
 
             <div className="grid md:grid-cols-2 gap-3">
