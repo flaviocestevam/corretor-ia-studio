@@ -33,7 +33,7 @@ function ClientDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("id, name, created_at, project_type, characters(name), scenes(generated_character_image, scene_order)")
+        .select("id, name, created_at, project_type, characters(name), animals(name), scenes(generated_character_image, scene_order)")
         .eq("client_id", id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -43,6 +43,7 @@ function ClientDetail() {
 
   const reels = (projects ?? []).filter((p: any) => (p.project_type ?? "reels") === "reels");
   const tours = (projects ?? []).filter((p: any) => p.project_type === "tour");
+  const animalTours = (projects ?? []).filter((p: any) => p.project_type === "animal_tour");
 
   return (
     <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8">
@@ -55,12 +56,9 @@ function ClientDetail() {
           {client?.trade_name && <p className="text-muted-foreground mt-1">{client.trade_name}</p>}
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button asChild variant="outline" size="sm">
-            <a href="#reels">🎬 Reels ({reels.length})</a>
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <a href="#tours">🏠 Tours ({tours.length})</a>
-          </Button>
+          <Button asChild variant="outline" size="sm"><a href="#reels">🎬 Reels ({reels.length})</a></Button>
+          <Button asChild variant="outline" size="sm"><a href="#tours">🏠 Tours ({tours.length})</a></Button>
+          <Button asChild variant="outline" size="sm"><a href="#animal-tours">🐾 Animal ({animalTours.length})</a></Button>
           <Button asChild>
             <Link to="/projetos/novo" search={{ clientId: id }}><Plus className="mr-1.5 h-4 w-4" />Novo Imóvel</Link>
           </Button>
@@ -80,6 +78,7 @@ function ClientDetail() {
         <>
           <ProjectSection id="reels" title="🎬 Reels com corretor" items={reels} emptyText="Nenhum reels ainda." />
           <ProjectSection id="tours" title="🏠 Tours do imóvel" items={tours} emptyText="Nenhum tour ainda." />
+          <ProjectSection id="animal-tours" title="🐾 Tour com animal" items={animalTours} emptyText="Nenhum tour com animal ainda." />
         </>
       )}
     </div>
@@ -102,6 +101,7 @@ function ProjectSection({ id, title, items, emptyText }: { id: string; title: st
           {items.map((p: any) => {
             const firstScene = [...(p.scenes ?? [])].sort((a: any, b: any) => a.scene_order - b.scene_order)[0];
             const thumb = firstScene?.generated_character_image;
+            const subtitle = p.characters?.name ?? p.animals?.name ?? (p.project_type === "tour" ? "Tour" : p.project_type === "animal_tour" ? "Tour animal" : "—");
             return (
               <Link key={p.id} to="/projetos/$id" params={{ id: p.id }}>
                 <Card className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-shadow h-full overflow-hidden">
@@ -114,7 +114,7 @@ function ProjectSection({ id, title, items, emptyText }: { id: string; title: st
                   <CardContent className="p-4">
                     <div className="font-semibold">{p.name}</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      {p.characters?.name ?? (p.project_type === "tour" ? "Tour" : "—")} · {new Date(p.created_at).toLocaleDateString("pt-BR")}
+                      {subtitle} · {new Date(p.created_at).toLocaleDateString("pt-BR")}
                     </div>
                   </CardContent>
                 </Card>

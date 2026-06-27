@@ -26,6 +26,7 @@ import {
   generateSceneImage,
   generateVideoPrompt,
   generateRoomTour,
+  generateAnimalTour,
   approveScene,
 } from "@/lib/ai.functions";
 import type { Scene, Character, SceneHookOption, SceneMode } from "@/lib/types";
@@ -40,8 +41,8 @@ type NextStep = { label: string; tone: "todo" | "done" } | null;
 function nextStep(scene: Scene, isFirst: boolean): NextStep {
   if (scene.scene_mode === "skip") return { label: "⏸️ Pulada", tone: "done" };
   if (scene.status === "aprovado") return { label: "✅ Aprovada", tone: "done" };
-  if (scene.scene_mode === "room_tour") {
-    if (!scene.image_prompt || !scene.video_prompt) return { label: "Falta: gerar tour", tone: "todo" };
+  if (scene.scene_mode === "room_tour" || scene.scene_mode === "animal_tour") {
+    if (!scene.generated_character_image || !scene.video_prompt) return { label: "Falta: gerar tour", tone: "todo" };
     return { label: "Pronta — falta aprovar", tone: "todo" };
   }
   if (!scene.generated_character_image) return { label: "Falta: gerar imagem", tone: "todo" };
@@ -259,6 +260,7 @@ function ProjectDetail() {
               scene={s}
               character={data.character}
               isTourProject={(data.project as any).project_type === "tour"}
+              isAnimalTourProject={(data.project as any).project_type === "animal_tour"}
               previousScript={realIdx > 0 ? data.scenes[realIdx - 1].selected_script : null}
               isFirst={realIdx === 0}
               isLast={realIdx === data.scenes.length - 1}
@@ -333,6 +335,7 @@ function SceneCard({
   scene,
   character,
   isTourProject,
+  isAnimalTourProject,
   previousScript,
   isFirst,
   isLast,
@@ -346,6 +349,7 @@ function SceneCard({
   scene: Scene;
   character: Character | null;
   isTourProject: boolean;
+  isAnimalTourProject: boolean;
   previousScript: string | null;
   isFirst: boolean;
   isLast: boolean;
@@ -362,6 +366,7 @@ function SceneCard({
   const genImage = useServerFn(generateSceneImage);
   const genVideoP = useServerFn(generateVideoPrompt);
   const genTour = useServerFn(generateRoomTour);
+  const genAnimalTour = useServerFn(generateAnimalTour);
   const approve = useServerFn(approveScene);
 
   const [loadingHooks, setLoadingHooks] = useState(false);
@@ -372,7 +377,11 @@ function SceneCard({
   const [musicMood, setMusicMood] = useState<"aconchegante" | "sofisticado" | "energetico">("sofisticado");
   const [lastError, setLastError] = useState<{ label: string; message: string; retry: () => void } | null>(null);
   const busy = loadingHooks || loadingScripts || loadingImage || loadingVideo || loadingTour;
-  const mode: SceneMode = isTourProject ? "room_tour" : ((scene.scene_mode ?? "character") as SceneMode);
+  const mode: SceneMode = isAnimalTourProject
+    ? "animal_tour"
+    : isTourProject
+    ? "room_tour"
+    : ((scene.scene_mode ?? "character") as SceneMode);
 
   async function changeMode(next: SceneMode) {
     if (next === mode) return;
@@ -682,6 +691,150 @@ function SceneCard({
             </section>
           </div>
         )}
+
+        {mode === "animal_tour" && (
+          <div className="space-y-4">
+            <div className="rounded-lg border border-dashed border-primary/40 bg-primary/5 p-3 text-xs space-y-1">
+              <div className="font-semibold text-foreground">🐾 Tour com Animal — passo a passo</div>
+              <div>1️⃣ Escolha a vibe da música.</div>
+              <div>2️⃣ Clique em <b>Gerar tour</b>. A IA cria a <b>imagem vertical 9:16 POV body-mount</b> (câmera no dorso do animal) + analisa a imagem e gera o <b>FINAL PROMPT em inglês</b>, NEGATIVE PROMPT e ROUTE SUMMARY.</div>
+              <div>3️⃣ Cole o FINAL PROMPT + use a imagem vertical no Veo/Sora/Kling (9:16, ~5s).</div>
+              <div>4️⃣ Clique em <b>Aprovar</b>.</div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-3">
+              <div>
+                <div className="text-xs font-medium text-muted-foreground mb-1.5">Foto original do cômodo</div>
+                <SignedImage path={scene.original_room_image} alt="Original" className="w-full aspect-video rounded-lg border border-border object-cover" />
+                {scene.original_room_image && (
+                  <Button variant="ghost" size="sm" className="mt-1" onClick={downloadOriginal}>
+                    <Download className="mr-1.5 h-3 w-3" />Baixar foto
+                  </Button>
+                )}
+              </div>
+              <div>
+                <div className="text-xs font-medium text-muted-foreground mb-1.5">Imagem POV vertical 9:16</div>
+                {scene.generated_character_image ? (
+                  <>
+                    <SignedImage path={scene.generated_character_image} alt="POV" className="w-full max-w-[260px] aspect-[9/16] rounded-lg border border-primary/40 object-cover" />
+                    <Button variant="ghost" size="sm" className="mt-1" onClick={downloadGenerated}>
+                      <Download className="mr-1.5 h-3 w-3" />Baixar
+                    </Button>
+                  </>
+                ) : (
+                  <div className="w-full max-w-[260px] aspect-[9/16] rounded-lg border border-dashed border-border bg-muted/30 flex items-center justify-center text-xs text-muted-foreground p-3 text-center">Clique em Gerar tour</div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <div className="text-xs font-medium text-muted-foreground mb-1.5">Vibe da música</div>
+              <div className="flex gap-1 flex-wrap">
+                {([
+                  { v: "aconchegante", l: "🛋️ Aconchegante" },
+                  { v: "sofisticado", l: "💎 Sofisticado" },
+                  { v: "energetico", l: "⚡ Energético" },
+                ] as const).map((opt) => (
+                  <Button
+                    key={opt.v}
+                    type="button"
+                    size="sm"
+                    variant={musicMood === opt.v ? "default" : "outline"}
+                    className="h-7 text-xs px-2"
+                    onClick={() => setMusicMood(opt.v)}
+                  >
+                    {opt.l}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <Button
+              variant="outline"
+              onClick={() => run(
+                () => genAnimalTour({ data: { sceneId: scene.id, musicMood } }),
+                setLoadingTour,
+                "Tour com animal gerado ✨",
+                "Gerar tour com animal",
+              )}
+              disabled={busy || !scene.original_room_image}
+            >
+              {loadingTour ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Wand2 className="mr-1.5 h-4 w-4" />}
+              {scene.video_prompt ? "Regerar tour" : "Gerar tour"}
+            </Button>
+
+            <section>
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-xs font-medium text-muted-foreground">FINAL PROMPT (inglês, pronto pra Veo/Sora/Kling — editável)</div>
+                {scene.video_prompt && (
+                  <Button size="sm" variant="ghost" onClick={() => copy(scene.video_prompt!, "FINAL PROMPT")}>
+                    <Copy className="mr-1.5 h-3 w-3" />Copiar
+                  </Button>
+                )}
+              </div>
+              <Textarea
+                key={`atour-vid-${scene.id}-${scene.updated_at}`}
+                defaultValue={scene.video_prompt ?? ""}
+                rows={14}
+                className="text-xs font-mono"
+                placeholder="Clique em Gerar tour"
+                onBlur={async (e) => {
+                  if (e.target.value === (scene.video_prompt ?? "")) return;
+                  const { error } = await supabase.from("scenes").update({ video_prompt: e.target.value || null }).eq("id", scene.id);
+                  if (error) toast.error(error.message); else { toast.success("FINAL PROMPT atualizado"); onChange(); }
+                }}
+              />
+            </section>
+
+            <section>
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-xs font-medium text-muted-foreground">NEGATIVE PROMPT (editável)</div>
+                {scene.negative_prompt && (
+                  <Button size="sm" variant="ghost" onClick={() => copy(scene.negative_prompt!, "NEGATIVE PROMPT")}>
+                    <Copy className="mr-1.5 h-3 w-3" />Copiar
+                  </Button>
+                )}
+              </div>
+              <Textarea
+                key={`atour-neg-${scene.id}-${scene.updated_at}`}
+                defaultValue={scene.negative_prompt ?? ""}
+                rows={5}
+                className="text-xs font-mono"
+                placeholder="Será preenchido após gerar o tour"
+                onBlur={async (e) => {
+                  if (e.target.value === (scene.negative_prompt ?? "")) return;
+                  const { error } = await supabase.from("scenes").update({ negative_prompt: e.target.value || null }).eq("id", scene.id);
+                  if (error) toast.error(error.message); else { toast.success("NEGATIVE PROMPT atualizado"); onChange(); }
+                }}
+              />
+            </section>
+
+            <section>
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-xs font-medium text-muted-foreground">ROUTE SUMMARY (trajeto escolhido — editável)</div>
+                {scene.route_summary && (
+                  <Button size="sm" variant="ghost" onClick={() => copy(scene.route_summary!, "ROUTE SUMMARY")}>
+                    <Copy className="mr-1.5 h-3 w-3" />Copiar
+                  </Button>
+                )}
+              </div>
+              <Textarea
+                key={`atour-route-${scene.id}-${scene.updated_at}`}
+                defaultValue={scene.route_summary ?? ""}
+                rows={3}
+                className="text-xs"
+                placeholder="Será preenchido após gerar o tour"
+                onBlur={async (e) => {
+                  if (e.target.value === (scene.route_summary ?? "")) return;
+                  const { error } = await supabase.from("scenes").update({ route_summary: e.target.value || null }).eq("id", scene.id);
+                  if (error) toast.error(error.message); else { toast.success("ROUTE SUMMARY atualizado"); onChange(); }
+                }}
+              />
+            </section>
+          </div>
+        )}
+
+
 
         {mode === "character" && (<>
         <div className="rounded-lg border border-dashed border-border bg-muted/30 p-3 text-xs space-y-1">

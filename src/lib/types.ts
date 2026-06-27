@@ -27,19 +27,31 @@ export interface Character {
   updated_at: string;
 }
 
-export type ProjectType = "reels" | "tour";
+export interface Animal {
+  id: string;
+  name: string;
+  species: string | null;
+  short_bio: string | null;
+  canonical_image: string | null;
+  canonical_prompt: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ProjectType = "reels" | "tour" | "animal_tour";
 
 export interface Project {
   id: string;
   name: string;
   character_id: string | null;
+  animal_id: string | null;
   project_type: ProjectType;
   created_at: string;
   updated_at: string;
 }
 
 export type SceneStatus = "pendente" | "gerado" | "aprovado";
-export type SceneMode = "character" | "room_tour" | "skip";
+export type SceneMode = "character" | "room_tour" | "animal_tour" | "skip";
 
 export type CameraFraming = "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto";
 
@@ -63,6 +75,8 @@ export interface Scene {
   cta: string | null;
   image_prompt: string | null;
   video_prompt: string | null;
+  negative_prompt: string | null;
+  route_summary: string | null;
   status: SceneStatus;
   camera_framing: CameraFraming;
   scene_mode: SceneMode;

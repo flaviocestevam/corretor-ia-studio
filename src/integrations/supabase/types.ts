@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      animals: {
+        Row: {
+          canonical_image: string | null
+          canonical_prompt: string | null
+          created_at: string
+          id: string
+          name: string
+          short_bio: string | null
+          species: string | null
+          updated_at: string
+        }
+        Insert: {
+          canonical_image?: string | null
+          canonical_prompt?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          short_bio?: string | null
+          species?: string | null
+          updated_at?: string
+        }
+        Update: {
+          canonical_image?: string | null
+          canonical_prompt?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          short_bio?: string | null
+          species?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       characters: {
         Row: {
           active_outfit_image: string | null
@@ -106,6 +139,7 @@ export type Database = {
       }
       projects: {
         Row: {
+          animal_id: string | null
           character_id: string | null
           client_id: string
           created_at: string
@@ -116,6 +150,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          animal_id?: string | null
           character_id?: string | null
           client_id: string
           created_at?: string
@@ -126,6 +161,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          animal_id?: string | null
           character_id?: string | null
           client_id?: string
           created_at?: string
@@ -136,6 +172,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "projects_animal_id_fkey"
+            columns: ["animal_id"]
+            isOneToOne: false
+            referencedRelation: "animals"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "projects_character_id_fkey"
             columns: ["character_id"]
@@ -162,9 +205,11 @@ export type Database = {
           id: string
           image_prompt: string | null
           model_used: string | null
+          negative_prompt: string | null
           original_room_image: string | null
           project_id: string
           room_name: string
+          route_summary: string | null
           scene_mode: string
           scene_order: number
           script_options: Json
@@ -183,9 +228,11 @@ export type Database = {
           id?: string
           image_prompt?: string | null
           model_used?: string | null
+          negative_prompt?: string | null
           original_room_image?: string | null
           project_id: string
           room_name: string
+          route_summary?: string | null
           scene_mode?: string
           scene_order: number
           script_options?: Json
@@ -204,9 +251,11 @@ export type Database = {
           id?: string
           image_prompt?: string | null
           model_used?: string | null
+          negative_prompt?: string | null
           original_room_image?: string | null
           project_id?: string
           room_name?: string
+          route_summary?: string | null
           scene_mode?: string
           scene_order?: number
           script_options?: Json
