@@ -49,6 +49,61 @@ async function fetchRoomImageDataUrl(
   return `data:${mime};base64,${buf.toString("base64")}`;
 }
 
+// ============ ROTAÇÃO DE API KEY DO GOOGLE (tabela google_api_keys) ============
+type AdminClient = { from: (t: string) => any };
+
+async function getActiveGoogleKey(
+  supabaseAdmin: AdminClient,
+): Promise<{ id: string; api_key: string }> {
+  const { data } = await supabaseAdmin
+    .from("google_api_keys")
+    .select("id, api_key")
+    .eq("is_active", true)
+    .eq("is_exhausted", false)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (!data) {
+    throw new Error(
+      "Nenhuma API key do Google ativa. Cadastre uma em Configurações (ou resete cotas esgotadas).",
+    );
+  }
+  return data as { id: string; api_key: string };
+}
+
+async function markGoogleKeyExhausted(supabaseAdmin: AdminClient, id: string) {
+  await supabaseAdmin
+    .from("google_api_keys")
+    .update({ is_exhausted: true, exhausted_at: new Date().toISOString() })
+    .eq("id", id);
+}
+
+async function callGeminiImage(
+  supabaseAdmin: AdminClient,
+  model: string,
+  body: unknown,
+): Promise<Response> {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const key = await getActiveGoogleKey(supabaseAdmin);
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: { "x-goog-api-key": key.api_key, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      },
+    );
+    if (res.status === 429 || res.status === 403) {
+      await markGoogleKeyExhausted(supabaseAdmin, key.id);
+      continue;
+    }
+    return res;
+  }
+  throw new Error(
+    "Todas as API keys do Google estão esgotadas. Adicione novas contas em Configurações ou resete as cotas.",
+  );
+}
+
 function extractJSON(raw: string) {
   const cleaned = raw.replace(/```json|```/g, "").trim();
   const start = cleaned.indexOf("[");
@@ -374,31 +429,15 @@ export const generateSceneImage = createServerFn({ method: "POST" })
       }
     }
 
-    function googleKey() {
-      const k = process.env.GOOGLE_AI_API_KEY;
-      if (!k) throw new Error("GOOGLE_AI_API_KEY ausente");
-      return k;
-    }
-
     async function callModel(model: string, extraReinforcement: string) {
       const finalParts = extraReinforcement
         ? [{ text: extraReinforcement }, ...parts]
         : parts;
-      return fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-        {
-          method: "POST",
-          headers: {
-            "x-goog-api-key": googleKey(),
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: absoluteRoomPreservationRule }] },
-            contents: [{ role: "user", parts: finalParts }],
-            generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
-          }),
-        },
-      );
+      return callGeminiImage(supabaseAdmin, model, {
+        systemInstruction: { parts: [{ text: absoluteRoomPreservationRule }] },
+        contents: [{ role: "user", parts: finalParts }],
+        generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+      });
     }
 
     // ============ VALIDADOR DE ENQUADRAMENTO (vision) ============
@@ -684,24 +723,12 @@ REFERÊNCIA DETALHADA (preservar 100%): ${description.trim().slice(0, 1500)}
 
 Saída: FOTOGRAFIA realista 9:16, mesma luz/cor/materiais da foto original, sem texto, sem logo, sem marca d'água.`;
 
-    function googleKey() {
-      const k = process.env.GOOGLE_AI_API_KEY;
-      if (!k) throw new Error("GOOGLE_AI_API_KEY ausente");
-      return k;
-    }
     async function callImg(model: string) {
-      return fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-        {
-          method: "POST",
-          headers: { "x-goog-api-key": googleKey(), "Content-Type": "application/json" },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: "Fidelidade absoluta à foto anexa. Apenas recomposição vertical 9:16. Nunca inventar nada." }] },
-            contents: [{ role: "user", parts: [{ text: verticalPrompt }, { inline_data: roomInline }] }],
-            generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
-          }),
-        },
-      );
+      return callGeminiImage(supabaseAdmin, model, {
+        systemInstruction: { parts: [{ text: "Fidelidade absoluta à foto anexa. Apenas recomposição vertical 9:16. Nunca inventar nada." }] },
+        contents: [{ role: "user", parts: [{ text: verticalPrompt }, { inline_data: roomInline }] }],
+        generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+      });
     }
     let imgRes = await callImg("gemini-3-pro-image");
     if (!imgRes.ok) imgRes = await callImg("gemini-3.1-flash-image");
@@ -786,11 +813,6 @@ export const generateAnimalTour = createServerFn({ method: "POST" })
     if (aErr || !animal) throw new Error("Animal não encontrado");
     if (!(animal as any).canonical_image) throw new Error("Animal sem foto canônica");
 
-    function googleKey() {
-      const k = process.env.GOOGLE_AI_API_KEY;
-      if (!k) throw new Error("GOOGLE_AI_API_KEY ausente");
-      return k;
-    }
     async function urlToInline(url: string): Promise<{ data: string; mime_type: string }> {
       const r = await fetch(url);
       if (!r.ok) throw new Error(`Falha ao baixar imagem (${r.status})`);
@@ -842,22 +864,15 @@ REGRAS ABSOLUTAS DE COMPOSIÇÃO (descumprir = REJEITADO):
 Resultado: um frame inicial forte e imersivo, claramente "câmera presa ao corpo", pronto para virar vídeo POV de tour.`;
 
     async function callImg(model: string) {
-      return fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-        {
-          method: "POST",
-          headers: { "x-goog-api-key": googleKey(), "Content-Type": "application/json" },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: "Câmera SEMPRE presa ao corpo do animal (POV body-mount sobre os ombros/pescoço). NUNCA mostrar o animal inteiro, rabo ou patas traseiras. Fidelidade absoluta ao cômodo da imagem 1." }] },
-            contents: [{ role: "user", parts: [
-              { text: imagePrompt },
-              { inline_data: roomInline },
-              { inline_data: animalInline },
-            ] }],
-            generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
-          }),
-        },
-      );
+      return callGeminiImage(supabaseAdmin, model, {
+        systemInstruction: { parts: [{ text: "Câmera SEMPRE presa ao corpo do animal (POV body-mount sobre os ombros/pescoço). NUNCA mostrar o animal inteiro, rabo ou patas traseiras. Fidelidade absoluta ao cômodo da imagem 1." }] },
+        contents: [{ role: "user", parts: [
+          { text: imagePrompt },
+          { inline_data: roomInline },
+          { inline_data: animalInline },
+        ] }],
+        generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+      });
     }
     let imgRes = await callImg("gemini-3-pro-image");
     let modelUsed = "gemini-3-pro-image";
