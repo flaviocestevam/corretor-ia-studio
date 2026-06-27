@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { supabase } from "@/integrations/supabase/client";
-import { getActiveApiKey, markKeyAsExhausted } from "./googleApiKeyRotator";
+import { getActiveApiKey, markKeyAsExhausted, buildKeysDiagnostic } from "./googleApiKeyRotator";
 
 interface GenerateVideoParams {
   sceneId: string;
