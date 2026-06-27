@@ -651,59 +651,65 @@ Responda APENAS com a descrição corrida (sem listas com bullets, sem markdown,
       0.4,
     );
 
-    const imagePrompt = `RECRIE ESTE CÔMODO EM FORMATO VERTICAL 9:16 PARA REELS/SHORTS, FOTOREALISTA, SEM PESSOAS.
-
-⚠️ REGRA ABSOLUTA — CONSISTÊNCIA TOTAL:
-- A imagem anexa é a referência IMUTÁVEL do cômodo "${scene.room_name}".
-- NÃO ADICIONE NENHUM elemento que não esteja na descrição/foto.
-- NÃO REMOVA NENHUM elemento descrito.
-- NÃO MUDE cores, materiais, posições, iluminação ou decoração.
-- A foto original é horizontal; ao recompor em 9:16, mantenha TODOS os elementos das bordas visíveis através de um enquadramento mais alto/recuado, NUNCA invente o que está fora.
-
-DESCRIÇÃO COMPLETA DO CÔMODO (preservar 100%):
-${description.trim()}
-
-ENQUADRAMENTO:
-- Vertical 9:16, fotografia arquitetônica profissional, lente grande-angular suave (24-28mm equivalente).
-- Câmera na altura dos olhos (~1,60m), levemente recuada para caber todos os elementos chave verticalmente.
-- Sem distorção exagerada, sem fisheye.
-- Iluminação idêntica à foto original (mesma hora do dia, mesmas sombras).
-- Qualidade editorial de revista de arquitetura.`;
-
     const videoPrompt = `🎥 TOUR NO CÔMODO — VÍDEO VERTICAL 9:16, DURAÇÃO EXATA 5 SEGUNDOS, SEM PESSOAS, SEM VOZ.
 
 CÔMODO: ${scene.room_name}
 
-MOVIMENTO DE CÂMERA (cinematográfico, suave, sem cortes):
-- Comece com plano levemente recuado mostrando o ambiente inteiro.
-- Faça um movimento contínuo: dolly-in lento + leve pan horizontal (esquerda→direita ou direita→esquerda dependendo da composição) revelando os detalhes principais.
-- Termine com um leve tilt-up ou parada suave em um elemento de destaque (luminária, vista pela janela, decoração icônica do cômodo).
-- Velocidade: lenta e contemplativa, como tour de revista de arquitetura.
-- Sem zoom brusco, sem corte, sem transição, sem texto sobreposto.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️⚠️⚠️ REGRA Nº1 — FIDELIDADE ABSOLUTA À FOTO DE REFERÊNCIA ⚠️⚠️⚠️
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+A foto anexa (HORIZONTAL) é a ÚNICA verdade visual deste cômodo. O vídeo precisa ter 100% de fidelidade a ela. Isso é INEGOCIÁVEL:
 
-CONSISTÊNCIA VISUAL (CRÍTICO):
-- O cômodo, a iluminação, os móveis e a decoração devem ser IDÊNTICOS à imagem de referência (frame inicial).
-- Nada deve aparecer, sumir ou se mover além da câmera.
-- NÃO ADICIONE pessoas, animais, objetos novos, partículas, reflexos artificiais ou efeitos extras.
+✅ PRESERVAR EXATAMENTE:
+- TODAS as cores (paredes, teto, piso, móveis, tecidos, almofadas, cortinas, quadros, plantas, objetos) — mesmas tonalidades, saturação e brilho.
+- TODA a iluminação (natural pelas janelas, lâmpadas, abajures, pendentes, spots) — mesma direção, mesma temperatura, mesmas sombras.
+- TODOS os materiais e acabamentos (madeira, mármore, porcelanato, metal, tecidos, vidro) — mesma textura e padrão.
+- TODOS os objetos visíveis, GRANDES e PEQUENOS, sem exceção: móveis, eletrodomésticos, luminárias, quadros, vasos, plantas, livros, almofadas, tapetes, controles, copos, decoração, fios, interruptores, maçanetas, rodapés, molduras, etc.
+- Posição e proporção exatas de cada elemento.
+- Piso (cor, material, padrão, sentido das tábuas/peças).
+- Teto (cor, textura, sancas, luminárias embutidas).
+- Paredes (cor exata, textura, quadros, prateleiras, tomadas).
+
+❌ PROIBIDO TERMINANTEMENTE:
+- INVENTAR qualquer objeto, móvel, planta, quadro, luminária, decoração ou detalhe que NÃO esteja na foto.
+- REMOVER qualquer elemento visível na foto.
+- TROCAR cores, materiais, texturas ou acabamentos.
+- ADICIONAR pessoas, animais, partículas, fumaça, reflexos artificiais, lens flare ou efeitos.
+- MUDAR a iluminação, a hora do dia ou o clima.
+- ALTERAR layout, posição de móveis ou perspectiva da arquitetura.
+- INVENTAR áreas/cômodos que não aparecem na foto (mesmo se a câmera se mover lateralmente, ficar dentro do espaço mostrado).
+
+Se em dúvida sobre algum elemento → MANTER IDÊNTICO À FOTO. Zero criatividade. Zero interpretação. Cópia fiel em movimento.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DESCRIÇÃO COMPLETA DO CÔMODO (referência detalhada — preservar 100%):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${description.trim()}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MOVIMENTO DE CÂMERA (cinematográfico, suave, sem cortes):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Saída vertical 9:16 (a foto é horizontal — recomponha o enquadramento mantendo todos os elementos visíveis ao longo do movimento, sem inventar nada fora do que está na foto).
+- Comece com plano levemente recuado mostrando o ambiente.
+- Movimento contínuo único: dolly-in lento + leve pan horizontal revelando os detalhes principais; pode incluir leve tilt-up suave em destaque (luminária, vista pela janela, decoração icônica).
+- Velocidade lenta e contemplativa, estilo tour de revista de arquitetura.
+- Sem zoom brusco, sem corte, sem transição, sem texto, sem logo.
+- Câmera estável (gimbal), altura ~1,60m.
 
 ÁUDIO:
 - Sem narração, sem voz humana, sem efeitos sonoros realistas (passos, vento, etc).
 - ${MUSIC_PRESETS[data.musicMood]}
-- Volume médio, sem fade brusco.
+- Volume médio, sem fade brusco.`;
 
-DESCRIÇÃO DO CÔMODO PARA REFERÊNCIA:
-${description.trim().slice(0, 400)}...`;
-
-    // Atualiza a cena: salva prompts e marca como gerada (sem imagem gerada ainda — usuário gera externamente)
     await supabaseAdmin
       .from("scenes")
       .update({
-        image_prompt: imagePrompt,
+        image_prompt: null,
         video_prompt: videoPrompt,
         status: "gerado",
       })
       .eq("id", data.sceneId);
 
-    return { image_prompt: imagePrompt, video_prompt: videoPrompt, description };
+    return { video_prompt: videoPrompt, description };
   });
 
