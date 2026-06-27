@@ -36,6 +36,7 @@ export interface Project {
 }
 
 export type SceneStatus = "pendente" | "gerado" | "aprovado";
+export type SceneMode = "character" | "room_tour" | "skip";
 
 export type CameraFraming = "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto";
 
