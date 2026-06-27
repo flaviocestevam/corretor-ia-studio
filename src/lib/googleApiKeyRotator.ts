@@ -1,31 +1,32 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export async function getActiveApiKey(): Promise<string | null> {
-  const { data: allKeys, error: allErr } = await supabase
-    .from("google_api_keys")
-    .select("id, label, is_active, is_exhausted");
-  console.log("[googleApiKeyRotator] all keys:", { count: allKeys?.length ?? 0, allKeys, allErr });
-
+export async function buildKeysDiagnostic(): Promise<string> {
   const { data, error } = await supabase
     .from("google_api_keys")
-    .select("id, api_key, label, is_active, is_exhausted")
+    .select("label, is_active, is_exhausted")
+    .order("created_at", { ascending: true });
+  if (error) return `Erro ao ler tabela google_api_keys: ${error.message}`;
+  const rows = data ?? [];
+  if (rows.length === 0) return "Keys no banco: 0.";
+  const parts = rows.map(
+    (k, i) =>
+      `Key ${i + 1} (${k.label}): is_active=${k.is_active}, is_exhausted=${k.is_exhausted}`,
+  );
+  return `Keys no banco: ${rows.length}. ${parts.join(". ")}.`;
+}
+
+export async function getActiveApiKey(): Promise<string | null> {
+  const { data } = await supabase
+    .from("google_api_keys")
+    .select("api_key")
     .eq("is_active", true)
     .eq("is_exhausted", false)
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();
-
-  console.log("[googleApiKeyRotator] active key query:", {
-    found: !!data,
-    label: data?.label,
-    is_active: data?.is_active,
-    is_exhausted: data?.is_exhausted,
-    error,
-  });
-
-  if (error || !data) return null;
-  return data.api_key;
+  return data?.api_key ?? null;
 }
+
 
 export async function markKeyAsExhausted(apiKey: string, error?: unknown): Promise<void> {
   // Only flag as exhausted on genuine quota errors (429 / RESOURCE_EXHAUSTED).
