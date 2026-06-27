@@ -12,13 +12,19 @@ import { Upload, GripVertical, X, Sparkles } from "lucide-react";
 import { uploadSceneFile } from "@/lib/storage";
 import { toast } from "sonner";
 
-const search = z.object({ characterId: z.string().optional(), clientId: z.string().optional() });
+const search = z.object({
+  characterId: z.string().optional(),
+  animalId: z.string().optional(),
+  clientId: z.string().optional(),
+});
 
 export const Route = createFileRoute("/projetos/novo")({
   validateSearch: search,
   head: () => ({ meta: [{ title: "Novo Projeto — Corretor IA Studio" }] }),
   component: NovoProjeto,
 });
+
+type ProjectType = "reels" | "tour" | "animal_tour";
 
 interface RoomDraft {
   id: string;
@@ -31,8 +37,11 @@ function NovoProjeto() {
   const navigate = useNavigate();
   const search = Route.useSearch();
   const [name, setName] = useState("");
-  const [projectType, setProjectType] = useState<"reels" | "tour">("reels");
+  const [projectType, setProjectType] = useState<ProjectType>(
+    search.animalId ? "animal_tour" : "reels",
+  );
   const [characterId, setCharacterId] = useState(search.characterId ?? "");
+  const [animalId, setAnimalId] = useState(search.animalId ?? "");
   const [clientId, setClientId] = useState(search.clientId ?? "");
   const [rooms, setRooms] = useState<RoomDraft[]>([]);
   const [creating, setCreating] = useState(false);
@@ -41,6 +50,15 @@ function NovoProjeto() {
     queryKey: ["characters-min"],
     queryFn: async () => {
       const { data, error } = await supabase.from("characters").select("id, name").order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: animals } = useQuery({
+    queryKey: ["animals-min"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("animals").select("id, name").order("name");
       if (error) throw error;
       return data;
     },
@@ -81,13 +99,20 @@ function NovoProjeto() {
       if (!name.trim()) throw new Error("Nome do projeto é obrigatório");
       if (!clientId) throw new Error("Selecione o cliente (imobiliária)");
       if (projectType === "reels" && !characterId) throw new Error("Selecione um personagem");
+      if (projectType === "animal_tour" && !animalId) throw new Error("Selecione um animal");
       if (rooms.length === 0) throw new Error("Adicione pelo menos uma foto");
+
+      const sceneMode =
+        projectType === "tour" ? "room_tour" :
+        projectType === "animal_tour" ? "animal_tour" :
+        "character";
 
       const { data: project, error: pErr } = await supabase
         .from("projects")
         .insert({
           name: name.trim(),
           character_id: projectType === "reels" ? characterId : null,
+          animal_id: projectType === "animal_tour" ? animalId : null,
           client_id: clientId,
           project_type: projectType,
         } as any)
@@ -105,7 +130,7 @@ function NovoProjeto() {
           room_name: r.name.trim() || `Cena ${i + 1}`,
           original_room_image: path,
           status: "pendente",
-          scene_mode: projectType === "tour" ? "room_tour" : "character",
+          scene_mode: sceneMode,
         });
       }
       const { error: sErr } = await supabase.from("scenes").insert(scenesPayload);
@@ -122,11 +147,17 @@ function NovoProjeto() {
     },
   });
 
+  const typeOptions: { v: ProjectType; title: string; desc: string }[] = [
+    { v: "reels", title: "🎬 Reels com corretor", desc: "Hooks, roteiros, CTA e cenas com personagem" },
+    { v: "tour", title: "🏠 Tour do imóvel", desc: "Câmera passeando pelos cômodos, sem personagem" },
+    { v: "animal_tour", title: "🐾 Tour com animal", desc: "POV body-mount: câmera presa no animal explorando o imóvel" },
+  ];
+
   return (
     <div className="p-6 md:p-10 max-w-3xl mx-auto space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Novo projeto</h1>
-        <p className="text-muted-foreground mt-1">Escolha o personagem, suba as fotos e organize a ordem das cenas.</p>
+        <p className="text-muted-foreground mt-1">Escolha o tipo, suba as fotos e organize a ordem das cenas.</p>
       </div>
 
       <Card>
@@ -134,23 +165,18 @@ function NovoProjeto() {
         <CardContent className="space-y-4">
           <div>
             <Label>Tipo de projeto *</Label>
-            <div className="grid grid-cols-2 gap-2 mt-1">
-              <button
-                type="button"
-                onClick={() => setProjectType("reels")}
-                className={`rounded-md border px-3 py-3 text-left text-sm transition ${projectType === "reels" ? "border-primary bg-primary/10" : "border-border hover:bg-muted/40"}`}
-              >
-                <div className="font-semibold">🎬 Reels com corretor</div>
-                <div className="text-xs text-muted-foreground mt-0.5">Hooks, roteiros, CTA e cenas com personagem</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setProjectType("tour")}
-                className={`rounded-md border px-3 py-3 text-left text-sm transition ${projectType === "tour" ? "border-primary bg-primary/10" : "border-border hover:bg-muted/40"}`}
-              >
-                <div className="font-semibold">🏠 Tour do imóvel</div>
-                <div className="text-xs text-muted-foreground mt-0.5">Só câmera passeando pelos cômodos, sem corretor</div>
-              </button>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-1">
+              {typeOptions.map((opt) => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  onClick={() => setProjectType(opt.v)}
+                  className={`rounded-md border px-3 py-3 text-left text-sm transition ${projectType === opt.v ? "border-primary bg-primary/10" : "border-border hover:bg-muted/40"}`}
+                >
+                  <div className="font-semibold">{opt.title}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{opt.desc}</div>
+                </button>
+              ))}
             </div>
           </div>
           <div>
@@ -179,6 +205,24 @@ function NovoProjeto() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          )}
+          {projectType === "animal_tour" && (
+            <div>
+              <Label>Animal *</Label>
+              <Select value={animalId} onValueChange={setAnimalId}>
+                <SelectTrigger><SelectValue placeholder="Selecionar animal..." /></SelectTrigger>
+                <SelectContent>
+                  {animals?.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!animals?.length && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Nenhum animal cadastrado. <a href="/animais/novo" className="text-primary underline">Cadastrar primeiro</a>
+                </p>
+              )}
             </div>
           )}
         </CardContent>
