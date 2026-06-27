@@ -723,24 +723,12 @@ REFERÊNCIA DETALHADA (preservar 100%): ${description.trim().slice(0, 1500)}
 
 Saída: FOTOGRAFIA realista 9:16, mesma luz/cor/materiais da foto original, sem texto, sem logo, sem marca d'água.`;
 
-    function googleKey() {
-      const k = process.env.GOOGLE_AI_API_KEY;
-      if (!k) throw new Error("GOOGLE_AI_API_KEY ausente");
-      return k;
-    }
     async function callImg(model: string) {
-      return fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-        {
-          method: "POST",
-          headers: { "x-goog-api-key": googleKey(), "Content-Type": "application/json" },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: "Fidelidade absoluta à foto anexa. Apenas recomposição vertical 9:16. Nunca inventar nada." }] },
-            contents: [{ role: "user", parts: [{ text: verticalPrompt }, { inline_data: roomInline }] }],
-            generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
-          }),
-        },
-      );
+      return callGeminiImage(supabaseAdmin, model, {
+        systemInstruction: { parts: [{ text: "Fidelidade absoluta à foto anexa. Apenas recomposição vertical 9:16. Nunca inventar nada." }] },
+        contents: [{ role: "user", parts: [{ text: verticalPrompt }, { inline_data: roomInline }] }],
+        generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+      });
     }
     let imgRes = await callImg("gemini-3-pro-image");
     if (!imgRes.ok) imgRes = await callImg("gemini-3.1-flash-image");
