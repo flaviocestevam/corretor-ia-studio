@@ -70,10 +70,7 @@ export function AnimalForm({ initial, animalId }: { initial?: Partial<Animal>; a
         <CardHeader><CardTitle>Identidade</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div><Label>Nome *</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Leo, Mel, Thor" /></div>
-          <div><Label>Espécie / raça</Label><Input value={species} onChange={(e) => setSpecies(e.target.value)} placeholder="Ex: Golden Retriever, Gato siamês, Leão africano" /></div>
-          <div><Label>Bio curta</Label><Textarea value={shortBio} onChange={(e) => setShortBio(e.target.value)} rows={2} placeholder="Descrição visual rápida" /></div>
-          <div>
-            <Label>Prompt visual canônico (em português ou inglês)</Label>
+
             <Textarea
               value={canonicalPrompt}
               onChange={(e) => setCanonicalPrompt(e.target.value)}
