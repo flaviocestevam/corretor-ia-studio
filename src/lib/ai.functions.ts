@@ -93,9 +93,22 @@ async function callGeminiImage(
         body: JSON.stringify(body),
       },
     );
-    if (res.status === 429 || res.status === 403) {
+    if (res.status === 429) {
       await markGoogleKeyExhausted(supabaseAdmin, key.id);
       continue;
+    }
+    if (res.status === 401 || res.status === 403) {
+      const txt = await res.text();
+      throw new Error(`Erro de autenticação na API key "${key.label ?? key.id}" (${res.status}). Verifique se a key é válida. Detalhe: ${txt}`);
+    }
+    if (!res.ok) {
+      const txt = await res.text();
+      // Check for RESOURCE_EXHAUSTED in body even on non-429 (some quota errors)
+      if (/RESOURCE_EXHAUSTED/i.test(txt)) {
+        await markGoogleKeyExhausted(supabaseAdmin, key.id);
+        continue;
+      }
+      throw new Error(`Google API ${res.status}: ${txt}`);
     }
     return res;
   }
