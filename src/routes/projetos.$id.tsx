@@ -353,14 +353,25 @@ function SceneCard({
   const genScripts = useServerFn(generateScripts);
   const genImage = useServerFn(generateSceneImage);
   const genVideoP = useServerFn(generateVideoPrompt);
+  const genTour = useServerFn(generateRoomTour);
   const approve = useServerFn(approveScene);
 
   const [loadingHooks, setLoadingHooks] = useState(false);
   const [loadingScripts, setLoadingScripts] = useState(false);
   const [loadingImage, setLoadingImage] = useState(false);
   const [loadingVideo, setLoadingVideo] = useState(false);
+  const [loadingTour, setLoadingTour] = useState(false);
+  const [musicMood, setMusicMood] = useState<"aconchegante" | "sofisticado" | "energetico">("sofisticado");
   const [lastError, setLastError] = useState<{ label: string; message: string; retry: () => void } | null>(null);
-  const busy = loadingHooks || loadingScripts || loadingImage || loadingVideo;
+  const busy = loadingHooks || loadingScripts || loadingImage || loadingVideo || loadingTour;
+  const mode: SceneMode = (scene.scene_mode ?? "character") as SceneMode;
+
+  async function changeMode(next: SceneMode) {
+    if (next === mode) return;
+    const { error } = await supabase.from("scenes").update({ scene_mode: next }).eq("id", scene.id);
+    if (error) toast.error(error.message);
+    else { toast.success(next === "character" ? "Modo: Com Corretor" : next === "room_tour" ? "Modo: Tour no Cômodo" : "Modo: Pular"); onChange(); }
+  }
 
   async function run<T>(
     fn: () => Promise<T>,
