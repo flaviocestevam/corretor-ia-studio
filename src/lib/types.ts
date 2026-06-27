@@ -62,6 +62,7 @@ export interface Scene {
   video_prompt: string | null;
   status: SceneStatus;
   camera_framing: CameraFraming;
+  scene_mode: SceneMode;
   model_used: string | null;
   created_at: string;
   updated_at: string;
