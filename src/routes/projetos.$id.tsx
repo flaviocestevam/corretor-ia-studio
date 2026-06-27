@@ -25,9 +25,10 @@ import {
   generateScripts,
   generateSceneImage,
   generateVideoPrompt,
+  generateRoomTour,
   approveScene,
 } from "@/lib/ai.functions";
-import type { Scene, Character, SceneHookOption } from "@/lib/types";
+import type { Scene, Character, SceneHookOption, SceneMode } from "@/lib/types";
 
 export const Route = createFileRoute("/projetos/$id")({
   head: () => ({ meta: [{ title: "Projeto — Corretor IA Studio" }] }),
