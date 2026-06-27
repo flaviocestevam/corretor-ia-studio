@@ -17,8 +17,6 @@ export function AnimalForm({ initial, animalId }: { initial?: Partial<Animal>; a
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [name, setName] = useState(initial?.name ?? "");
-  const [species, setSpecies] = useState(initial?.species ?? "");
-  const [shortBio, setShortBio] = useState(initial?.short_bio ?? "");
   const [canonicalPrompt, setCanonicalPrompt] = useState(initial?.canonical_prompt ?? "");
   const [canonicalImage, setCanonicalImage] = useState<string | null>(initial?.canonical_image ?? null);
 
@@ -26,8 +24,6 @@ export function AnimalForm({ initial, animalId }: { initial?: Partial<Animal>; a
     mutationFn: async () => {
       const payload = {
         name: name.trim(),
-        species: species.trim() || null,
-        short_bio: shortBio || null,
         canonical_prompt: canonicalPrompt || null,
         canonical_image: canonicalImage,
       };
