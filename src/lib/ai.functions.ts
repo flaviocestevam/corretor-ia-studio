@@ -591,3 +591,119 @@ export const approveScene = createServerFn({ method: "POST" })
     await supabaseAdmin.from("scenes").update({ status: "aprovado" }).eq("id", data.sceneId);
     return true;
   });
+
+// ============ TOUR NO CÔMODO (sem personagem) ============
+const GenRoomTourInput = z.object({
+  sceneId: z.string().uuid(),
+  musicMood: z.enum(["aconchegante", "sofisticado", "energetico"]).default("sofisticado"),
+});
+
+const MUSIC_PRESETS: Record<string, string> = {
+  aconchegante: "Trilha sonora: piano suave + lo-fi acústico, mood aconchegante e familiar, andamento lento (~70 BPM), sem voz, sem letra. Referência: 'cozy home' / 'warm interior'.",
+  sofisticado: "Trilha sonora: cinematic strings minimalistas + jazz piano suave, mood sofisticado e elegante, andamento moderado (~80 BPM), sem voz, sem letra. Referência: 'luxury real estate' / 'editorial cinematic'.",
+  energetico: "Trilha sonora: house chill instrumental + indie pop acústico, mood leve e vibrante, andamento (~95 BPM), sem voz, sem letra. Referência: 'modern lifestyle' / 'uplifting interior tour'.",
+};
+
+export const generateRoomTour = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => GenRoomTourInput.parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: scene, error: sErr } = await supabaseAdmin
+      .from("scenes")
+      .select("*")
+      .eq("id", data.sceneId)
+      .single();
+    if (sErr || !scene) throw new Error("Cena não encontrada");
+    if (!scene.original_room_image) throw new Error("Cena não tem foto do cômodo");
+
+    const imageDataUrl = await fetchRoomImageDataUrl(supabaseAdmin, scene.original_room_image);
+    if (!imageDataUrl) throw new Error("Não foi possível ler a foto do cômodo");
+
+    // 1) Descrição detalhada do cômodo (vision) — base para o prompt de imagem
+    const descPrompt = `Você é especialista em descrever interiores para reprodução fotográfica fiel.
+
+Analise a foto anexa (foto HORIZONTAL do cômodo "${scene.room_name}") e produza UMA descrição minuciosa, em português, listando TODOS os elementos visíveis:
+- Layout e arquitetura (paredes, teto, piso, janelas, portas, pé-direito).
+- Cores exatas (paredes, tetos, móveis, tecidos, acabamentos).
+- Materiais e acabamentos (madeira clara/escura, mármore, porcelanato, tecido bouclé, metal escovado, etc).
+- Todos os móveis e suas posições relativas.
+- Iluminação (natural, pendentes, luminárias, abajures, spots).
+- Decoração (quadros, vasos, plantas, objetos, livros, almofadas, tapetes).
+- Vista pelas janelas, cortinas e persianas.
+- Texturas e padrões.
+- Atmosfera geral (luz, sombra, hora do dia).
+
+Inclua também os elementos que estão nas BORDAS da foto (esquerda/direita) que serão CORTADOS ao converter para vertical 9:16, descrevendo-os com a mesma precisão, porque o prompt de imagem precisa preservá-los mesmo fora do enquadramento vertical.
+
+Responda APENAS com a descrição corrida (sem listas com bullets, sem markdown, sem cabeçalhos). Mínimo 200 palavras.`;
+
+    const description = await chat(
+      [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: descPrompt },
+            { type: "image_url", image_url: { url: imageDataUrl } },
+          ],
+        },
+      ],
+      "google/gemini-3-flash-preview",
+      0.4,
+    );
+
+    const imagePrompt = `RECRIE ESTE CÔMODO EM FORMATO VERTICAL 9:16 PARA REELS/SHORTS, FOTOREALISTA, SEM PESSOAS.
+
+⚠️ REGRA ABSOLUTA — CONSISTÊNCIA TOTAL:
+- A imagem anexa é a referência IMUTÁVEL do cômodo "${scene.room_name}".
+- NÃO ADICIONE NENHUM elemento que não esteja na descrição/foto.
+- NÃO REMOVA NENHUM elemento descrito.
+- NÃO MUDE cores, materiais, posições, iluminação ou decoração.
+- A foto original é horizontal; ao recompor em 9:16, mantenha TODOS os elementos das bordas visíveis através de um enquadramento mais alto/recuado, NUNCA invente o que está fora.
+
+DESCRIÇÃO COMPLETA DO CÔMODO (preservar 100%):
+${description.trim()}
+
+ENQUADRAMENTO:
+- Vertical 9:16, fotografia arquitetônica profissional, lente grande-angular suave (24-28mm equivalente).
+- Câmera na altura dos olhos (~1,60m), levemente recuada para caber todos os elementos chave verticalmente.
+- Sem distorção exagerada, sem fisheye.
+- Iluminação idêntica à foto original (mesma hora do dia, mesmas sombras).
+- Qualidade editorial de revista de arquitetura.`;
+
+    const videoPrompt = `🎥 TOUR NO CÔMODO — VÍDEO VERTICAL 9:16, DURAÇÃO EXATA 5 SEGUNDOS, SEM PESSOAS, SEM VOZ.
+
+CÔMODO: ${scene.room_name}
+
+MOVIMENTO DE CÂMERA (cinematográfico, suave, sem cortes):
+- Comece com plano levemente recuado mostrando o ambiente inteiro.
+- Faça um movimento contínuo: dolly-in lento + leve pan horizontal (esquerda→direita ou direita→esquerda dependendo da composição) revelando os detalhes principais.
+- Termine com um leve tilt-up ou parada suave em um elemento de destaque (luminária, vista pela janela, decoração icônica do cômodo).
+- Velocidade: lenta e contemplativa, como tour de revista de arquitetura.
+- Sem zoom brusco, sem corte, sem transição, sem texto sobreposto.
+
+CONSISTÊNCIA VISUAL (CRÍTICO):
+- O cômodo, a iluminação, os móveis e a decoração devem ser IDÊNTICOS à imagem de referência (frame inicial).
+- Nada deve aparecer, sumir ou se mover além da câmera.
+- NÃO ADICIONE pessoas, animais, objetos novos, partículas, reflexos artificiais ou efeitos extras.
+
+ÁUDIO:
+- Sem narração, sem voz humana, sem efeitos sonoros realistas (passos, vento, etc).
+- ${MUSIC_PRESETS[data.musicMood]}
+- Volume médio, sem fade brusco.
+
+DESCRIÇÃO DO CÔMODO PARA REFERÊNCIA:
+${description.trim().slice(0, 400)}...`;
+
+    // Atualiza a cena: salva prompts e marca como gerada (sem imagem gerada ainda — usuário gera externamente)
+    await supabaseAdmin
+      .from("scenes")
+      .update({
+        image_prompt: imagePrompt,
+        video_prompt: videoPrompt,
+        status: "gerado",
+      })
+      .eq("id", data.sceneId);
+
+    return { image_prompt: imagePrompt, video_prompt: videoPrompt, description };
+  });
+
