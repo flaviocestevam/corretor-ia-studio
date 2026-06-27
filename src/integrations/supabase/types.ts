@@ -137,39 +137,6 @@ export type Database = {
         }
         Relationships: []
       }
-      google_api_keys: {
-        Row: {
-          api_key: string
-          created_at: string
-          exhausted_at: string | null
-          id: string
-          is_active: boolean
-          is_exhausted: boolean
-          label: string
-          updated_at: string
-        }
-        Insert: {
-          api_key: string
-          created_at?: string
-          exhausted_at?: string | null
-          id?: string
-          is_active?: boolean
-          is_exhausted?: boolean
-          label: string
-          updated_at?: string
-        }
-        Update: {
-          api_key?: string
-          created_at?: string
-          exhausted_at?: string | null
-          id?: string
-          is_active?: boolean
-          is_exhausted?: boolean
-          label?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       projects: {
         Row: {
           animal_id: string | null
@@ -234,7 +201,6 @@ export type Database = {
           created_at: string
           cta: string | null
           generated_character_image: string | null
-          generated_video_url: string | null
           hook_options: Json
           id: string
           image_prompt: string | null
@@ -251,17 +217,13 @@ export type Database = {
           selected_script: string | null
           status: string
           updated_at: string
-          video_error: string | null
-          video_generated_at: string | null
           video_prompt: string | null
-          video_status: string
         }
         Insert: {
           camera_framing?: string
           created_at?: string
           cta?: string | null
           generated_character_image?: string | null
-          generated_video_url?: string | null
           hook_options?: Json
           id?: string
           image_prompt?: string | null
@@ -278,17 +240,13 @@ export type Database = {
           selected_script?: string | null
           status?: string
           updated_at?: string
-          video_error?: string | null
-          video_generated_at?: string | null
           video_prompt?: string | null
-          video_status?: string
         }
         Update: {
           camera_framing?: string
           created_at?: string
           cta?: string | null
           generated_character_image?: string | null
-          generated_video_url?: string | null
           hook_options?: Json
           id?: string
           image_prompt?: string | null
@@ -305,10 +263,7 @@ export type Database = {
           selected_script?: string | null
           status?: string
           updated_at?: string
-          video_error?: string | null
-          video_generated_at?: string | null
           video_prompt?: string | null
-          video_status?: string
         }
         Relationships: [
           {

@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, FolderKanban, Plus, Sparkles, Building2, PawPrint, Settings } from "lucide-react";
+import { LayoutDashboard, Users, FolderKanban, Plus, Sparkles, Building2, PawPrint } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -18,7 +18,7 @@ const items = [
   { title: "Imóveis", url: "/projetos", icon: FolderKanban },
   { title: "Personagens", url: "/personagens", icon: Users },
   { title: "Animais", url: "/animais", icon: PawPrint },
-  { title: "Configurações", url: "/configuracoes", icon: Settings },
+  
 ];
 
 export function AppSidebar() {
