@@ -17,7 +17,7 @@ import {
   ArrowDown, ArrowUp, Plus, PlayCircle,
 } from "lucide-react";
 import { toast } from "sonner";
-import { SceneVideoSection } from "@/components/SceneVideoSection";
+
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 
