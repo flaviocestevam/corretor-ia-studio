@@ -38,7 +38,12 @@ export const Route = createFileRoute("/projetos/$id")({
 type NextStep = { label: string; tone: "todo" | "done" } | null;
 
 function nextStep(scene: Scene, isFirst: boolean): NextStep {
+  if (scene.scene_mode === "skip") return { label: "⏸️ Pulada", tone: "done" };
   if (scene.status === "aprovado") return { label: "✅ Aprovada", tone: "done" };
+  if (scene.scene_mode === "room_tour") {
+    if (!scene.image_prompt || !scene.video_prompt) return { label: "Falta: gerar tour", tone: "todo" };
+    return { label: "Pronta — falta aprovar", tone: "todo" };
+  }
   if (!scene.generated_character_image) return { label: "Falta: gerar imagem", tone: "todo" };
   if (isFirst && !scene.selected_hook) return { label: "Falta: escolher hook", tone: "todo" };
   if (!isFirst && !scene.selected_script) return { label: "Falta: escolher roteiro", tone: "todo" };
