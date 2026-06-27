@@ -480,7 +480,7 @@ Responda APENAS JSON: {"detected":"selfie|meio_corpo|corpo_inteiro|plano_aberto"
       }
     }
 
-    const PRO = "gemini-3-pro-image";
+    const PRO = "gemini-3.1-flash-image";
     const FLASH = "gemini-3.1-flash-image";
 
     let usedFallback = false;
@@ -730,7 +730,7 @@ Saída: FOTOGRAFIA realista 9:16, mesma luz/cor/materiais da foto original, sem 
         generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
       });
     }
-    let imgRes = await callImg("gemini-3-pro-image");
+    let imgRes = await callImg("gemini-3.1-flash-image");
     if (!imgRes.ok) imgRes = await callImg("gemini-3.1-flash-image");
     if (!imgRes.ok) throw new Error(`Google API ${imgRes.status}: ${await imgRes.text()}`);
     const imgJson = await imgRes.json();
@@ -874,8 +874,8 @@ Resultado: um frame inicial forte e imersivo, claramente "câmera presa ao corpo
         generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
       });
     }
-    let imgRes = await callImg("gemini-3-pro-image");
-    let modelUsed = "gemini-3-pro-image";
+    let imgRes = await callImg("gemini-3.1-flash-image");
+    let modelUsed = "gemini-3.1-flash-image";
     if (!imgRes.ok) {
       imgRes = await callImg("gemini-3.1-flash-image");
       modelUsed = "gemini-3.1-flash-image";
