@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjetosIndexRouteImport } from './routes/projetos.index'
 import { Route as PersonagensIndexRouteImport } from './routes/personagens.index'
@@ -22,6 +23,11 @@ import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
 import { Route as AnimaisNovoRouteImport } from './routes/animais.novo'
 import { Route as AnimaisIdRouteImport } from './routes/animais.$id'
 
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -85,6 +91,7 @@ const AnimaisIdRoute = AnimaisIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/configuracoes': typeof ConfiguracoesRoute
   '/animais/$id': typeof AnimaisIdRoute
   '/animais/novo': typeof AnimaisNovoRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/configuracoes': typeof ConfiguracoesRoute
   '/animais/$id': typeof AnimaisIdRoute
   '/animais/novo': typeof AnimaisNovoRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -114,6 +122,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/configuracoes': typeof ConfiguracoesRoute
   '/animais/$id': typeof AnimaisIdRoute
   '/animais/novo': typeof AnimaisNovoRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/configuracoes'
     | '/animais/$id'
     | '/animais/novo'
     | '/clientes/$id'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/configuracoes'
     | '/animais/$id'
     | '/animais/novo'
     | '/clientes/$id'
@@ -158,6 +169,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/configuracoes'
     | '/animais/$id'
     | '/animais/novo'
     | '/clientes/$id'
@@ -173,6 +185,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ConfiguracoesRoute: typeof ConfiguracoesRoute
   AnimaisIdRoute: typeof AnimaisIdRoute
   AnimaisNovoRoute: typeof AnimaisNovoRoute
   ClientesIdRoute: typeof ClientesIdRoute
@@ -188,6 +201,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -277,6 +297,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ConfiguracoesRoute: ConfiguracoesRoute,
   AnimaisIdRoute: AnimaisIdRoute,
   AnimaisNovoRoute: AnimaisNovoRoute,
   ClientesIdRoute: ClientesIdRoute,
