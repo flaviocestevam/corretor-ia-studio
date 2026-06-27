@@ -651,65 +651,111 @@ Responda APENAS com a descrição corrida (sem listas com bullets, sem markdown,
       0.4,
     );
 
+    // 2) Recomposição VERTICAL 9:16 da foto (pra IA de vídeo respeitar a proporção)
+    const { data: signed } = await supabaseAdmin.storage
+      .from("scene-assets")
+      .createSignedUrl(scene.original_room_image, 600);
+    if (!signed) throw new Error("Não foi possível assinar a foto");
+
+    async function urlToInline(url: string): Promise<{ data: string; mime_type: string }> {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`Falha ao baixar imagem (${r.status})`);
+      const mime = r.headers.get("content-type")?.split(";")[0] || "image/jpeg";
+      const buf = new Uint8Array(await r.arrayBuffer());
+      let bin = "";
+      for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+      return { data: btoa(bin), mime_type: mime };
+    }
+    const roomInline = await urlToInline(signed.signedUrl);
+
+    const verticalPrompt = `🚨 TAREFA: RECOMPOR a foto horizontal anexa em formato VERTICAL 9:16 (retrato), MANTENDO 100% DE FIDELIDADE visual ao cômodo original.
+
+REGRAS ABSOLUTAS:
+✅ Preservar EXATAMENTE: todas as cores (paredes, teto, piso, móveis, tecidos, almofadas, cortinas, quadros, plantas), iluminação (direção, temperatura, sombras), materiais e acabamentos (madeira, mármore, metal, tecidos), TODOS os objetos visíveis (grandes e pequenos), texturas, padrões do piso, sancas do teto, rodapés, molduras.
+✅ Mesma atmosfera, mesma hora do dia, mesmo clima.
+✅ Saída obrigatória: VERTICAL 9:16 (retrato).
+✅ Recompor o enquadramento aproximando levemente a câmera ou reposicionando verticalmente, mantendo o MAIOR número possível de elementos centrais visíveis.
+✅ As bordas laterais que forem cortadas devem ser substituídas naturalmente por extensão do MESMO piso/parede/teto já visíveis (sem inventar novos móveis, quadros, janelas, objetos).
+
+❌ PROIBIDO: inventar móveis, decoração, plantas, quadros, luminárias, janelas ou áreas novas. Trocar cores. Mudar iluminação. Adicionar pessoas, animais, partículas, lens flare. Estilizar (não é renderização, é fotografia real). Alterar materiais. Alterar layout.
+
+CÔMODO: ${scene.room_name}
+REFERÊNCIA DETALHADA (preservar 100%): ${description.trim().slice(0, 1500)}
+
+Saída: FOTOGRAFIA realista 9:16, mesma luz/cor/materiais da foto original, sem texto, sem logo, sem marca d'água.`;
+
+    function googleKey() {
+      const k = process.env.GOOGLE_AI_API_KEY;
+      if (!k) throw new Error("GOOGLE_AI_API_KEY ausente");
+      return k;
+    }
+    async function callImg(model: string) {
+      return fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+        {
+          method: "POST",
+          headers: { "x-goog-api-key": googleKey(), "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: "Fidelidade absoluta à foto anexa. Apenas recomposição vertical 9:16. Nunca inventar nada." }] },
+            contents: [{ role: "user", parts: [{ text: verticalPrompt }, { inline_data: roomInline }] }],
+            generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+          }),
+        },
+      );
+    }
+    let imgRes = await callImg("gemini-3-pro-image");
+    if (!imgRes.ok) imgRes = await callImg("gemini-3.1-flash-image");
+    if (!imgRes.ok) throw new Error(`Google API ${imgRes.status}: ${await imgRes.text()}`);
+    const imgJson = await imgRes.json();
+    const respParts = imgJson?.candidates?.[0]?.content?.parts ?? [];
+    const imgPart = respParts.find((p: any) => p?.inline_data?.data || p?.inlineData?.data);
+    const b64: string | undefined = imgPart?.inline_data?.data ?? imgPart?.inlineData?.data;
+    if (!b64) throw new Error("IA não retornou imagem vertical");
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const verticalPath = `${scene.project_id}/tour/${crypto.randomUUID()}.png`;
+    const { error: upErr } = await supabaseAdmin.storage
+      .from("scene-assets")
+      .upload(verticalPath, bytes, { contentType: "image/png", upsert: false });
+    if (upErr) throw upErr;
+
     const videoPrompt = `🎥 TOUR NO CÔMODO — VÍDEO VERTICAL 9:16, DURAÇÃO EXATA 5 SEGUNDOS, SEM PESSOAS, SEM VOZ.
+
+⚠️ USE A IMAGEM VERTICAL 9:16 ANEXA COMO REFERÊNCIA VISUAL E COMO ENQUADRAMENTO BASE. A SAÍDA TAMBÉM DEVE SER 9:16 (retrato).
 
 CÔMODO: ${scene.room_name}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️⚠️⚠️ REGRA Nº1 — FIDELIDADE ABSOLUTA À FOTO DE REFERÊNCIA ⚠️⚠️⚠️
+⚠️⚠️⚠️ REGRA Nº1 — FIDELIDADE ABSOLUTA À IMAGEM DE REFERÊNCIA ⚠️⚠️⚠️
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-A foto anexa (HORIZONTAL) é a ÚNICA verdade visual deste cômodo. O vídeo precisa ter 100% de fidelidade a ela. Isso é INEGOCIÁVEL:
+✅ PRESERVAR EXATAMENTE: cores, iluminação, materiais, acabamentos, móveis, decoração, piso, teto, paredes, objetos grandes e pequenos.
+❌ PROIBIDO: inventar objetos/móveis/plantas/quadros, remover elementos, trocar cores/materiais, adicionar pessoas/animais/partículas/lens flare, mudar iluminação/clima, alterar layout.
 
-✅ PRESERVAR EXATAMENTE:
-- TODAS as cores (paredes, teto, piso, móveis, tecidos, almofadas, cortinas, quadros, plantas, objetos) — mesmas tonalidades, saturação e brilho.
-- TODA a iluminação (natural pelas janelas, lâmpadas, abajures, pendentes, spots) — mesma direção, mesma temperatura, mesmas sombras.
-- TODOS os materiais e acabamentos (madeira, mármore, porcelanato, metal, tecidos, vidro) — mesma textura e padrão.
-- TODOS os objetos visíveis, GRANDES e PEQUENOS, sem exceção: móveis, eletrodomésticos, luminárias, quadros, vasos, plantas, livros, almofadas, tapetes, controles, copos, decoração, fios, interruptores, maçanetas, rodapés, molduras, etc.
-- Posição e proporção exatas de cada elemento.
-- Piso (cor, material, padrão, sentido das tábuas/peças).
-- Teto (cor, textura, sancas, luminárias embutidas).
-- Paredes (cor exata, textura, quadros, prateleiras, tomadas).
-
-❌ PROIBIDO TERMINANTEMENTE:
-- INVENTAR qualquer objeto, móvel, planta, quadro, luminária, decoração ou detalhe que NÃO esteja na foto.
-- REMOVER qualquer elemento visível na foto.
-- TROCAR cores, materiais, texturas ou acabamentos.
-- ADICIONAR pessoas, animais, partículas, fumaça, reflexos artificiais, lens flare ou efeitos.
-- MUDAR a iluminação, a hora do dia ou o clima.
-- ALTERAR layout, posição de móveis ou perspectiva da arquitetura.
-- INVENTAR áreas/cômodos que não aparecem na foto (mesmo se a câmera se mover lateralmente, ficar dentro do espaço mostrado).
-
-Se em dúvida sobre algum elemento → MANTER IDÊNTICO À FOTO. Zero criatividade. Zero interpretação. Cópia fiel em movimento.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-DESCRIÇÃO COMPLETA DO CÔMODO (referência detalhada — preservar 100%):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DESCRIÇÃO COMPLETA (preservar 100%):
 ${description.trim()}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 MOVIMENTO DE CÂMERA (cinematográfico, suave, sem cortes):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- Saída vertical 9:16 (a foto é horizontal — recomponha o enquadramento mantendo todos os elementos visíveis ao longo do movimento, sem inventar nada fora do que está na foto).
-- Comece com plano levemente recuado mostrando o ambiente.
-- Movimento contínuo único: dolly-in lento + leve pan horizontal revelando os detalhes principais; pode incluir leve tilt-up suave em destaque (luminária, vista pela janela, decoração icônica).
-- Velocidade lenta e contemplativa, estilo tour de revista de arquitetura.
+- SAÍDA OBRIGATÓRIA 9:16 vertical (a imagem de referência já está em 9:16).
+- Movimento contínuo: dolly-in lento + leve pan ou tilt suave revelando os detalhes principais.
+- Velocidade lenta, contemplativa, tour de revista de arquitetura.
 - Sem zoom brusco, sem corte, sem transição, sem texto, sem logo.
-- Câmera estável (gimbal), altura ~1,60m.
+- Câmera estável (gimbal).
 
 ÁUDIO:
-- Sem narração, sem voz humana, sem efeitos sonoros realistas (passos, vento, etc).
+- Sem narração, sem voz humana, sem efeitos sonoros realistas.
 - ${MUSIC_PRESETS[data.musicMood]}
-- Volume médio, sem fade brusco.`;
+- Volume médio.`;
 
     await supabaseAdmin
       .from("scenes")
       .update({
-        image_prompt: null,
+        generated_character_image: verticalPath,
+        image_prompt: verticalPrompt,
         video_prompt: videoPrompt,
         status: "gerado",
       })
       .eq("id", data.sceneId);
 
-    return { video_prompt: videoPrompt, description };
+    return { video_prompt: videoPrompt, vertical_image: verticalPath, description };
   });
+
 
