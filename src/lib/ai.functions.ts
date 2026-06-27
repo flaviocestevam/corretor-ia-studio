@@ -813,11 +813,6 @@ export const generateAnimalTour = createServerFn({ method: "POST" })
     if (aErr || !animal) throw new Error("Animal não encontrado");
     if (!(animal as any).canonical_image) throw new Error("Animal sem foto canônica");
 
-    function googleKey() {
-      const k = process.env.GOOGLE_AI_API_KEY;
-      if (!k) throw new Error("GOOGLE_AI_API_KEY ausente");
-      return k;
-    }
     async function urlToInline(url: string): Promise<{ data: string; mime_type: string }> {
       const r = await fetch(url);
       if (!r.ok) throw new Error(`Falha ao baixar imagem (${r.status})`);
