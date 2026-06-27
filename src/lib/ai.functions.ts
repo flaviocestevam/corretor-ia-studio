@@ -49,18 +49,72 @@ async function fetchRoomImageDataUrl(
   return `data:${mime};base64,${buf.toString("base64")}`;
 }
 
-async function callGeminiImage(model: string, body: unknown): Promise<Response> {
-  const apiKey = process.env.GOOGLE_AI_API_KEY;
-  if (!apiKey) throw new Error("GOOGLE_AI_API_KEY não configurada");
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-    {
-      method: "POST",
-      headers: { "x-goog-api-key": apiKey, "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+// Chama modelos de imagem do Gemini via Lovable AI Gateway.
+// Aceita o body em formato Google nativo (systemInstruction + contents[].parts)
+// e converte para o shape OpenRouter chat-completions image. Retorna um Response
+// que expõe candidates[0].content.parts[].inline_data.data para os call sites.
+async function callGeminiImage(model: string, body: any): Promise<Response> {
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (!apiKey) throw new Error("LOVABLE_API_KEY não configurada");
+
+  const gatewayModel = model.startsWith("google/") ? model : `google/${model}`;
+
+  const messages: Array<{ role: string; content: any }> = [];
+  const sysText = body?.systemInstruction?.parts
+    ?.map((p: any) => p?.text)
+    .filter(Boolean)
+    .join("\n");
+  if (sysText) messages.push({ role: "system", content: sysText });
+
+  for (const c of body?.contents ?? []) {
+    const content: Array<any> = [];
+    for (const p of c?.parts ?? []) {
+      if (p?.text) {
+        content.push({ type: "text", text: p.text });
+      } else if (p?.inline_data?.data || p?.inlineData?.data) {
+        const data = p.inline_data?.data ?? p.inlineData?.data;
+        const mime = p.inline_data?.mime_type ?? p.inlineData?.mimeType ?? "image/jpeg";
+        content.push({
+          type: "image_url",
+          image_url: { url: `data:${mime};base64,${data}` },
+        });
+      }
+    }
+    messages.push({ role: c.role === "model" ? "assistant" : "user", content });
+  }
+
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
     },
-  );
-  return res;
+    body: JSON.stringify({ model: gatewayModel, messages, modalities: ["image", "text"] }),
+  });
+
+  if (!res.ok) {
+    // Repassa o erro para os call sites continuarem usando res.ok/res.text()
+    return res;
+  }
+
+  const json: any = await res.json();
+  const b64 = json?.data?.[0]?.b64_json;
+  // Normaliza para o shape Google que os call sites esperam.
+  const shim = {
+    candidates: [
+      {
+        content: {
+          parts: b64
+            ? [{ inline_data: { data: b64, mime_type: "image/png" } }]
+            : [],
+        },
+      },
+    ],
+  };
+  return new Response(JSON.stringify(shim), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 function extractJSON(raw: string) {
