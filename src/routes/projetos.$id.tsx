@@ -590,15 +590,26 @@ function SceneCard({
               <div>4️⃣ Clique em <b>Aprovar</b> quando estiver pronta.</div>
             </div>
 
-            <div>
-              <div className="text-xs font-medium text-muted-foreground mb-1.5">Foto original do cômodo (use ela como referência no gerador de vídeo)</div>
-              <SignedImage path={scene.original_room_image} alt="Original" className="w-full max-w-md aspect-video rounded-lg border border-border" />
-              {scene.original_room_image && (
-                <Button variant="ghost" size="sm" className="mt-1" onClick={downloadOriginal}>
-                  <Download className="mr-1.5 h-3 w-3" />Baixar foto
-                </Button>
-              )}
+            <div className="grid md:grid-cols-2 gap-3">
+              <div>
+                <div className="text-xs font-medium text-muted-foreground mb-1.5">Foto original (horizontal)</div>
+                <SignedImage path={scene.original_room_image} alt="Original" className="w-full aspect-video rounded-lg border border-border object-cover" />
+                {scene.original_room_image && (
+                  <Button variant="ghost" size="sm" className="mt-1" onClick={downloadOriginal}>
+                    <Download className="mr-1.5 h-3 w-3" />Baixar foto
+                  </Button>
+                )}
+              </div>
+              <div>
+                <div className="text-xs font-medium text-muted-foreground mb-1.5">Imagem vertical 9:16 (use ESTA no Veo/Sora/Kling)</div>
+                {scene.generated_character_image ? (
+                  <SignedImage path={scene.generated_character_image} alt="Vertical 9:16" className="w-full max-w-[260px] aspect-[9/16] rounded-lg border border-primary/40 object-cover" />
+                ) : (
+                  <div className="w-full max-w-[260px] aspect-[9/16] rounded-lg border border-dashed border-border bg-muted/30 flex items-center justify-center text-xs text-muted-foreground p-3 text-center">Clique em Gerar tour pra criar a versão vertical</div>
+                )}
+              </div>
             </div>
+
 
             <div>
               <div className="text-xs font-medium text-muted-foreground mb-1.5">Vibe da música</div>
