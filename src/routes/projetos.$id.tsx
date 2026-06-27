@@ -498,23 +498,25 @@ function SceneCard({
                 </Badge>
               )}
             </div>
-            {/* Modo da cena */}
-            <div className="mt-2 inline-flex rounded-md border border-border overflow-hidden text-xs">
-              {([
-                { v: "character", l: "🧑 Corretor" },
-                { v: "room_tour", l: "🎥 Tour no Cômodo" },
-                { v: "skip", l: "⏸️ Pular" },
-              ] as const).map((opt) => (
-                <button
-                  key={opt.v}
-                  type="button"
-                  onClick={() => changeMode(opt.v)}
-                  className={`px-2.5 py-1 transition ${mode === opt.v ? "bg-primary text-primary-foreground font-medium" : "bg-muted/40 hover:bg-muted text-foreground"}`}
-                >
-                  {opt.l}
-                </button>
-              ))}
-            </div>
+            {/* Modo da cena (só projetos Reels) */}
+            {!isTourProject && (
+              <div className="mt-2 inline-flex rounded-md border border-border overflow-hidden text-xs">
+                {([
+                  { v: "character", l: "🧑 Corretor" },
+                  { v: "room_tour", l: "🎥 Tour no Cômodo" },
+                  { v: "skip", l: "⏸️ Pular" },
+                ] as const).map((opt) => (
+                  <button
+                    key={opt.v}
+                    type="button"
+                    onClick={() => changeMode(opt.v)}
+                    className={`px-2.5 py-1 transition ${mode === opt.v ? "bg-primary text-primary-foreground font-medium" : "bg-muted/40 hover:bg-muted text-foreground"}`}
+                  >
+                    {opt.l}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex gap-1.5 flex-wrap">
