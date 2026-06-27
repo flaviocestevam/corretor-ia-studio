@@ -1203,17 +1203,6 @@ function SceneCard({
         </div>
         </>)}
 
-        {scene.scene_mode !== "skip" && (
-          <SceneVideoSection
-            sceneId={scene.id}
-            videoPrompt={scene.video_prompt}
-            generatedCharacterImage={scene.generated_character_image}
-            videoStatus={(scene as any).video_status ?? "pendente"}
-            generatedVideoUrl={(scene as any).generated_video_url ?? null}
-            videoError={(scene as any).video_error ?? null}
-            onVideoGenerated={onChange}
-          />
-        )}
       </CardContent>
     </Card>
   );
