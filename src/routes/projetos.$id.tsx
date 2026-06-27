@@ -424,7 +424,7 @@ function SceneCard({
 
   async function pickScript(s: string) {
     // CTA só na última cena
-    const ctas = character.ctas ?? [];
+    const ctas = character?.ctas ?? [];
     const cta = isLast
       ? ctas[Math.floor(Math.random() * Math.max(ctas.length, 1))]?.text ?? "Clica no link da bio."
       : null;
@@ -838,7 +838,7 @@ function SceneCard({
                       () =>
                         genHooks({
                           data: {
-                            characterId: character.id,
+                            characterId: character?.id ?? "",
                             sceneId: scene.id,
                             isFirstScene: isFirst,
                             previousSceneScript: previousScript,
@@ -907,7 +907,7 @@ function SceneCard({
                       () =>
                         genScripts({
                           data: {
-                            characterId: character.id,
+                            characterId: character?.id ?? "",
                             sceneId: scene.id,
                             roomName: scene.room_name,
                             selectedHook: scene.selected_hook?.text ?? "",
