@@ -335,6 +335,7 @@ function SceneCard({
   scene,
   character,
   isTourProject,
+  isAnimalTourProject,
   previousScript,
   isFirst,
   isLast,
@@ -348,6 +349,7 @@ function SceneCard({
   scene: Scene;
   character: Character | null;
   isTourProject: boolean;
+  isAnimalTourProject: boolean;
   previousScript: string | null;
   isFirst: boolean;
   isLast: boolean;
@@ -364,6 +366,7 @@ function SceneCard({
   const genImage = useServerFn(generateSceneImage);
   const genVideoP = useServerFn(generateVideoPrompt);
   const genTour = useServerFn(generateRoomTour);
+  const genAnimalTour = useServerFn(generateAnimalTour);
   const approve = useServerFn(approveScene);
 
   const [loadingHooks, setLoadingHooks] = useState(false);
@@ -374,7 +377,11 @@ function SceneCard({
   const [musicMood, setMusicMood] = useState<"aconchegante" | "sofisticado" | "energetico">("sofisticado");
   const [lastError, setLastError] = useState<{ label: string; message: string; retry: () => void } | null>(null);
   const busy = loadingHooks || loadingScripts || loadingImage || loadingVideo || loadingTour;
-  const mode: SceneMode = isTourProject ? "room_tour" : ((scene.scene_mode ?? "character") as SceneMode);
+  const mode: SceneMode = isAnimalTourProject
+    ? "animal_tour"
+    : isTourProject
+    ? "room_tour"
+    : ((scene.scene_mode ?? "character") as SceneMode);
 
   async function changeMode(next: SceneMode) {
     if (next === mode) return;
