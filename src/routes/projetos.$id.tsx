@@ -17,6 +17,7 @@ import {
   ArrowDown, ArrowUp, Plus, PlayCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { SceneVideoSection } from "@/components/SceneVideoSection";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 
@@ -1202,6 +1203,17 @@ function SceneCard({
         </div>
         </>)}
 
+        {scene.scene_mode !== "skip" && (
+          <SceneVideoSection
+            sceneId={scene.id}
+            videoPrompt={scene.video_prompt}
+            generatedCharacterImage={scene.generated_character_image}
+            videoStatus={(scene as any).video_status ?? "pendente"}
+            generatedVideoUrl={(scene as any).generated_video_url ?? null}
+            videoError={(scene as any).video_error ?? null}
+            onVideoGenerated={() => qc.invalidateQueries({ queryKey: ["project", scene.project_id] })}
+          />
+        )}
       </CardContent>
     </Card>
   );

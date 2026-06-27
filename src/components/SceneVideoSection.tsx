@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { generateSceneVideo } from "@/lib/generateVideo";
+import { getSignedUrl } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Video, Loader2, Download, AlertCircle } from "lucide-react";
@@ -33,11 +34,15 @@ export function SceneVideoSection({
     setIsGenerating(true);
     toast.info("Gerando vídeo com Veo 3.1... Isso leva cerca de 2 minutos.");
 
-    const result = await generateSceneVideo({
-      sceneId,
-      videoPrompt,
-      startImageUrl: generatedCharacterImage,
-    });
+    let result;
+    try {
+      const startImageUrl = /^https?:\/\//.test(generatedCharacterImage)
+        ? generatedCharacterImage
+        : await getSignedUrl(generatedCharacterImage, 60 * 60);
+      result = await generateSceneVideo({ sceneId, videoPrompt, startImageUrl });
+    } catch (e: any) {
+      result = { success: false, error: e?.message || "Erro ao preparar imagem" };
+    }
 
     setIsGenerating(false);
 
