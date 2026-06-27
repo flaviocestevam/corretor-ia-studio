@@ -182,9 +182,14 @@ function ProjectDetail() {
     <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex-1 min-w-0">
-          <h1 className="text-3xl font-bold tracking-tight">{data.project.name}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {data.project.name}
+            {(data.project as any).project_type === "tour" && (
+              <Badge variant="outline" className="ml-2 align-middle">🏠 Tour</Badge>
+            )}
+          </h1>
           <p className="text-muted-foreground mt-1">
-            {data.character.name} · {data.scenes.length} cena(s)
+            {data.character?.name ?? "Sem corretor (Tour)"} · {data.scenes.length} cena(s)
           </p>
           <PropertyUrlField projectId={id} initial={(data.project as any).property_url ?? ""} />
         </div>
@@ -253,6 +258,7 @@ function ProjectDetail() {
               key={s.id}
               scene={s}
               character={data.character}
+              isTourProject={(data.project as any).project_type === "tour"}
               previousScript={realIdx > 0 ? data.scenes[realIdx - 1].selected_script : null}
               isFirst={realIdx === 0}
               isLast={realIdx === data.scenes.length - 1}
@@ -326,6 +332,7 @@ function statusVariant(status: string): "secondary" | "default" | "outline" {
 function SceneCard({
   scene,
   character,
+  isTourProject,
   previousScript,
   isFirst,
   isLast,
@@ -337,7 +344,8 @@ function SceneCard({
   onChange,
 }: {
   scene: Scene;
-  character: Character;
+  character: Character | null;
+  isTourProject: boolean;
   previousScript: string | null;
   isFirst: boolean;
   isLast: boolean;
@@ -364,7 +372,7 @@ function SceneCard({
   const [musicMood, setMusicMood] = useState<"aconchegante" | "sofisticado" | "energetico">("sofisticado");
   const [lastError, setLastError] = useState<{ label: string; message: string; retry: () => void } | null>(null);
   const busy = loadingHooks || loadingScripts || loadingImage || loadingVideo || loadingTour;
-  const mode: SceneMode = (scene.scene_mode ?? "character") as SceneMode;
+  const mode: SceneMode = isTourProject ? "room_tour" : ((scene.scene_mode ?? "character") as SceneMode);
 
   async function changeMode(next: SceneMode) {
     if (next === mode) return;
