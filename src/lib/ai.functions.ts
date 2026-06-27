@@ -99,7 +99,7 @@ async function callGeminiImage(
     }
     if (res.status === 401 || res.status === 403) {
       const txt = await res.text();
-      throw new Error(`Erro de autenticação na API key "${key.label ?? key.id}" (${res.status}). Verifique se a key é válida. Detalhe: ${txt}`);
+      throw new Error(`Erro de autenticação na Google API (${res.status}). Verifique se a key é válida. Detalhe: ${txt}`);
     }
     if (!res.ok) {
       const txt = await res.text();
