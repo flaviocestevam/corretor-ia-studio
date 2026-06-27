@@ -833,8 +833,8 @@ Resultado: um frame inicial forte e imersivo, claramente "câmera presa ao corpo
         generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
       });
     }
-    let imgRes = await callImg("gemini-3.1-flash-image");
-    let modelUsed = "gemini-3.1-flash-image";
+    let imgRes = await callImg("gemini-3-pro-image");
+    let modelUsed = "gemini-3-pro-image";
     if (!imgRes.ok) {
       imgRes = await callImg("gemini-3.1-flash-image");
       modelUsed = "gemini-3.1-flash-image";
