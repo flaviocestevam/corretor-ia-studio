@@ -1,14 +1,27 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export async function getActiveApiKey(): Promise<string | null> {
+  const { data: allKeys, error: allErr } = await supabase
+    .from("google_api_keys")
+    .select("id, label, is_active, is_exhausted");
+  console.log("[googleApiKeyRotator] all keys:", { count: allKeys?.length ?? 0, allKeys, allErr });
+
   const { data, error } = await supabase
     .from("google_api_keys")
-    .select("id, api_key")
+    .select("id, api_key, label, is_active, is_exhausted")
     .eq("is_active", true)
     .eq("is_exhausted", false)
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();
+
+  console.log("[googleApiKeyRotator] active key query:", {
+    found: !!data,
+    label: data?.label,
+    is_active: data?.is_active,
+    is_exhausted: data?.is_exhausted,
+    error,
+  });
 
   if (error || !data) return null;
   return data.api_key;
