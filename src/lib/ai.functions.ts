@@ -429,31 +429,15 @@ export const generateSceneImage = createServerFn({ method: "POST" })
       }
     }
 
-    function googleKey() {
-      const k = process.env.GOOGLE_AI_API_KEY;
-      if (!k) throw new Error("GOOGLE_AI_API_KEY ausente");
-      return k;
-    }
-
     async function callModel(model: string, extraReinforcement: string) {
       const finalParts = extraReinforcement
         ? [{ text: extraReinforcement }, ...parts]
         : parts;
-      return fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-        {
-          method: "POST",
-          headers: {
-            "x-goog-api-key": googleKey(),
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: absoluteRoomPreservationRule }] },
-            contents: [{ role: "user", parts: finalParts }],
-            generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
-          }),
-        },
-      );
+      return callGeminiImage(supabaseAdmin, model, {
+        systemInstruction: { parts: [{ text: absoluteRoomPreservationRule }] },
+        contents: [{ role: "user", parts: finalParts }],
+        generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+      });
     }
 
     // ============ VALIDADOR DE ENQUADRAMENTO (vision) ============
