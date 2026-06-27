@@ -26,6 +26,7 @@ import {
   generateSceneImage,
   generateVideoPrompt,
   generateRoomTour,
+  generateAnimalTour,
   approveScene,
 } from "@/lib/ai.functions";
 import type { Scene, Character, SceneHookOption, SceneMode } from "@/lib/types";
@@ -40,8 +41,8 @@ type NextStep = { label: string; tone: "todo" | "done" } | null;
 function nextStep(scene: Scene, isFirst: boolean): NextStep {
   if (scene.scene_mode === "skip") return { label: "⏸️ Pulada", tone: "done" };
   if (scene.status === "aprovado") return { label: "✅ Aprovada", tone: "done" };
-  if (scene.scene_mode === "room_tour") {
-    if (!scene.image_prompt || !scene.video_prompt) return { label: "Falta: gerar tour", tone: "todo" };
+  if (scene.scene_mode === "room_tour" || scene.scene_mode === "animal_tour") {
+    if (!scene.generated_character_image || !scene.video_prompt) return { label: "Falta: gerar tour", tone: "todo" };
     return { label: "Pronta — falta aprovar", tone: "todo" };
   }
   if (!scene.generated_character_image) return { label: "Falta: gerar imagem", tone: "todo" };
@@ -259,6 +260,7 @@ function ProjectDetail() {
               scene={s}
               character={data.character}
               isTourProject={(data.project as any).project_type === "tour"}
+              isAnimalTourProject={(data.project as any).project_type === "animal_tour"}
               previousScript={realIdx > 0 ? data.scenes[realIdx - 1].selected_script : null}
               isFirst={realIdx === 0}
               isLast={realIdx === data.scenes.length - 1}
