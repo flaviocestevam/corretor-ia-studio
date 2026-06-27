@@ -758,4 +758,198 @@ MOVIMENTO DE CÂMERA (cinematográfico, suave, sem cortes):
     return { video_prompt: videoPrompt, vertical_image: verticalPath, description };
   });
 
+// ============ TOUR COM ANIMAL (body-mounted POV) ============
+const GenAnimalTourInput = z.object({
+  sceneId: z.string().uuid(),
+  musicMood: z.enum(["aconchegante", "sofisticado", "energetico"]).default("sofisticado"),
+});
+
+export const generateAnimalTour = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => GenAnimalTourInput.parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: scene, error: sErr } = await supabaseAdmin
+      .from("scenes")
+      .select("*, projects!inner(animal_id)")
+      .eq("id", data.sceneId)
+      .single();
+    if (sErr || !scene) throw new Error("Cena não encontrada");
+    if (!scene.original_room_image) throw new Error("Cena não tem foto do cômodo");
+    const animalId = (scene as any).projects?.animal_id as string | null;
+    if (!animalId) throw new Error("Projeto sem animal definido");
+
+    const { data: animal, error: aErr } = await supabaseAdmin
+      .from("animals")
+      .select("*")
+      .eq("id", animalId)
+      .single();
+    if (aErr || !animal) throw new Error("Animal não encontrado");
+    if (!(animal as any).canonical_image) throw new Error("Animal sem foto canônica");
+
+    function googleKey() {
+      const k = process.env.GOOGLE_AI_API_KEY;
+      if (!k) throw new Error("GOOGLE_AI_API_KEY ausente");
+      return k;
+    }
+    async function urlToInline(url: string): Promise<{ data: string; mime_type: string }> {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`Falha ao baixar imagem (${r.status})`);
+      const mime = r.headers.get("content-type")?.split(";")[0] || "image/jpeg";
+      const buf = new Uint8Array(await r.arrayBuffer());
+      let bin = "";
+      for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+      return { data: btoa(bin), mime_type: mime };
+    }
+
+    const [{ data: roomSigned }, { data: animalSigned }] = await Promise.all([
+      supabaseAdmin.storage.from("scene-assets").createSignedUrl(scene.original_room_image, 600),
+      supabaseAdmin.storage.from("scene-assets").createSignedUrl((animal as any).canonical_image, 600),
+    ]);
+    if (!roomSigned || !animalSigned) throw new Error("Não foi possível ler as imagens");
+    const [roomInline, animalInline] = await Promise.all([
+      urlToInline(roomSigned.signedUrl),
+      urlToInline(animalSigned.signedUrl),
+    ]);
+
+    // ============== FUNÇÃO 1: gerar imagem vertical 9:16 POV body-mount ==============
+    const imagePrompt = `🚨 TAREFA CRÍTICA: criar UMA imagem VERTICAL 9:16 fotorrealista onde o animal aparece como se a câmera estivesse FISICAMENTE PRESA NO CORPO DELE — como uma GoPro montada no dorso superior, próxima aos ombros e ao pescoço, apontada para frente.
+
+ANIMAL: ${animal.name}${animal.species ? ` (${animal.species})` : ""}
+${(animal as any).canonical_prompt ? `DESCRIÇÃO FÍSICA FIEL: ${(animal as any).canonical_prompt}` : ""}
+CÔMODO: ${scene.room_name}
+
+IMAGEM 1 = foto do CÔMODO (preservar o ambiente: cores, móveis, piso, teto, luz, decoração).
+IMAGEM 2 = foto canônica do ANIMAL (preservar pelagem, cor, porte, identidade).
+
+REGRAS ABSOLUTAS DE COMPOSIÇÃO (descumprir = REJEITADO):
+
+1. SAÍDA: vertical 9:16, fotorrealista.
+2. AMBIENTE: preservar o cômodo da IMAGEM 1 (não inventar móveis nem mudar cores/iluminação).
+3. POV body-mount: a câmera é parte do corpo do animal, posicionada no DORSO SUPERIOR, muito próxima dos OMBROS e BASE DO PESCOÇO, centralizada no eixo do corpo, apontada para frente, ligeiramente para baixo.
+4. PRIMEIRO PLANO INFERIOR (parte de baixo da imagem) mostra APENAS:
+   • upper back
+   • shoulders
+   • neck base
+   • ears (topo do enquadramento)
+   • mane / pelagem da nuca, quando aplicável
+5. NUNCA mostrar: animal inteiro, rabo, patas traseiras, quadril, lombo completo, traseira, corpo inteiro caminhando à frente da câmera, câmera flutuando, câmera atrás do animal, perspectiva de terceira pessoa, drone.
+6. ESCALA realista: o animal precisa ter tamanho fisicamente plausível em relação aos móveis e ao cômodo (gato pequeno x sofá, cachorro médio x piso, leão grande x sala). Não distorcer móveis nem o cômodo.
+7. ORIENTAÇÃO: o animal precisa estar virado para uma ÁREA LIVRE do cômodo (sem apontar diretamente para parede, sofá, mesa ou obstáculo imediato). Posicionar de forma que faça sentido caminhar adiante sem colidir.
+8. EVITAR obstáculos imediatos no caminho: mesas, cadeiras, bar stools, sofá, cama, plantas, colunas, portas fechadas, tapetes com borda complicada.
+9. ILUMINAÇÃO, perspectiva e profundidade combinando perfeitamente com o cômodo (mesma luz da IMAGEM 1).
+10. NADA de: pessoas, texto, logo, watermark, lens flare artístico, partículas, filtros estilizados.
+
+Resultado: um frame inicial forte e imersivo, claramente "câmera presa ao corpo", pronto para virar vídeo POV de tour.`;
+
+    async function callImg(model: string) {
+      return fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+        {
+          method: "POST",
+          headers: { "x-goog-api-key": googleKey(), "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: "Câmera SEMPRE presa ao corpo do animal (POV body-mount sobre os ombros/pescoço). NUNCA mostrar o animal inteiro, rabo ou patas traseiras. Fidelidade absoluta ao cômodo da imagem 1." }] },
+            contents: [{ role: "user", parts: [
+              { text: imagePrompt },
+              { inline_data: roomInline },
+              { inline_data: animalInline },
+            ] }],
+            generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+          }),
+        },
+      );
+    }
+    let imgRes = await callImg("gemini-3-pro-image");
+    let modelUsed = "gemini-3-pro-image";
+    if (!imgRes.ok) {
+      imgRes = await callImg("gemini-3.1-flash-image");
+      modelUsed = "gemini-3.1-flash-image";
+    }
+    if (!imgRes.ok) throw new Error(`Google API ${imgRes.status}: ${await imgRes.text()}`);
+    const imgJson = await imgRes.json();
+    const respParts = imgJson?.candidates?.[0]?.content?.parts ?? [];
+    const imgPart = respParts.find((p: any) => p?.inline_data?.data || p?.inlineData?.data);
+    const b64: string | undefined = imgPart?.inline_data?.data ?? imgPart?.inlineData?.data;
+    if (!b64) throw new Error("IA não retornou imagem POV");
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const verticalPath = `${scene.project_id}/animal-tour/${crypto.randomUUID()}.png`;
+    const { error: upErr } = await supabaseAdmin.storage
+      .from("scene-assets")
+      .upload(verticalPath, bytes, { contentType: "image/png", upsert: false });
+    if (upErr) throw upErr;
+
+    // ============== FUNÇÃO 2: analisar imagem final + gerar prompt final em inglês ==============
+    const generatedInline: { data: string; mime_type: string } = { data: b64, mime_type: "image/png" };
+
+    const analysisPrompt = `You are analyzing a vertical 9:16 first-person POV image where a body-mounted camera is attached to an animal's upper back (near shoulders and neck), pointing forward inside an interior environment.
+
+Look at the attached image and produce a final prompt to turn this exact image into a 5-second photorealistic video of the animal walking through the room while the body-mounted camera moves with it.
+
+Identify in the image:
+- Which animal it is and which body parts are visible in the foreground (upper back, shoulders, neck, ears, mane, etc).
+- What kind of environment it is and what objects/obstacles surround the animal.
+- The clear, walkable free path the animal should follow (straight, gentle left, gentle right, curve around, stop before something).
+- Real visual landmarks of the room that the camera will pass (e.g. "pass to the left of the coffee table", "follow the open floor toward the staircase", "avoid the dining chairs on the right").
+
+Return EXACTLY this structure in English, with the three labeled blocks separated by the markers below — no markdown, no extra text:
+
+===FINAL PROMPT===
+<a single rich English paragraph for a video generator (Veo / Sora / Kling, vertical 9:16, ~5 seconds). It MUST:
+- Describe the shot as photorealistic, immersive, natural, body-mounted animal POV.
+- State explicitly: the camera is mounted on the animal's upper back, very close to the shoulders and neck, like a GoPro attached to a harness; the camera is part of the animal's body; the camera is NOT floating, NOT behind the animal, NOT a third-person camera.
+- State that only upper back, shoulders, neck base, ears and mane (or equivalent visible features) appear in the foreground; the visible body stays nearly stable in the lower foreground while the environment moves around it.
+- Camera angle slightly low and forward-facing, looking at the environment (not too much ceiling).
+- Animal walks naturally: realistic weight, subtle body-mounted bounce, gentle head/body motion, no exaggerated shaking.
+- Realistic scale; the animal physically respects the environment (no touching, no clipping, no walking over furniture).
+- Audio: soft ambient music matching the chosen mood + SUBTLE natural animal foley in the foreground (calm rhythmic breathing, light paw/footstep sounds on the matching floor material, occasional fur/collar rustle). NEVER barking, growling, loud meowing, roaring, howling or any aggressive vocalization. No human voice, no narration.
+- Describe the chosen walking route using REAL visual landmarks from the image.
+- End with: no people, no text, no logo, no watermark.>
+
+===NEGATIVE PROMPT===
+floating camera, camera behind the animal, third-person view, drone shot, human perspective, full animal visible, tail visible, rear legs visible, hips visible, long back visible, camera detached from animal, camera looking too much at the ceiling, unrealistic scale, clipping through objects, touching furniture, warped room, distorted furniture, excessive shaking, jump cuts, barking, growling, loud animal vocalization, human voice, narration, text, logo, watermark
+
+===ROUTE SUMMARY===
+<2-4 short English sentences explaining the chosen walking path through this specific room, naming the real obstacles avoided.>`;
+
+    const musicLine = MUSIC_PRESETS[data.musicMood];
+    const raw = await chat(
+      [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: analysisPrompt + `\n\nMusic mood reference (already in Portuguese, translate naturally to a short English audio line inside FINAL PROMPT): ${musicLine}` },
+            { type: "image_url", image_url: { url: `data:${generatedInline.mime_type};base64,${generatedInline.data}` } },
+          ],
+        },
+      ],
+      "google/gemini-3-flash-preview",
+      0.7,
+    );
+
+    function block(name: string) {
+      const re = new RegExp(`===${name}===([\\s\\S]*?)(?====|$)`, "i");
+      const m = raw.match(re);
+      return m ? m[1].trim() : "";
+    }
+    const finalPrompt = block("FINAL PROMPT");
+    const negativePrompt = block("NEGATIVE PROMPT");
+    const routeSummary = block("ROUTE SUMMARY");
+    if (!finalPrompt) throw new Error("IA não retornou FINAL PROMPT");
+
+    await supabaseAdmin
+      .from("scenes")
+      .update({
+        generated_character_image: verticalPath,
+        image_prompt: imagePrompt,
+        video_prompt: finalPrompt,
+        negative_prompt: negativePrompt || null,
+        route_summary: routeSummary || null,
+        scene_mode: "animal_tour",
+        status: "gerado",
+        model_used: modelUsed,
+      })
+      .eq("id", data.sceneId);
+
+    return { vertical_image: verticalPath, final_prompt: finalPrompt, negative_prompt: negativePrompt, route_summary: routeSummary };
+  });
 
