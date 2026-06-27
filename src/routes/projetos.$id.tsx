@@ -1211,7 +1211,7 @@ function SceneCard({
             videoStatus={(scene as any).video_status ?? "pendente"}
             generatedVideoUrl={(scene as any).generated_video_url ?? null}
             videoError={(scene as any).video_error ?? null}
-            onVideoGenerated={() => qc.invalidateQueries({ queryKey: ["project", scene.project_id] })}
+            onVideoGenerated={onChange}
           />
         )}
       </CardContent>
