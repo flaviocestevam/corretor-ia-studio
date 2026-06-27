@@ -585,57 +585,19 @@ function SceneCard({
             <div className="rounded-lg border border-dashed border-primary/40 bg-primary/5 p-3 text-xs space-y-1">
               <div className="font-semibold text-foreground">🎥 Tour no Cômodo — passo a passo</div>
               <div>1️⃣ Escolha a vibe da música abaixo.</div>
-              <div>2️⃣ Clique em <b>Gerar tour</b> — a IA descreve o cômodo (com tudo que está nas bordas) e monta os 2 prompts.</div>
-              <div>3️⃣ Use o <b>prompt da imagem</b> pra criar a vertical 9:16 fora do app e suba aqui.</div>
-              <div>4️⃣ Use o <b>prompt de vídeo</b> (5s, sem voz, com música) no Veo/Sora/Kling/Runway.</div>
-              <div>5️⃣ Clique em <b>Aprovar</b>.</div>
+              <div>2️⃣ Clique em <b>Gerar tour</b> — a IA descreve o cômodo inteiro e monta UM prompt único pra colar no Veo/Sora/Kling/Runway junto da foto original.</div>
+              <div>3️⃣ Suba a foto original + o prompt no gerador de vídeo (saída 9:16, 5s).</div>
+              <div>4️⃣ Clique em <b>Aprovar</b> quando estiver pronta.</div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-3">
-              <div>
-                <div className="text-xs font-medium text-muted-foreground mb-1.5">Foto original (horizontal)</div>
-                <SignedImage path={scene.original_room_image} alt="Original" className="w-full aspect-video rounded-lg border border-border" />
-                {scene.original_room_image && (
-                  <Button variant="ghost" size="sm" className="mt-1" onClick={downloadOriginal}>
-                    <Download className="mr-1.5 h-3 w-3" />Baixar
-                  </Button>
-                )}
-              </div>
-              <div>
-                <div className="text-xs font-medium text-muted-foreground mb-1.5">Vertical 9:16 do cômodo (sem pessoa)</div>
-                <div className="relative w-full aspect-[9/16] max-h-[480px] bg-muted rounded-lg border border-border overflow-hidden">
-                  <SignedImage path={scene.generated_character_image} alt="Vertical do cômodo" className="absolute inset-0 w-full h-full object-contain" />
-                </div>
-                <div className="mt-2 flex gap-1 flex-wrap items-center">
-                  <label className="inline-flex items-center text-xs cursor-pointer border border-input rounded-md px-2 h-8 hover:bg-muted">
-                    {scene.generated_character_image ? "Substituir" : "Subir imagem vertical"}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const f = e.target.files?.[0];
-                        e.target.value = "";
-                        if (!f) return;
-                        try {
-                          const path = await uploadSceneFile(f, scene.project_id, "generated");
-                          const { error } = await supabase.from("scenes").update({ generated_character_image: path }).eq("id", scene.id);
-                          if (error) throw error;
-                          toast.success("Imagem vertical salva");
-                          onChange();
-                        } catch (err) {
-                          toast.error((err as Error).message);
-                        }
-                      }}
-                    />
-                  </label>
-                  {scene.generated_character_image && (
-                    <Button variant="ghost" size="sm" onClick={downloadGenerated}>
-                      <Download className="mr-1.5 h-3 w-3" />Baixar
-                    </Button>
-                  )}
-                </div>
-              </div>
+            <div>
+              <div className="text-xs font-medium text-muted-foreground mb-1.5">Foto original do cômodo (use ela como referência no gerador de vídeo)</div>
+              <SignedImage path={scene.original_room_image} alt="Original" className="w-full max-w-md aspect-video rounded-lg border border-border" />
+              {scene.original_room_image && (
+                <Button variant="ghost" size="sm" className="mt-1" onClick={downloadOriginal}>
+                  <Download className="mr-1.5 h-3 w-3" />Baixar foto
+                </Button>
+              )}
             </div>
 
             <div>
@@ -665,61 +627,37 @@ function SceneCard({
               onClick={() => run(
                 () => genTour({ data: { sceneId: scene.id, musicMood } }),
                 setLoadingTour,
-                "Tour gerado ✨ prompts prontos pra copiar",
+                "Tour gerado ✨ prompt pronto pra copiar",
                 "Gerar tour",
               )}
               disabled={busy || !scene.original_room_image}
             >
               {loadingTour ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Wand2 className="mr-1.5 h-4 w-4" />}
-              {scene.image_prompt && scene.video_prompt ? "Regerar tour" : "Gerar tour"}
+              {scene.video_prompt ? "Regerar tour" : "Gerar tour"}
             </Button>
 
-            <div className="grid md:grid-cols-2 gap-3">
-              <section>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="text-xs font-medium text-muted-foreground">Prompt da imagem vertical (editável)</div>
-                  {scene.image_prompt && (
-                    <Button size="sm" variant="ghost" onClick={() => copy(scene.image_prompt!, "Prompt de imagem")}>
-                      <Copy className="mr-1.5 h-3 w-3" />Copiar
-                    </Button>
-                  )}
-                </div>
-                <Textarea
-                  key={`tour-img-${scene.id}-${scene.updated_at}`}
-                  defaultValue={scene.image_prompt ?? ""}
-                  rows={10}
-                  className="text-xs"
-                  placeholder="Clique em Gerar tour"
-                  onBlur={async (e) => {
-                    if (e.target.value === (scene.image_prompt ?? "")) return;
-                    const { error } = await supabase.from("scenes").update({ image_prompt: e.target.value || null }).eq("id", scene.id);
-                    if (error) toast.error(error.message); else { toast.success("Prompt atualizado"); onChange(); }
-                  }}
-                />
-              </section>
-              <section>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="text-xs font-medium text-muted-foreground">Prompt do vídeo (5s, com música, editável)</div>
-                  {scene.video_prompt && (
-                    <Button size="sm" variant="ghost" onClick={() => copy(scene.video_prompt!, "Prompt de vídeo")}>
-                      <Copy className="mr-1.5 h-3 w-3" />Copiar
-                    </Button>
-                  )}
-                </div>
-                <Textarea
-                  key={`tour-vid-${scene.id}-${scene.updated_at}`}
-                  defaultValue={scene.video_prompt ?? ""}
-                  rows={10}
-                  className="text-xs"
-                  placeholder="Clique em Gerar tour"
-                  onBlur={async (e) => {
-                    if (e.target.value === (scene.video_prompt ?? "")) return;
-                    const { error } = await supabase.from("scenes").update({ video_prompt: e.target.value || null }).eq("id", scene.id);
-                    if (error) toast.error(error.message); else { toast.success("Prompt atualizado"); onChange(); }
-                  }}
-                />
-              </section>
-            </div>
+            <section>
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-xs font-medium text-muted-foreground">Prompt único do vídeo 9:16 — 5s, com música, fidelidade total à foto (editável)</div>
+                {scene.video_prompt && (
+                  <Button size="sm" variant="ghost" onClick={() => copy(scene.video_prompt!, "Prompt do tour")}>
+                    <Copy className="mr-1.5 h-3 w-3" />Copiar tudo
+                  </Button>
+                )}
+              </div>
+              <Textarea
+                key={`tour-vid-${scene.id}-${scene.updated_at}`}
+                defaultValue={scene.video_prompt ?? ""}
+                rows={18}
+                className="text-xs font-mono"
+                placeholder="Clique em Gerar tour"
+                onBlur={async (e) => {
+                  if (e.target.value === (scene.video_prompt ?? "")) return;
+                  const { error } = await supabase.from("scenes").update({ video_prompt: e.target.value || null }).eq("id", scene.id);
+                  if (error) toast.error(error.message); else { toast.success("Prompt atualizado"); onChange(); }
+                }}
+              />
+            </section>
           </div>
         )}
 
