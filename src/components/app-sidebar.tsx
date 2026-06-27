@@ -18,7 +18,7 @@ const items = [
   { title: "Imóveis", url: "/projetos", icon: FolderKanban },
   { title: "Personagens", url: "/personagens", icon: Users },
   { title: "Animais", url: "/animais", icon: PawPrint },
-  { title: "Configurações", url: "/configuracoes", icon: Settings },
+  
 ];
 
 export function AppSidebar() {
