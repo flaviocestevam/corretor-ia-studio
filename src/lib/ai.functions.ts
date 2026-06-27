@@ -49,6 +49,61 @@ async function fetchRoomImageDataUrl(
   return `data:${mime};base64,${buf.toString("base64")}`;
 }
 
+// ============ ROTAÇÃO DE API KEY DO GOOGLE (tabela google_api_keys) ============
+type AdminClient = { from: (t: string) => any };
+
+async function getActiveGoogleKey(
+  supabaseAdmin: AdminClient,
+): Promise<{ id: string; api_key: string }> {
+  const { data } = await supabaseAdmin
+    .from("google_api_keys")
+    .select("id, api_key")
+    .eq("is_active", true)
+    .eq("is_exhausted", false)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (!data) {
+    throw new Error(
+      "Nenhuma API key do Google ativa. Cadastre uma em Configurações (ou resete cotas esgotadas).",
+    );
+  }
+  return data as { id: string; api_key: string };
+}
+
+async function markGoogleKeyExhausted(supabaseAdmin: AdminClient, id: string) {
+  await supabaseAdmin
+    .from("google_api_keys")
+    .update({ is_exhausted: true, exhausted_at: new Date().toISOString() })
+    .eq("id", id);
+}
+
+async function callGeminiImage(
+  supabaseAdmin: AdminClient,
+  model: string,
+  body: unknown,
+): Promise<Response> {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const key = await getActiveGoogleKey(supabaseAdmin);
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: { "x-goog-api-key": key.api_key, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      },
+    );
+    if (res.status === 429 || res.status === 403) {
+      await markGoogleKeyExhausted(supabaseAdmin, key.id);
+      continue;
+    }
+    return res;
+  }
+  throw new Error(
+    "Todas as API keys do Google estão esgotadas. Adicione novas contas em Configurações ou resete as cotas.",
+  );
+}
+
 function extractJSON(raw: string) {
   const cleaned = raw.replace(/```json|```/g, "").trim();
   const start = cleaned.indexOf("[");
