@@ -70,7 +70,8 @@ export function AnimalForm({ initial, animalId }: { initial?: Partial<Animal>; a
         <CardHeader><CardTitle>Identidade</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div><Label>Nome *</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Leo, Mel, Thor" /></div>
-
+          <div>
+            <Label>Prompt visual canônico (em português ou inglês)</Label>
             <Textarea
               value={canonicalPrompt}
               onChange={(e) => setCanonicalPrompt(e.target.value)}
@@ -78,6 +79,7 @@ export function AnimalForm({ initial, animalId }: { initial?: Partial<Animal>; a
               placeholder="Descrição física fiel para a IA recriar o animal entre cenas (cor da pelagem, porte, marcas, tamanho aproximado em relação a humanos, etc.)"
             />
           </div>
+
         </CardContent>
       </Card>
 
