@@ -162,6 +162,7 @@ export type Database = {
           original_room_image: string | null
           project_id: string
           room_name: string
+          scene_mode: string
           scene_order: number
           script_options: Json
           selected_hook: Json | null
@@ -182,6 +183,7 @@ export type Database = {
           original_room_image?: string | null
           project_id: string
           room_name: string
+          scene_mode?: string
           scene_order: number
           script_options?: Json
           selected_hook?: Json | null
@@ -202,6 +204,7 @@ export type Database = {
           original_room_image?: string | null
           project_id?: string
           room_name?: string
+          scene_mode?: string
           scene_order?: number
           script_options?: Json
           selected_hook?: Json | null

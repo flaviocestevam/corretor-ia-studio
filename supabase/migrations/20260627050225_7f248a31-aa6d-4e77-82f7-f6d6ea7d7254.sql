@@ -1,0 +1,1 @@
+ALTER TABLE public.scenes ADD COLUMN IF NOT EXISTS scene_mode TEXT NOT NULL DEFAULT 'character';
