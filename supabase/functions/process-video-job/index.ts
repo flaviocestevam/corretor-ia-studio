@@ -13,7 +13,7 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const BUCKET = "scene-assets";
 
 const VEO_ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models/veo-3.0-generate-preview:predictLongRunning";
+  "https://generativelanguage.googleapis.com/v1beta/models/veo-2.0-generate-001:predictLongRunning";
 
 const POLL_INTERVAL_MS = 10_000;
 const POLL_TIMEOUT_MS = 10 * 60 * 1000;
