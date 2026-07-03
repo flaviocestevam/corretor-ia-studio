@@ -53,6 +53,23 @@ function AutomacaoPage() {
   const activeFn = useServerFn(markAccountActive);
   const exhaustedFn = useServerFn(markAccountExhausted);
 
+  const triggerFn = useServerFn(triggerProcessVideoJob);
+
+  useEffect(() => {
+    let cancelled = false;
+    const tick = () => {
+      triggerFn().catch(() => {}).finally(() => {
+        if (!cancelled) qc.invalidateQueries({ queryKey: ["production_metrics"] });
+      });
+    };
+    tick();
+    const id = setInterval(tick, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [triggerFn, qc]);
+
   const { data: metrics } = useQuery({
     queryKey: ["production_metrics"],
     queryFn: () => metricsFn(),
