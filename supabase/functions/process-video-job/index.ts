@@ -12,8 +12,8 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const BUCKET = "scene-assets";
 
-const VEO_ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models/veo-2.0-generate-001:predictLongRunning";
+const VEO_GENERATE_ENDPOINT =
+  "https://generativelanguage.googleapis.com/v1beta/models/veo-2.0-generate-001:generateVideo";
 
 const POLL_INTERVAL_MS = 10_000;
 const POLL_TIMEOUT_MS = 10 * 60 * 1000;
@@ -29,22 +29,28 @@ function isQuotaError(status: number, msg: string) {
   );
 }
 
-async function callVeoStart(apiKey: string, prompt: string, imageUrl?: string | null) {
-  const instance: any = { prompt };
-  if (imageUrl) {
-    instance.image = { imageUri: imageUrl };
-  }
-  const res = await fetch(VEO_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": apiKey,
+async function callVeoGenerate(apiKey: string, prompt: string, imageUrl?: string | null) {
+  const body: any = {
+    prompt: { text: prompt },
+    generationConfig: {
+      aspectRatio: "9:16",
+      numberOfVideos: 1,
     },
-    body: JSON.stringify({ instances: [instance] }),
+  };
+
+  if (imageUrl) {
+    body.image = { imageUri: imageUrl };
+  }
+
+  const res = await fetch(`${VEO_GENERATE_ENDPOINT}?key=${apiKey}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
+
   const text = await res.text();
   if (!res.ok) {
-    const err: any = new Error(`Veo start ${res.status}: ${text}`);
+    const err: any = new Error(`Veo generateVideo ${res.status}: ${text}`);
     err.status = res.status;
     throw err;
   }
@@ -52,11 +58,11 @@ async function callVeoStart(apiKey: string, prompt: string, imageUrl?: string | 
 }
 
 async function pollOperation(apiKey: string, opName: string) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/${opName}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/${opName}?key=${apiKey}`;
   const start = Date.now();
   while (Date.now() - start < POLL_TIMEOUT_MS) {
     await sleep(POLL_INTERVAL_MS);
-    const res = await fetch(url, { headers: { "x-goog-api-key": apiKey } });
+    const res = await fetch(url);
     const text = await res.text();
     if (!res.ok) {
       const err: any = new Error(`Operation poll ${res.status}: ${text}`);
@@ -77,25 +83,25 @@ async function pollOperation(apiKey: string, opName: string) {
 }
 
 function extractVideoUri(op: any): string | null {
-  const preds =
+  const videos =
+    op?.response?.generatedSamples ||
+    op?.response?.videos ||
     op?.response?.predictions ||
-    op?.response?.generateVideoResponse?.generatedSamples ||
     [];
-  for (const p of preds) {
+  for (const v of videos) {
     const uri =
-      p?.video?.uri ||
-      p?.videoUri ||
-      p?.video?.videoUri ||
-      p?.uri ||
-      p?.gcsUri;
+      v?.video?.uri ||
+      v?.videoUri ||
+      v?.uri ||
+      v?.gcsUri;
     if (uri) return uri;
   }
   return null;
 }
 
 async function downloadVideo(apiKey: string, uri: string): Promise<Uint8Array> {
-  const url = uri.includes("?") ? `${uri}&alt=media` : `${uri}?alt=media`;
-  const res = await fetch(url, { headers: { "x-goog-api-key": apiKey } });
+  const url = uri.includes("?") ? `${uri}&key=${apiKey}` : `${uri}?key=${apiKey}`;
+  const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Download failed ${res.status}: ${await res.text()}`);
   }
@@ -111,7 +117,6 @@ Deno.serve(async (req) => {
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
   try {
-    // 1. Pick next job
     const { data: jobs, error: jobErr } = await supabase
       .from("video_jobs")
       .select("*")
@@ -126,7 +131,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 3. Mark em_geracao
     await supabase
       .from("video_jobs")
       .update({ status: "em_geracao" })
@@ -134,7 +138,6 @@ Deno.serve(async (req) => {
 
     const attempts = (job.attempts ?? 0) + 1;
 
-    // Helper to fail
     async function failJob(msg: string) {
       const nextStatus = attempts >= 3 ? "erro" : "pronto_para_gerar";
       await supabase
@@ -143,14 +146,10 @@ Deno.serve(async (req) => {
         .eq("id", job.id);
       return new Response(
         JSON.stringify({ ok: false, error: msg, jobId: job.id }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // Try google accounts, skipping quota-exhausted ones
     const triedAccountIds: string[] = [];
     while (true) {
       const { data: accounts, error: accErr } = await supabase
@@ -168,11 +167,12 @@ Deno.serve(async (req) => {
       triedAccountIds.push(account.id);
 
       try {
-        const startOp = await callVeoStart(
+        const startOp = await callVeoGenerate(
           account.api_key,
           job.prompt,
           job.character_image,
         );
+
         const op = await pollOperation(account.api_key, startOp.name);
         const videoUri = extractVideoUri(op);
         if (!videoUri) throw new Error("No video URI in operation response");
@@ -182,10 +182,7 @@ Deno.serve(async (req) => {
 
         const { error: upErr } = await supabase.storage
           .from(BUCKET)
-          .upload(fileName, bytes, {
-            contentType: "video/mp4",
-            upsert: true,
-          });
+          .upload(fileName, bytes, { contentType: "video/mp4", upsert: true });
         if (upErr) throw upErr;
 
         await supabase
@@ -220,7 +217,6 @@ Deno.serve(async (req) => {
             .from("google_accounts")
             .update({ status: "esgotada" })
             .eq("id", account.id);
-          // try next account
           continue;
         }
         return await failJob(msg);
@@ -230,10 +226,7 @@ Deno.serve(async (req) => {
     console.error("process-video-job fatal", e);
     return new Response(
       JSON.stringify({ ok: false, error: String(e?.message ?? e) }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
