@@ -291,6 +291,8 @@ function ProducaoPage() {
 }
 
 function NewJobDialog({ onClose }: { onClose: () => void }) {
+  const qc = useQueryClient();
+  const createFn = useServerFn(createVideoJob);
   const [prompt, setPrompt] = useState("");
   const [characterImage, setCharacterImage] = useState("");
   const [flowModel, setFlowModel] = useState<Flow>("fast");
@@ -302,22 +304,25 @@ function NewJobDialog({ onClose }: { onClose: () => void }) {
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("video_jobs").insert({
-      prompt: prompt.trim(),
-      character_image: characterImage.trim() || null,
-      flow_model: flowModel,
-      status: "pronto_para_gerar",
-    });
-    setSaving(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      await createFn({
+        data: {
+          prompt: prompt.trim(),
+          character_image: characterImage.trim() || null,
+          flow_model: flowModel,
+        },
+      });
+      toast.success("Job criado");
+      setPrompt("");
+      setCharacterImage("");
+      setFlowModel("fast");
+      qc.invalidateQueries({ queryKey: ["video_jobs"] });
+      onClose();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setSaving(false);
     }
-    toast.success("Job criado");
-    setPrompt("");
-    setCharacterImage("");
-    setFlowModel("fast");
-    onClose();
   }
 
   return (
