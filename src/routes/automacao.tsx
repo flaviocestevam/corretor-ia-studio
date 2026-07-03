@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -9,6 +9,7 @@ import {
   markAccountExhausted,
   getProductionMetrics,
 } from "@/lib/automacao.functions";
+import { triggerProcessVideoJob } from "@/lib/process-video-job.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,6 +52,23 @@ function AutomacaoPage() {
   const listFn = useServerFn(listGoogleAccounts);
   const activeFn = useServerFn(markAccountActive);
   const exhaustedFn = useServerFn(markAccountExhausted);
+
+  const triggerFn = useServerFn(triggerProcessVideoJob);
+
+  useEffect(() => {
+    let cancelled = false;
+    const tick = () => {
+      triggerFn().catch(() => {}).finally(() => {
+        if (!cancelled) qc.invalidateQueries({ queryKey: ["production_metrics"] });
+      });
+    };
+    tick();
+    const id = setInterval(tick, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [triggerFn, qc]);
 
   const { data: metrics } = useQuery({
     queryKey: ["production_metrics"],
