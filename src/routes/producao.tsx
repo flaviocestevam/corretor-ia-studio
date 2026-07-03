@@ -107,31 +107,15 @@ function ProducaoPage() {
   const [flowFilter, setFlowFilter] = useState<"all" | Flow>("all");
   const [openNew, setOpenNew] = useState(false);
 
+  const listFn = useServerFn(listVideoJobs);
+  const reprocessFn = useServerFn(reprocessVideoJob);
+  const approveFn = useServerFn(approveVideoJob);
+
   const { data: jobs, isLoading } = useQuery({
     queryKey: ["video_jobs"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("video_jobs")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as VideoJob[];
-    },
+    queryFn: () => listFn(),
+    refetchInterval: 5000,
   });
-
-  useEffect(() => {
-    const channel = supabase
-      .channel("video_jobs_changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "video_jobs" },
-        () => qc.invalidateQueries({ queryKey: ["video_jobs"] }),
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [qc]);
 
   const filtered = useMemo(() => {
     return (jobs ?? []).filter((j) => {
@@ -142,21 +126,23 @@ function ProducaoPage() {
   }, [jobs, statusFilter, flowFilter]);
 
   async function reprocess(id: string) {
-    const { error } = await supabase
-      .from("video_jobs")
-      .update({ status: "pronto_para_gerar", attempts: 0 })
-      .eq("id", id);
-    if (error) toast.error(error.message);
-    else toast.success("Job enviado para reprocessamento");
+    try {
+      await reprocessFn({ data: { id } });
+      toast.success("Job enviado para reprocessamento");
+      qc.invalidateQueries({ queryKey: ["video_jobs"] });
+    } catch (e: any) {
+      toast.error(e.message);
+    }
   }
 
   async function approve(id: string) {
-    const { error } = await supabase
-      .from("video_jobs")
-      .update({ status: "aprovado" })
-      .eq("id", id);
-    if (error) toast.error(error.message);
-    else toast.success("Job aprovado");
+    try {
+      await approveFn({ data: { id } });
+      toast.success("Job aprovado");
+      qc.invalidateQueries({ queryKey: ["video_jobs"] });
+    } catch (e: any) {
+      toast.error(e.message);
+    }
   }
 
   return (
