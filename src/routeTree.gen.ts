@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProducaoRouteImport } from './routes/producao'
+import { Route as AutomacaoRouteImport } from './routes/automacao'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjetosIndexRouteImport } from './routes/projetos.index'
 import { Route as PersonagensIndexRouteImport } from './routes/personagens.index'
@@ -26,6 +27,11 @@ import { Route as AnimaisIdRouteImport } from './routes/animais.$id'
 const ProducaoRoute = ProducaoRouteImport.update({
   id: '/producao',
   path: '/producao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AutomacaoRoute = AutomacaoRouteImport.update({
+  id: '/automacao',
+  path: '/automacao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -91,6 +97,7 @@ const AnimaisIdRoute = AnimaisIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/automacao': typeof AutomacaoRoute
   '/producao': typeof ProducaoRoute
   '/animais/$id': typeof AnimaisIdRoute
   '/animais/novo': typeof AnimaisNovoRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/automacao': typeof AutomacaoRoute
   '/producao': typeof ProducaoRoute
   '/animais/$id': typeof AnimaisIdRoute
   '/animais/novo': typeof AnimaisNovoRoute
@@ -122,6 +130,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/automacao': typeof AutomacaoRoute
   '/producao': typeof ProducaoRoute
   '/animais/$id': typeof AnimaisIdRoute
   '/animais/novo': typeof AnimaisNovoRoute
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/automacao'
     | '/producao'
     | '/animais/$id'
     | '/animais/novo'
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/automacao'
     | '/producao'
     | '/animais/$id'
     | '/animais/novo'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/automacao'
     | '/producao'
     | '/animais/$id'
     | '/animais/novo'
@@ -185,6 +197,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AutomacaoRoute: typeof AutomacaoRoute
   ProducaoRoute: typeof ProducaoRoute
   AnimaisIdRoute: typeof AnimaisIdRoute
   AnimaisNovoRoute: typeof AnimaisNovoRoute
@@ -206,6 +219,13 @@ declare module '@tanstack/react-router' {
       path: '/producao'
       fullPath: '/producao'
       preLoaderRoute: typeof ProducaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/automacao': {
+      id: '/automacao'
+      path: '/automacao'
+      fullPath: '/automacao'
+      preLoaderRoute: typeof AutomacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -297,6 +317,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AutomacaoRoute: AutomacaoRoute,
   ProducaoRoute: ProducaoRoute,
   AnimaisIdRoute: AnimaisIdRoute,
   AnimaisNovoRoute: AnimaisNovoRoute,
