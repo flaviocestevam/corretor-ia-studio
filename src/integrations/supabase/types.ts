@@ -137,6 +137,42 @@ export type Database = {
         }
         Relationships: []
       }
+      google_accounts: {
+        Row: {
+          api_key: string
+          created_at: string
+          credits_used: number
+          email: string
+          id: string
+          last_used_at: string | null
+          reset_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          api_key: string
+          created_at?: string
+          credits_used?: number
+          email: string
+          id?: string
+          last_used_at?: string | null
+          reset_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string
+          created_at?: string
+          credits_used?: number
+          email?: string
+          id?: string
+          last_used_at?: string | null
+          reset_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           animal_id: string | null
@@ -274,6 +310,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      video_jobs: {
+        Row: {
+          attempts: number
+          character_image: string | null
+          created_at: string
+          error_screenshot: string | null
+          file_name: string | null
+          flow_model: string
+          google_account: string | null
+          id: string
+          project_id: string | null
+          prompt: string
+          property_images: Json
+          scene_id: string | null
+          status: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          attempts?: number
+          character_image?: string | null
+          created_at?: string
+          error_screenshot?: string | null
+          file_name?: string | null
+          flow_model?: string
+          google_account?: string | null
+          id?: string
+          project_id?: string | null
+          prompt: string
+          property_images?: Json
+          scene_id?: string | null
+          status?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          attempts?: number
+          character_image?: string | null
+          created_at?: string
+          error_screenshot?: string | null
+          file_name?: string | null
+          flow_model?: string
+          google_account?: string | null
+          id?: string
+          project_id?: string | null
+          prompt?: string
+          property_images?: Json
+          scene_id?: string | null
+          status?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
