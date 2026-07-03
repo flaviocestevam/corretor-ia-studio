@@ -11,13 +11,7 @@ export const triggerProcessVideoJob = createServerFn({ method: "POST" }).handler
       },
       body: "{}",
     });
-    const text = await res.text();
-    let body: unknown = text;
-    try {
-      body = JSON.parse(text);
-    } catch {
-      // keep text
-    }
+    const body = await res.text();
     return { status: res.status, body };
   },
 );
