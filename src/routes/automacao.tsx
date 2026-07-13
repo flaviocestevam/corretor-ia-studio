@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -7,12 +7,9 @@ import {
   createGoogleAccount,
   markAccountActive,
   markAccountExhausted,
-  getProductionMetrics,
 } from "@/lib/automacao.functions";
-import { triggerProcessVideoJob } from "@/lib/process-video-job.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -31,14 +28,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Clock, Loader2, CheckCircle2, AlertTriangle, TrendingUp } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/automacao")({
   head: () => ({
     meta: [
-      { title: "Central de Automação — Corretor IA Studio" },
-      { name: "description", content: "Métricas de produção e contas Google." },
+      { title: "Contas Google — Corretor IA Studio" },
+      { name: "description", content: "Gestão de contas Google usadas na geração de imagens." },
     ],
   }),
   component: AutomacaoPage,
@@ -48,38 +45,14 @@ function AutomacaoPage() {
   const qc = useQueryClient();
   const [openNew, setOpenNew] = useState(false);
 
-  const metricsFn = useServerFn(getProductionMetrics);
   const listFn = useServerFn(listGoogleAccounts);
   const activeFn = useServerFn(markAccountActive);
   const exhaustedFn = useServerFn(markAccountExhausted);
 
-  const triggerFn = useServerFn(triggerProcessVideoJob);
-
-  useEffect(() => {
-    let cancelled = false;
-    const tick = () => {
-      triggerFn().catch(() => {}).finally(() => {
-        if (!cancelled) qc.invalidateQueries({ queryKey: ["production_metrics"] });
-      });
-    };
-    tick();
-    const id = setInterval(tick, 60_000);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, [triggerFn, qc]);
-
-  const { data: metrics } = useQuery({
-    queryKey: ["production_metrics"],
-    queryFn: () => metricsFn(),
-    refetchInterval: 5000,
-  });
-
   const { data: accounts, isLoading } = useQuery({
     queryKey: ["google_accounts"],
     queryFn: () => listFn(),
-    refetchInterval: 5000,
+    refetchInterval: 10000,
   });
 
   async function setActive(id: string) {
@@ -105,52 +78,16 @@ function AutomacaoPage() {
   return (
     <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Central de Automação</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Contas Google</h1>
         <p className="text-muted-foreground mt-1">
-          Métricas de produção e gestão das contas Google.
+          Chaves de API usadas para gerar imagens de personagens e cenas. Quando uma conta
+          esgota o crédito, marque como esgotada e adicione outra.
         </p>
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Métricas de produção</h2>
-        <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-          <MetricCard
-            label="Aguardando"
-            value={metrics?.waiting ?? 0}
-            icon={Clock}
-            tone="text-blue-500"
-          />
-          <MetricCard
-            label="Em geração"
-            value={metrics?.generating ?? 0}
-            icon={Loader2}
-            tone="text-yellow-500"
-            spinning={(metrics?.generating ?? 0) > 0}
-          />
-          <MetricCard
-            label="Concluídos hoje"
-            value={metrics?.completedToday ?? 0}
-            icon={CheckCircle2}
-            tone="text-green-500"
-          />
-          <MetricCard
-            label="Com erro"
-            value={metrics?.errored ?? 0}
-            icon={AlertTriangle}
-            tone="text-red-500"
-          />
-          <MetricCard
-            label="Total no mês"
-            value={metrics?.totalThisMonth ?? 0}
-            icon={TrendingUp}
-            tone="text-purple-500"
-          />
-        </div>
-      </section>
-
-      <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Contas Google</h2>
+          <h2 className="text-lg font-semibold">Suas contas</h2>
           <Dialog open={openNew} onOpenChange={setOpenNew}>
             <DialogTrigger asChild>
               <Button>
@@ -231,32 +168,6 @@ function AutomacaoPage() {
         </div>
       </section>
     </div>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  icon: Icon,
-  tone,
-  spinning,
-}: {
-  label: string;
-  value: number;
-  icon: React.ComponentType<{ className?: string }>;
-  tone: string;
-  spinning?: boolean;
-}) {
-  return (
-    <Card>
-      <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <Icon className={`h-4 w-4 ${tone} ${spinning ? "animate-spin" : ""}`} />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-      </CardContent>
-    </Card>
   );
 }
 
