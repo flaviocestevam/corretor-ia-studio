@@ -547,6 +547,8 @@ function SceneCard({
   onMoveDown,
   onRemove,
   onChange,
+  onFullRun,
+  autoRunning,
 }: {
   scene: Scene;
   character: Character | null;
@@ -561,6 +563,8 @@ function SceneCard({
   onMoveDown: () => void;
   onRemove: () => void;
   onChange: () => void;
+  onFullRun: () => Promise<void>;
+  autoRunning: boolean;
 }) {
 
   const genHooks = useServerFn(generateHooks);
