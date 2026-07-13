@@ -780,6 +780,20 @@ function SceneCard({
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {mode !== "skip" && scene.status !== "aprovado" && (
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 flex items-center justify-between gap-3 flex-wrap">
+            <div className="text-sm">
+              <div className="font-semibold">⚡ Automático</div>
+              <div className="text-xs text-muted-foreground">
+                Gera tudo que falta (imagem{mode === "character" ? isFirst ? " + hook + prompt" : " + roteiro + prompt" : ""}) em 1 clique. Você só revisa e aprova.
+              </div>
+            </div>
+            <Button size="sm" onClick={onFullRun} disabled={busy || autoRunning}>
+              {autoRunning ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Sparkles className="mr-1.5 h-4 w-4" />}
+              {autoRunning ? "Gerando..." : "Gerar cena inteira"}
+            </Button>
+          </div>
+        )}
         {lastError && (
           <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm flex items-start justify-between gap-3 flex-wrap">
             <div className="min-w-0">
