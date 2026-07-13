@@ -180,8 +180,8 @@ function ProjectDetail() {
     lines.push(`ROTEIRO — ${data.project.name}`);
     lines.push(`Personagem: ${data.character?.name ?? "(sem personagem)"}`);
     lines.push("");
-    data.scenes.forEach((s, i) => {
-      lines.push(`━━━ Cena ${i + 1} — ${s.room_name} ━━━`);
+    data.scenes.forEach((s) => {
+      lines.push(`━━━ Cena ${s.scene_order} — ${s.room_name} ━━━`);
       if (s.selected_hook) lines.push(`Hook: ${s.selected_hook}`);
       if (s.selected_script) lines.push(`Roteiro: ${s.selected_script}`);
       if (s.video_prompt) {
