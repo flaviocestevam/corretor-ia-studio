@@ -459,6 +459,19 @@ function ProjectDetail() {
               onMoveDown={() => moveScene(s.id, 1)}
               onRemove={() => removeScene(s.id)}
               onChange={refresh}
+              onFullRun={async () => {
+                setAutoRunning(s.id);
+                try {
+                  await runFullScene(s.id);
+                  toast.success("Cena gerada — revise e aprove");
+                } catch (e) {
+                  toast.error((e as Error).message);
+                } finally {
+                  setAutoRunning(null);
+                  refresh();
+                }
+              }}
+              autoRunning={autoRunning === s.id || autoRunning === "project"}
             />
           );
         })}
