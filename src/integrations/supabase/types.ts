@@ -145,8 +145,10 @@ export type Database = {
           email: string
           id: string
           last_used_at: string | null
+          password: string | null
           reset_at: string | null
           status: string
+          storage_state: Json | null
           updated_at: string
         }
         Insert: {
@@ -156,8 +158,10 @@ export type Database = {
           email: string
           id?: string
           last_used_at?: string | null
+          password?: string | null
           reset_at?: string | null
           status?: string
+          storage_state?: Json | null
           updated_at?: string
         }
         Update: {
@@ -167,8 +171,10 @@ export type Database = {
           email?: string
           id?: string
           last_used_at?: string | null
+          password?: string | null
           reset_at?: string | null
           status?: string
+          storage_state?: Json | null
           updated_at?: string
         }
         Relationships: []
@@ -313,6 +319,7 @@ export type Database = {
       }
       video_jobs: {
         Row: {
+          assigned_account: string | null
           attempts: number
           character_image: string | null
           created_at: string
@@ -323,6 +330,7 @@ export type Database = {
           id: string
           project_id: string | null
           prompt: string
+          property_image: string | null
           property_images: Json
           scene_id: string | null
           status: string
@@ -330,6 +338,7 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          assigned_account?: string | null
           attempts?: number
           character_image?: string | null
           created_at?: string
@@ -340,6 +349,7 @@ export type Database = {
           id?: string
           project_id?: string | null
           prompt: string
+          property_image?: string | null
           property_images?: Json
           scene_id?: string | null
           status?: string
@@ -347,6 +357,7 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          assigned_account?: string | null
           attempts?: number
           character_image?: string | null
           created_at?: string
@@ -357,6 +368,7 @@ export type Database = {
           id?: string
           project_id?: string | null
           prompt?: string
+          property_image?: string | null
           property_images?: Json
           scene_id?: string | null
           status?: string
