@@ -77,14 +77,16 @@ function Dashboard() {
       </div>
 
       {(stats?.scenesGenerated ?? 0) > 0 && (
-        <Card className="border-secondary/40 bg-secondary/5">
-          <CardContent className="p-4 flex items-center gap-3 text-sm">
-            <Film className="h-4 w-4 text-secondary-foreground" />
-            <span>
-              <b>{stats?.scenesGenerated}</b> cena(s) já com imagem gerada, esperando aprovação.
-            </span>
-          </CardContent>
-        </Card>
+        <Link to="/projetos">
+          <Card className="border-secondary/40 bg-secondary/5 hover:bg-secondary/10 transition">
+            <CardContent className="p-4 flex items-center gap-3 text-sm">
+              <Film className="h-4 w-4 text-secondary-foreground" />
+              <span>
+                <b>{stats?.scenesGenerated}</b> cena(s) já com imagem gerada, esperando aprovação. Clique para ver os projetos.
+              </span>
+            </CardContent>
+          </Card>
+        </Link>
       )}
 
       <div>
