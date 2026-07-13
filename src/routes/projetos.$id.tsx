@@ -1147,7 +1147,7 @@ function SceneCard({
                     meio_corpo: "🎯 Da cintura pra cima — equilibra pessoa e ambiente.",
                     corpo_inteiro: "🧍 Pessoa inteira, dos pés à cabeça.",
                     plano_aberto: "🏠 Tour imobiliário: cômodo domina, pessoa pequena ao fundo.",
-                  }[(scene.camera_framing ?? "corpo_inteiro") as "auto" | "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto"]}
+                  }[(scene.camera_framing ?? defaultFraming) as "auto" | "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto"]}
                 </div>
               </div>
 
