@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, FolderKanban, Plus, Sparkles, Building2, PawPrint, ListVideo, Zap } from "lucide-react";
+import { LayoutDashboard, Users, FolderKanban, Plus, Sparkles, Building2, PawPrint, Zap } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
