@@ -390,7 +390,7 @@ export const generateSceneImage = createServerFn({ method: "POST" })
       .map((r, i) => `IMAGEM ${i + 2} = ${r.label}`)
       .join("\n");
 
-    const framingKey = ((scene as any).camera_framing ?? "corpo_inteiro") as Framing;
+    const framingKey = ((scene as any).camera_framing ?? "auto") as Framing;
 
     const imagePrompt = buildImagePrompt({
       character: {
