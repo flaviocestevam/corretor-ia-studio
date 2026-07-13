@@ -99,19 +99,26 @@ function ProjectDetail() {
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["project", id] });
 
+  const [reordering, setReordering] = useState(false);
+
   async function moveScene(sceneId: string, dir: -1 | 1) {
-    if (!data) return;
+    if (!data || reordering) return;
     const arr = [...data.scenes];
     const idx = arr.findIndex((x) => x.id === sceneId);
     const target = idx + dir;
     if (idx < 0 || target < 0 || target >= arr.length) return;
     const a = arr[idx], b = arr[target];
-    const [r1, r2] = await Promise.all([
-      supabase.from("scenes").update({ scene_order: b.scene_order }).eq("id", a.id),
-      supabase.from("scenes").update({ scene_order: a.scene_order }).eq("id", b.id),
-    ]);
-    if (r1.error || r2.error) toast.error("Falha ao reordenar — recarregue a página");
-    refresh();
+    setReordering(true);
+    try {
+      const [r1, r2] = await Promise.all([
+        supabase.from("scenes").update({ scene_order: b.scene_order }).eq("id", a.id),
+        supabase.from("scenes").update({ scene_order: a.scene_order }).eq("id", b.id),
+      ]);
+      if (r1.error || r2.error) toast.error("Falha ao reordenar — recarregue a página");
+    } finally {
+      await qc.invalidateQueries({ queryKey: ["project", id] });
+      setReordering(false);
+    }
   }
 
   async function removeScene(sceneId: string) {
