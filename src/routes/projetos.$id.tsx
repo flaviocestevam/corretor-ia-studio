@@ -221,13 +221,15 @@ function ProjectDetail() {
 
     if (mode === "skip" || scene.status === "aprovado") return;
 
+    const projectMood = ((data.project as any).default_music_mood ?? "sofisticado") as "aconchegante" | "sofisticado" | "energetico";
+
     // TOURS: um clique só faz tudo
     if (mode === "room_tour") {
-      await genTourFn({ data: { sceneId, musicMood: "sofisticado" } });
+      await genTourFn({ data: { sceneId, musicMood: projectMood } });
       return;
     }
     if (mode === "animal_tour") {
-      await genAnimalTourFn({ data: { sceneId, musicMood: "sofisticado" } });
+      await genAnimalTourFn({ data: { sceneId, musicMood: projectMood } });
       return;
     }
 
