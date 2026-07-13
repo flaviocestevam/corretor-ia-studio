@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ProducaoRouteImport } from './routes/producao'
 import { Route as AutomacaoRouteImport } from './routes/automacao'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjetosIndexRouteImport } from './routes/projetos.index'
@@ -24,11 +23,6 @@ import { Route as ClientesIdRouteImport } from './routes/clientes.$id'
 import { Route as AnimaisNovoRouteImport } from './routes/animais.novo'
 import { Route as AnimaisIdRouteImport } from './routes/animais.$id'
 
-const ProducaoRoute = ProducaoRouteImport.update({
-  id: '/producao',
-  path: '/producao',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AutomacaoRoute = AutomacaoRouteImport.update({
   id: '/automacao',
   path: '/automacao',
@@ -98,7 +92,6 @@ const AnimaisIdRoute = AnimaisIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/automacao': typeof AutomacaoRoute
-  '/producao': typeof ProducaoRoute
   '/animais/$id': typeof AnimaisIdRoute
   '/animais/novo': typeof AnimaisNovoRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -114,7 +107,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/automacao': typeof AutomacaoRoute
-  '/producao': typeof ProducaoRoute
   '/animais/$id': typeof AnimaisIdRoute
   '/animais/novo': typeof AnimaisNovoRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -131,7 +123,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/automacao': typeof AutomacaoRoute
-  '/producao': typeof ProducaoRoute
   '/animais/$id': typeof AnimaisIdRoute
   '/animais/novo': typeof AnimaisNovoRoute
   '/clientes/$id': typeof ClientesIdRoute
@@ -149,7 +140,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/automacao'
-    | '/producao'
     | '/animais/$id'
     | '/animais/novo'
     | '/clientes/$id'
@@ -165,7 +155,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/automacao'
-    | '/producao'
     | '/animais/$id'
     | '/animais/novo'
     | '/clientes/$id'
@@ -181,7 +170,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/automacao'
-    | '/producao'
     | '/animais/$id'
     | '/animais/novo'
     | '/clientes/$id'
@@ -198,7 +186,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AutomacaoRoute: typeof AutomacaoRoute
-  ProducaoRoute: typeof ProducaoRoute
   AnimaisIdRoute: typeof AnimaisIdRoute
   AnimaisNovoRoute: typeof AnimaisNovoRoute
   ClientesIdRoute: typeof ClientesIdRoute
@@ -214,13 +201,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/producao': {
-      id: '/producao'
-      path: '/producao'
-      fullPath: '/producao'
-      preLoaderRoute: typeof ProducaoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/automacao': {
       id: '/automacao'
       path: '/automacao'
@@ -318,7 +298,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AutomacaoRoute: AutomacaoRoute,
-  ProducaoRoute: ProducaoRoute,
   AnimaisIdRoute: AnimaisIdRoute,
   AnimaisNovoRoute: AnimaisNovoRoute,
   ClientesIdRoute: ClientesIdRoute,
@@ -334,13 +313,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

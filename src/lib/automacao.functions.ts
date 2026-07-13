@@ -11,14 +11,6 @@ export type GoogleAccount = {
   created_at: string;
 };
 
-export type ProductionMetrics = {
-  waiting: number;
-  generating: number;
-  completedToday: number;
-  errored: number;
-  totalThisMonth: number;
-};
-
 export const listGoogleAccounts = createServerFn({ method: "GET" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
@@ -72,28 +64,3 @@ export const markAccountExhausted = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
-
-export const getProductionMetrics = createServerFn({ method: "GET" }).handler(async () => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-
-  const countBy = async (filter: (q: any) => any) => {
-    const { count, error } = await filter(
-      supabaseAdmin.from("video_jobs").select("id", { count: "exact", head: true }),
-    );
-    if (error) throw new Error(error.message);
-    return count ?? 0;
-  };
-
-  const [waiting, generating, completedToday, errored, totalThisMonth] = await Promise.all([
-    countBy((q) => q.eq("status", "pronto_para_gerar")),
-    countBy((q) => q.eq("status", "em_geracao")),
-    countBy((q) => q.eq("status", "gerado").gte("created_at", startOfDay)),
-    countBy((q) => q.eq("status", "erro")),
-    countBy((q) => q.eq("status", "gerado").gte("created_at", startOfMonth)),
-  ]);
-
-  return { waiting, generating, completedToday, errored, totalThisMonth } as ProductionMetrics;
-});
