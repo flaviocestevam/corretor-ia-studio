@@ -60,6 +60,15 @@ function ProjectDetail() {
   const qc = useQueryClient();
   const [showOnlyPending, setShowOnlyPending] = useState(false);
   const [addingScene, setAddingScene] = useState(false);
+  const [autoRunning, setAutoRunning] = useState<string | null>(null); // scene id ou "project"
+
+  const genImageFn = useServerFn(generateSceneImage);
+  const genHooksFn = useServerFn(generateHooks);
+  const genScriptsFn = useServerFn(generateScripts);
+  const genVideoPromptFn = useServerFn(generateVideoPrompt);
+  const genTourFn = useServerFn(generateRoomTour);
+  const genAnimalTourFn = useServerFn(generateAnimalTour);
+  const approveFn = useServerFn(approveScene);
 
   const { data, isLoading } = useQuery({
     queryKey: ["project", id],
