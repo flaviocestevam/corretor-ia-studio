@@ -212,7 +212,9 @@ function ProjectDetail() {
     const idx = data.scenes.findIndex((s) => s.id === sceneId);
     const isFirst = idx === 0;
     const isLast = idx === data.scenes.length - 1;
-    const previousScript = idx > 0 ? data.scenes[idx - 1].selected_script : null;
+    // Busca a cena anterior FRESH — evita usar snapshot desatualizado
+    // quando runFullProject processa várias cenas em sequência.
+    const previousScript = idx > 0 ? (await fetchScene(data.scenes[idx - 1].id)).selected_script : null;
     const mode: SceneMode = (data.project as any).project_type === "animal_tour"
       ? "animal_tour"
       : (data.project as any).project_type === "tour"
