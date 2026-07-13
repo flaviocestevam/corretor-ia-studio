@@ -196,6 +196,139 @@ function ProjectDetail() {
     toast.success("Roteiro exportado");
   }
 
+  // Refetch da cena atual (evita usar snapshot desatualizado após generateSceneImage etc.)
+  async function fetchScene(sceneId: string): Promise<Scene> {
+    const { data: s, error } = await supabase.from("scenes").select("*").eq("id", sceneId).single();
+    if (error || !s) throw new Error(error?.message ?? "Cena não encontrada");
+    return s as unknown as Scene;
+  }
+
+  // Executa em sequência TUDO que falta pra uma cena (imagem → hook/roteiro → prompt de vídeo).
+  // Auto-escolhe o 1º hook/roteiro gerado. Não aprova (usuário revisa).
+  async function runFullScene(sceneId: string): Promise<void> {
+    if (!data) return;
+    let scene = data.scenes.find((s) => s.id === sceneId);
+    if (!scene) return;
+    const idx = data.scenes.findIndex((s) => s.id === sceneId);
+    const isFirst = idx === 0;
+    const isLast = idx === data.scenes.length - 1;
+    const previousScript = idx > 0 ? data.scenes[idx - 1].selected_script : null;
+    const mode: SceneMode = (data.project as any).project_type === "animal_tour"
+      ? "animal_tour"
+      : (data.project as any).project_type === "tour"
+      ? "room_tour"
+      : ((scene.scene_mode ?? "character") as SceneMode);
+
+    if (mode === "skip" || scene.status === "aprovado") return;
+
+    // TOURS: um clique só faz tudo
+    if (mode === "room_tour") {
+      await genTourFn({ data: { sceneId, musicMood: "sofisticado" } });
+      return;
+    }
+    if (mode === "animal_tour") {
+      await genAnimalTourFn({ data: { sceneId, musicMood: "sofisticado" } });
+      return;
+    }
+
+    // MODO CORRETOR
+    // 1. imagem
+    if (!scene.generated_character_image) {
+      await genImageFn({ data: { sceneId } });
+      scene = await fetchScene(sceneId);
+    }
+    // 2. hook (só 1ª cena) ou roteiro (demais)
+    if (isFirst) {
+      if (!scene.selected_hook) {
+        const hooks: any = await genHooksFn({
+          data: {
+            characterId: data.character?.id ?? "",
+            sceneId,
+            isFirstScene: true,
+            previousSceneScript: null,
+            roomName: scene.room_name,
+          },
+        });
+        const picked = Array.isArray(hooks) ? hooks[0] : (hooks?.[0] ?? null);
+        if (picked) {
+          await supabase.from("scenes")
+            .update({ selected_hook: picked, selected_script: picked.text })
+            .eq("id", sceneId);
+        }
+        scene = await fetchScene(sceneId);
+      }
+    } else {
+      if (!scene.selected_script) {
+        const scripts: any = await genScriptsFn({
+          data: {
+            characterId: data.character?.id ?? "",
+            sceneId,
+            roomName: scene.room_name,
+            selectedHook: scene.selected_hook?.text ?? "",
+            isLastScene: isLast,
+            previousSceneScript: previousScript,
+          },
+        });
+        const first = Array.isArray(scripts) ? scripts[0] : null;
+        if (first) {
+          const ctas = data.character?.ctas ?? [];
+          const cta = isLast
+            ? ctas[Math.floor(Math.random() * Math.max(ctas.length, 1))]?.text ?? "Clica no link da bio."
+            : null;
+          await supabase.from("scenes").update({ selected_script: first, cta }).eq("id", sceneId);
+        }
+        scene = await fetchScene(sceneId);
+      }
+    }
+    // 3. prompt de vídeo
+    if (!scene.video_prompt) {
+      await genVideoPromptFn({ data: { sceneId } });
+    }
+  }
+
+  async function runFullProject() {
+    if (!data) return;
+    const pending = data.scenes.filter((s, i) => {
+      const step = nextStep(s, i === 0);
+      return step?.tone === "todo";
+    });
+    if (pending.length === 0) {
+      toast.info("Nada pra fazer — todas as cenas já estão prontas ou aprovadas");
+      return;
+    }
+    setAutoRunning("project");
+    let ok = 0;
+    let fail = 0;
+    for (const s of pending) {
+      try {
+        await runFullScene(s.id);
+        ok++;
+        refresh();
+      } catch (e) {
+        fail++;
+        toast.error(`Cena "${s.room_name}": ${(e as Error).message}`);
+      }
+    }
+    setAutoRunning(null);
+    refresh();
+    toast.success(`Projeto gerado: ${ok} ok${fail ? `, ${fail} com erro` : ""}`);
+  }
+
+  async function approveAllReady() {
+    if (!data) return;
+    const ready = data.scenes.filter((s) => s.status === "gerado" || (s.video_prompt && s.status !== "aprovado" && s.scene_mode !== "skip"));
+    if (ready.length === 0) {
+      toast.info("Nenhuma cena pronta pra aprovar");
+      return;
+    }
+    let ok = 0;
+    for (const s of ready) {
+      try { await approveFn({ data: { sceneId: s.id } }); ok++; } catch {}
+    }
+    refresh();
+    toast.success(`${ok} cena(s) aprovada(s)`);
+  }
+
   const stats = useMemo(() => {
     const scenes = data?.scenes ?? [];
     const approved = scenes.filter((s) => s.status === "aprovado").length;
