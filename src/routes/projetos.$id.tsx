@@ -197,6 +197,9 @@ function ProjectDetail() {
           <PropertyUrlField projectId={id} initial={(data.project as any).property_url ?? ""} />
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={exportScript}>
+            <FileText className="mr-1.5 h-4 w-4" />Exportar roteiro
+          </Button>
           <Button variant="outline" onClick={downloadAll}>
             <Download className="mr-1.5 h-4 w-4" />Baixar pacote
           </Button>
