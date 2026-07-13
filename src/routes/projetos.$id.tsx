@@ -1233,8 +1233,8 @@ function SceneCard({
                   {loadingImage ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Wand2 className="mr-1.5 h-3.5 w-3.5" />}
                   {scene.generated_character_image ? "Regerar" : "Gerar imagem"}
                 </Button>
-                <label className="inline-flex items-center text-xs cursor-pointer border border-input rounded-md px-2 h-8 hover:bg-muted">
-                  Substituir
+                <label className="inline-flex items-center gap-1.5 text-xs cursor-pointer border border-input rounded-md px-2 h-8 hover:bg-muted" title="Enviar sua própria imagem no lugar da gerada">
+                  <ArrowUp className="h-3.5 w-3.5" />Substituir
                   <input
                     type="file"
                     accept="image/*"
