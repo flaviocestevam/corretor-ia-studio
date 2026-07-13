@@ -165,6 +165,28 @@ function ProjectDetail() {
     toast.success("Pacote baixado");
   }
 
+  function exportScript() {
+    if (!data) return;
+    const lines: string[] = [];
+    lines.push(`ROTEIRO — ${data.project.name}`);
+    lines.push(`Personagem: ${data.character?.name ?? "(sem personagem)"}`);
+    lines.push("");
+    data.scenes.forEach((s, i) => {
+      lines.push(`━━━ Cena ${i + 1} — ${s.room_name} ━━━`);
+      if (s.selected_hook) lines.push(`Hook: ${s.selected_hook}`);
+      if (s.selected_script) lines.push(`Roteiro: ${s.selected_script}`);
+      if (s.video_prompt) {
+        lines.push("");
+        lines.push("Prompt de vídeo (colar no Google Vids):");
+        lines.push(s.video_prompt);
+      }
+      lines.push("");
+    });
+    const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+    saveAs(blob, `${data.project.name}-roteiro.txt`);
+    toast.success("Roteiro exportado");
+  }
+
   const stats = useMemo(() => {
     const scenes = data?.scenes ?? [];
     const approved = scenes.filter((s) => s.status === "aprovado").length;
