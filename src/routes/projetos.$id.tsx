@@ -320,7 +320,7 @@ function ProjectDetail() {
 
   async function approveAllReady() {
     if (!data) return;
-    const ready = data.scenes.filter((s) => s.status === "gerado" || (s.video_prompt && s.status !== "aprovado" && s.scene_mode !== "skip"));
+    const ready = data.scenes.filter((s) => s.status === "gerado" && !!s.generated_character_image && !!s.video_prompt);
     if (ready.length === 0) {
       toast.info("Nenhuma cena pronta pra aprovar");
       return;
