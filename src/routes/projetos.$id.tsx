@@ -530,8 +530,8 @@ function ProjectDetail() {
               previousScript={realIdx > 0 ? data.scenes[realIdx - 1].selected_script : null}
               isFirst={realIdx === 0}
               isLast={realIdx === data.scenes.length - 1}
-              canMoveUp={realIdx > 0}
-              canMoveDown={realIdx < data.scenes.length - 1}
+              canMoveUp={realIdx > 0 && !reordering}
+              canMoveDown={realIdx < data.scenes.length - 1 && !reordering}
               onMoveUp={() => moveScene(s.id, -1)}
               onMoveDown={() => moveScene(s.id, 1)}
               onRemove={() => removeScene(s.id)}
