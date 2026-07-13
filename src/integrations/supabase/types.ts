@@ -185,6 +185,8 @@ export type Database = {
           character_id: string | null
           client_id: string
           created_at: string
+          default_camera_framing: string
+          default_music_mood: string
           id: string
           name: string
           project_type: string
@@ -196,6 +198,8 @@ export type Database = {
           character_id?: string | null
           client_id: string
           created_at?: string
+          default_camera_framing?: string
+          default_music_mood?: string
           id?: string
           name: string
           project_type?: string
@@ -207,6 +211,8 @@ export type Database = {
           character_id?: string | null
           client_id?: string
           created_at?: string
+          default_camera_framing?: string
+          default_music_mood?: string
           id?: string
           name?: string
           project_type?: string
