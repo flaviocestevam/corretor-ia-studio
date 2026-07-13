@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -220,7 +220,7 @@ function NovoProjeto() {
               </Select>
               {!animals?.length && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Nenhum animal cadastrado. <a href="/animais/novo" className="text-primary underline">Cadastrar primeiro</a>
+                  Nenhum animal cadastrado. <Link to="/animais/novo" className="text-primary underline">Cadastrar primeiro</Link>
                 </p>
               )}
             </div>
