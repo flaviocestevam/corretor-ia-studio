@@ -1121,7 +1121,7 @@ function SceneCard({
                     { v: "corpo_inteiro", l: "🧍 Corpo inteiro", d: "Pessoa inteira dos pés à cabeça dentro do cômodo" },
                     { v: "plano_aberto", l: "🏠 Plano aberto (Wide)", d: "Cômodo domina, pessoa pequena ao fundo" },
                   ] as const).map((opt) => {
-                    const active = (scene.camera_framing ?? "corpo_inteiro") === opt.v;
+                    const active = (scene.camera_framing ?? defaultFraming) === opt.v;
                     return (
                       <Button
                         key={opt.v}
