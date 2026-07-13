@@ -542,6 +542,8 @@ function SceneCard({
   character,
   isTourProject,
   isAnimalTourProject,
+  defaultMusicMood,
+  defaultFraming,
   previousScript,
   isFirst,
   isLast,
@@ -558,6 +560,8 @@ function SceneCard({
   character: Character | null;
   isTourProject: boolean;
   isAnimalTourProject: boolean;
+  defaultMusicMood: "aconchegante" | "sofisticado" | "energetico";
+  defaultFraming: "auto" | "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto";
   previousScript: string | null;
   isFirst: boolean;
   isLast: boolean;
@@ -584,7 +588,7 @@ function SceneCard({
   const [loadingImage, setLoadingImage] = useState(false);
   const [loadingVideo, setLoadingVideo] = useState(false);
   const [loadingTour, setLoadingTour] = useState(false);
-  const [musicMood, setMusicMood] = useState<"aconchegante" | "sofisticado" | "energetico">("sofisticado");
+  const [musicMood, setMusicMood] = useState<"aconchegante" | "sofisticado" | "energetico">(defaultMusicMood);
   const [lastError, setLastError] = useState<{ label: string; message: string; retry: () => void } | null>(null);
   const busy = loadingHooks || loadingScripts || loadingImage || loadingVideo || loadingTour;
   const mode: SceneMode = isAnimalTourProject
