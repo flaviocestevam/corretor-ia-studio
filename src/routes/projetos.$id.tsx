@@ -442,6 +442,70 @@ function ProjectDetail() {
         </CardContent>
       </Card>
 
+      {/* Padrões do projeto */}
+      <Card>
+        <CardContent className="p-4 space-y-3">
+          <div className="text-sm font-medium">Padrões deste projeto <span className="text-xs text-muted-foreground font-normal">(aplicados quando você usa "Gerar cena inteira" ou não escolhe manualmente)</span></div>
+          <div className="flex gap-4 flex-wrap">
+            <div>
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Trilha padrão</div>
+              <div className="flex gap-1 flex-wrap">
+                {([
+                  { v: "aconchegante", l: "🏡 Aconchegante" },
+                  { v: "sofisticado", l: "✨ Sofisticado" },
+                  { v: "energetico", l: "⚡ Energético" },
+                ] as const).map((opt) => {
+                  const active = ((data.project as any).default_music_mood ?? "sofisticado") === opt.v;
+                  return (
+                    <Button
+                      key={opt.v}
+                      size="sm"
+                      variant={active ? "default" : "outline"}
+                      className="h-7 text-xs px-2"
+                      onClick={async () => {
+                        await supabase.from("projects").update({ default_music_mood: opt.v } as any).eq("id", id);
+                        refresh();
+                      }}
+                    >
+                      {opt.l}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Enquadramento padrão</div>
+              <div className="flex gap-1 flex-wrap">
+                {([
+                  { v: "auto", l: "✨ IA decide" },
+                  { v: "selfie", l: "📱 Selfie" },
+                  { v: "meio_corpo", l: "🎯 Meio corpo" },
+                  { v: "corpo_inteiro", l: "🧍 Corpo inteiro" },
+                  { v: "plano_aberto", l: "🏠 Plano aberto" },
+                ] as const).map((opt) => {
+                  const active = ((data.project as any).default_camera_framing ?? "auto") === opt.v;
+                  return (
+                    <Button
+                      key={opt.v}
+                      size="sm"
+                      variant={active ? "default" : "outline"}
+                      className="h-7 text-xs px-2"
+                      onClick={async () => {
+                        await supabase.from("projects").update({ default_camera_framing: opt.v } as any).eq("id", id);
+                        refresh();
+                      }}
+                    >
+                      {opt.l}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+
       <div className="space-y-4">
         {visibleScenes.map((s) => {
           const realIdx = data.scenes.findIndex((x) => x.id === s.id);
