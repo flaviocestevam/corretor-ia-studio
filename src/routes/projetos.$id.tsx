@@ -452,6 +452,8 @@ function ProjectDetail() {
               character={data.character}
               isTourProject={(data.project as any).project_type === "tour"}
               isAnimalTourProject={(data.project as any).project_type === "animal_tour"}
+              defaultMusicMood={((data.project as any).default_music_mood ?? "sofisticado") as "aconchegante" | "sofisticado" | "energetico"}
+              defaultFraming={((data.project as any).default_camera_framing ?? "auto") as "auto" | "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto"}
               previousScript={realIdx > 0 ? data.scenes[realIdx - 1].selected_script : null}
               isFirst={realIdx === 0}
               isLast={realIdx === data.scenes.length - 1}
