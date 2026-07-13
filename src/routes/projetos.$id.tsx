@@ -391,9 +391,29 @@ function ProjectDetail() {
               Progresso: <span className="text-primary">{stats.approved}</span> / {stats.total} cenas aprovadas
             </div>
             <div className="flex gap-2 flex-wrap">
+              {stats.pending > 0 && (
+                <Button
+                  size="sm"
+                  onClick={runFullProject}
+                  disabled={autoRunning !== null}
+                >
+                  {autoRunning === "project" ? (
+                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="mr-1.5 h-4 w-4" />
+                  )}
+                  {autoRunning === "project" ? "Gerando..." : `Gerar projeto inteiro (${stats.pending})`}
+                </Button>
+              )}
+              {stats.generated > 0 && (
+                <Button size="sm" variant="outline" onClick={approveAllReady} disabled={autoRunning !== null}>
+                  <Check className="mr-1.5 h-4 w-4" />Aprovar todas prontas ({stats.generated})
+                </Button>
+              )}
               {stats.firstPending && (
                 <Button
                   size="sm"
+                  variant="ghost"
                   onClick={() => {
                     const el = document.getElementById(`scene-${stats.firstPending!.id}`);
                     el?.scrollIntoView({ behavior: "smooth", block: "start" });
