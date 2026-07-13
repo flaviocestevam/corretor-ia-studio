@@ -221,13 +221,15 @@ function ProjectDetail() {
 
     if (mode === "skip" || scene.status === "aprovado") return;
 
+    const projectMood = ((data.project as any).default_music_mood ?? "sofisticado") as "aconchegante" | "sofisticado" | "energetico";
+
     // TOURS: um clique só faz tudo
     if (mode === "room_tour") {
-      await genTourFn({ data: { sceneId, musicMood: "sofisticado" } });
+      await genTourFn({ data: { sceneId, musicMood: projectMood } });
       return;
     }
     if (mode === "animal_tour") {
-      await genAnimalTourFn({ data: { sceneId, musicMood: "sofisticado" } });
+      await genAnimalTourFn({ data: { sceneId, musicMood: projectMood } });
       return;
     }
 
@@ -440,6 +442,70 @@ function ProjectDetail() {
         </CardContent>
       </Card>
 
+      {/* Padrões do projeto */}
+      <Card>
+        <CardContent className="p-4 space-y-3">
+          <div className="text-sm font-medium">Padrões deste projeto <span className="text-xs text-muted-foreground font-normal">(aplicados quando você usa "Gerar cena inteira" ou não escolhe manualmente)</span></div>
+          <div className="flex gap-4 flex-wrap">
+            <div>
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Trilha padrão</div>
+              <div className="flex gap-1 flex-wrap">
+                {([
+                  { v: "aconchegante", l: "🏡 Aconchegante" },
+                  { v: "sofisticado", l: "✨ Sofisticado" },
+                  { v: "energetico", l: "⚡ Energético" },
+                ] as const).map((opt) => {
+                  const active = ((data.project as any).default_music_mood ?? "sofisticado") === opt.v;
+                  return (
+                    <Button
+                      key={opt.v}
+                      size="sm"
+                      variant={active ? "default" : "outline"}
+                      className="h-7 text-xs px-2"
+                      onClick={async () => {
+                        await supabase.from("projects").update({ default_music_mood: opt.v } as any).eq("id", id);
+                        refresh();
+                      }}
+                    >
+                      {opt.l}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Enquadramento padrão</div>
+              <div className="flex gap-1 flex-wrap">
+                {([
+                  { v: "auto", l: "✨ IA decide" },
+                  { v: "selfie", l: "📱 Selfie" },
+                  { v: "meio_corpo", l: "🎯 Meio corpo" },
+                  { v: "corpo_inteiro", l: "🧍 Corpo inteiro" },
+                  { v: "plano_aberto", l: "🏠 Plano aberto" },
+                ] as const).map((opt) => {
+                  const active = ((data.project as any).default_camera_framing ?? "auto") === opt.v;
+                  return (
+                    <Button
+                      key={opt.v}
+                      size="sm"
+                      variant={active ? "default" : "outline"}
+                      className="h-7 text-xs px-2"
+                      onClick={async () => {
+                        await supabase.from("projects").update({ default_camera_framing: opt.v } as any).eq("id", id);
+                        refresh();
+                      }}
+                    >
+                      {opt.l}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+
       <div className="space-y-4">
         {visibleScenes.map((s) => {
           const realIdx = data.scenes.findIndex((x) => x.id === s.id);
@@ -450,6 +516,8 @@ function ProjectDetail() {
               character={data.character}
               isTourProject={(data.project as any).project_type === "tour"}
               isAnimalTourProject={(data.project as any).project_type === "animal_tour"}
+              defaultMusicMood={((data.project as any).default_music_mood ?? "sofisticado") as "aconchegante" | "sofisticado" | "energetico"}
+              defaultFraming={((data.project as any).default_camera_framing ?? "auto") as "auto" | "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto"}
               previousScript={realIdx > 0 ? data.scenes[realIdx - 1].selected_script : null}
               isFirst={realIdx === 0}
               isLast={realIdx === data.scenes.length - 1}
@@ -538,6 +606,8 @@ function SceneCard({
   character,
   isTourProject,
   isAnimalTourProject,
+  defaultMusicMood,
+  defaultFraming,
   previousScript,
   isFirst,
   isLast,
@@ -554,6 +624,8 @@ function SceneCard({
   character: Character | null;
   isTourProject: boolean;
   isAnimalTourProject: boolean;
+  defaultMusicMood: "aconchegante" | "sofisticado" | "energetico";
+  defaultFraming: "auto" | "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto";
   previousScript: string | null;
   isFirst: boolean;
   isLast: boolean;
@@ -580,7 +652,7 @@ function SceneCard({
   const [loadingImage, setLoadingImage] = useState(false);
   const [loadingVideo, setLoadingVideo] = useState(false);
   const [loadingTour, setLoadingTour] = useState(false);
-  const [musicMood, setMusicMood] = useState<"aconchegante" | "sofisticado" | "energetico">("sofisticado");
+  const [musicMood, setMusicMood] = useState<"aconchegante" | "sofisticado" | "energetico">(defaultMusicMood);
   const [lastError, setLastError] = useState<{ label: string; message: string; retry: () => void } | null>(null);
   const busy = loadingHooks || loadingScripts || loadingImage || loadingVideo || loadingTour;
   const mode: SceneMode = isAnimalTourProject
@@ -1113,7 +1185,7 @@ function SceneCard({
                     { v: "corpo_inteiro", l: "🧍 Corpo inteiro", d: "Pessoa inteira dos pés à cabeça dentro do cômodo" },
                     { v: "plano_aberto", l: "🏠 Plano aberto (Wide)", d: "Cômodo domina, pessoa pequena ao fundo" },
                   ] as const).map((opt) => {
-                    const active = (scene.camera_framing ?? "corpo_inteiro") === opt.v;
+                    const active = (scene.camera_framing ?? defaultFraming) === opt.v;
                     return (
                       <Button
                         key={opt.v}
@@ -1139,7 +1211,7 @@ function SceneCard({
                     meio_corpo: "🎯 Da cintura pra cima — equilibra pessoa e ambiente.",
                     corpo_inteiro: "🧍 Pessoa inteira, dos pés à cabeça.",
                     plano_aberto: "🏠 Tour imobiliário: cômodo domina, pessoa pequena ao fundo.",
-                  }[(scene.camera_framing ?? "corpo_inteiro") as "auto" | "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto"]}
+                  }[(scene.camera_framing ?? defaultFraming) as "auto" | "selfie" | "meio_corpo" | "corpo_inteiro" | "plano_aberto"]}
                 </div>
               </div>
 
