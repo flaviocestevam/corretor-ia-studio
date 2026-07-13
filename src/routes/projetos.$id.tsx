@@ -99,19 +99,26 @@ function ProjectDetail() {
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["project", id] });
 
+  const [reordering, setReordering] = useState(false);
+
   async function moveScene(sceneId: string, dir: -1 | 1) {
-    if (!data) return;
+    if (!data || reordering) return;
     const arr = [...data.scenes];
     const idx = arr.findIndex((x) => x.id === sceneId);
     const target = idx + dir;
     if (idx < 0 || target < 0 || target >= arr.length) return;
     const a = arr[idx], b = arr[target];
-    const [r1, r2] = await Promise.all([
-      supabase.from("scenes").update({ scene_order: b.scene_order }).eq("id", a.id),
-      supabase.from("scenes").update({ scene_order: a.scene_order }).eq("id", b.id),
-    ]);
-    if (r1.error || r2.error) toast.error("Falha ao reordenar — recarregue a página");
-    refresh();
+    setReordering(true);
+    try {
+      const [r1, r2] = await Promise.all([
+        supabase.from("scenes").update({ scene_order: b.scene_order }).eq("id", a.id),
+        supabase.from("scenes").update({ scene_order: a.scene_order }).eq("id", b.id),
+      ]);
+      if (r1.error || r2.error) toast.error("Falha ao reordenar — recarregue a página");
+    } finally {
+      await qc.invalidateQueries({ queryKey: ["project", id] });
+      setReordering(false);
+    }
   }
 
   async function removeScene(sceneId: string) {
@@ -180,8 +187,8 @@ function ProjectDetail() {
     lines.push(`ROTEIRO — ${data.project.name}`);
     lines.push(`Personagem: ${data.character?.name ?? "(sem personagem)"}`);
     lines.push("");
-    data.scenes.forEach((s, i) => {
-      lines.push(`━━━ Cena ${i + 1} — ${s.room_name} ━━━`);
+    data.scenes.forEach((s) => {
+      lines.push(`━━━ Cena ${s.scene_order} — ${s.room_name} ━━━`);
       if (s.selected_hook) lines.push(`Hook: ${s.selected_hook}`);
       if (s.selected_script) lines.push(`Roteiro: ${s.selected_script}`);
       if (s.video_prompt) {
@@ -212,7 +219,9 @@ function ProjectDetail() {
     const idx = data.scenes.findIndex((s) => s.id === sceneId);
     const isFirst = idx === 0;
     const isLast = idx === data.scenes.length - 1;
-    const previousScript = idx > 0 ? data.scenes[idx - 1].selected_script : null;
+    // Busca a cena anterior FRESH — evita usar snapshot desatualizado
+    // quando runFullProject processa várias cenas em sequência.
+    const previousScript = idx > 0 ? (await fetchScene(data.scenes[idx - 1].id)).selected_script : null;
     const mode: SceneMode = (data.project as any).project_type === "animal_tour"
       ? "animal_tour"
       : (data.project as any).project_type === "tour"
@@ -318,7 +327,7 @@ function ProjectDetail() {
 
   async function approveAllReady() {
     if (!data) return;
-    const ready = data.scenes.filter((s) => s.status === "gerado" || (s.video_prompt && s.status !== "aprovado" && s.scene_mode !== "skip"));
+    const ready = data.scenes.filter((s) => s.status === "gerado" && !!s.generated_character_image && !!s.video_prompt);
     if (ready.length === 0) {
       toast.info("Nenhuma cena pronta pra aprovar");
       return;
@@ -521,8 +530,8 @@ function ProjectDetail() {
               previousScript={realIdx > 0 ? data.scenes[realIdx - 1].selected_script : null}
               isFirst={realIdx === 0}
               isLast={realIdx === data.scenes.length - 1}
-              canMoveUp={realIdx > 0}
-              canMoveDown={realIdx < data.scenes.length - 1}
+              canMoveUp={realIdx > 0 && !reordering}
+              canMoveDown={realIdx < data.scenes.length - 1 && !reordering}
               onMoveUp={() => moveScene(s.id, -1)}
               onMoveDown={() => moveScene(s.id, 1)}
               onRemove={() => removeScene(s.id)}
